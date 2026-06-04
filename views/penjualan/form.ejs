@@ -1,0 +1,208 @@
+<%
+function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
+%>
+<%- include('../partials/top', { title, activePage }) %>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div></div>
+  <a href="/penjualan" class="btn btn-secondary btn-sm"><i class="bi bi-arrow-left"></i> Kembali</a>
+</div>
+
+<div class="row g-3">
+  <!-- LEFT: Info Transaksi -->
+  <div class="col-md-4">
+    <div class="card p-3">
+      <h6 class="mb-3">Info Transaksi</h6>
+      <div class="mb-3">
+        <label class="form-label small">Pelanggan</label>
+        <select class="form-select" id="pelanggan_id">
+          <option value="">-- Pilih --</option>
+          <% pelanggan.forEach(function(p) { %>
+          <option value="<%= p.id %>"><%= p.nama %><%= p.no_telp ? ' (' + p.no_telp + ')' : '' %></option>
+          <% }); %>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label small">Sales</label>
+        <select class="form-select" id="sales_id">
+          <option value="">-- Pilih --</option>
+          <% salesList.forEach(function(s) { %>
+          <option value="<%= s.id %>"><%= s.nama %></option>
+          <% }); %>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label small">Tanggal Order</label>
+        <input type="date" class="form-control" id="order_date" value="<%= new Date().toISOString().slice(0,10) %>">
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Items -->
+  <div class="col-md-8">
+    <!-- Frame -->
+    <div class="card p-3 mb-3">
+      <h6>🖼️ Frame</h6>
+      <select class="form-select mb-2" id="frame_barang_id" onchange="onSelectBarang(this, 'frame')">
+        <option value="">-- Pilih Frame --</option>
+        <% barangList.forEach(function(b) { %>
+        <option value="<%= b.id %>" data-harga="<%= b.harga_jual %>"><%= b.nama_barang %> (<%= fmtRp(b.harga_jual) %> | Stok: <%= b.qty %>)</option>
+        <% }); %>
+      </select>
+      <div class="row g-2" id="frame_fields" style="display:none">
+        <div class="col-4"><label class="form-label small">Harga</label><input type="number" class="form-control form-control-sm calc-input" id="frame_harga" value="0"></div>
+        <div class="col-4"><label class="form-label small">Diskon</label><input type="number" class="form-control form-control-sm calc-input" id="frame_diskon" value="0"></div>
+        <div class="col-4"><label class="form-label small">Qty</label><input type="number" class="form-control form-control-sm calc-input" id="frame_jumlah" value="1" min="1"></div>
+      </div>
+    </div>
+
+    <!-- Lensa L -->
+    <div class="card p-3 mb-3">
+      <h6>👁️ Lensa (L)</h6>
+      <select class="form-select mb-2" id="lensa_l_barang_id" onchange="onSelectBarang(this, 'lensa_l')">
+        <option value="">-- Pilih Lensa Kiri --</option>
+        <% barangList.forEach(function(b) { %>
+        <option value="<%= b.id %>" data-harga="<%= b.harga_jual %>"><%= b.nama_barang %> (<%= fmtRp(b.harga_jual) %> | Stok: <%= b.qty %>)</option>
+        <% }); %>
+      </select>
+      <div class="row g-2" id="lensa_l_fields" style="display:none">
+        <div class="col-4"><label class="form-label small">Harga</label><input type="number" class="form-control form-control-sm calc-input" id="lensa_l_harga" value="0"></div>
+        <div class="col-4"><label class="form-label small">Diskon</label><input type="number" class="form-control form-control-sm calc-input" id="lensa_l_diskon" value="0"></div>
+        <div class="col-4"><label class="form-label small">Qty</label><input type="number" class="form-control form-control-sm calc-input" id="lensa_l_jumlah" value="1" min="1"></div>
+      </div>
+    </div>
+
+    <!-- Lensa R -->
+    <div class="card p-3 mb-3">
+      <h6>👁️ Lensa (R)</h6>
+      <select class="form-select mb-2" id="lensa_r_barang_id" onchange="onSelectBarang(this, 'lensa_r')">
+        <option value="">-- Pilih Lensa Kanan --</option>
+        <% barangList.forEach(function(b) { %>
+        <option value="<%= b.id %>" data-harga="<%= b.harga_jual %>"><%= b.nama_barang %> (<%= fmtRp(b.harga_jual) %> | Stok: <%= b.qty %>)</option>
+        <% }); %>
+      </select>
+      <div class="row g-2" id="lensa_r_fields" style="display:none">
+        <div class="col-4"><label class="form-label small">Harga</label><input type="number" class="form-control form-control-sm calc-input" id="lensa_r_harga" value="0"></div>
+        <div class="col-4"><label class="form-label small">Diskon</label><input type="number" class="form-control form-control-sm calc-input" id="lensa_r_diskon" value="0"></div>
+        <div class="col-4"><label class="form-label small">Qty</label><input type="number" class="form-control form-control-sm calc-input" id="lensa_r_jumlah" value="1" min="1"></div>
+      </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="card p-3">
+      <div class="row g-2 align-items-center mb-2">
+        <div class="col-6"><strong>Subtotal</strong></div>
+        <div class="col-6 text-end fw-bold" id="subtotalDisplay">Rp 0</div>
+      </div>
+      <div class="row g-2 align-items-center mb-2">
+        <div class="col-6"><label class="form-label small mb-0">Biaya Tambahan</label></div>
+        <div class="col-6"><input type="number" class="form-control form-control-sm calc-input" id="biaya" value="0"></div>
+      </div>
+      <div class="row g-2 align-items-center mb-2">
+        <div class="col-6"><label class="form-label small mb-0">BPJS</label></div>
+        <div class="col-6"><input type="text" class="form-control form-control-sm" id="bpjs" placeholder="No. BPJS"></div>
+      </div>
+      <hr>
+      <div class="row g-2 align-items-center">
+        <div class="col-6"><strong class="fs-5">TOTAL</strong></div>
+        <div class="col-6 text-end fw-bold fs-5 text-success" id="totalDisplay">Rp 0</div>
+      </div>
+      <div class="d-flex gap-2 mt-3">
+        <button class="btn btn-primary flex-fill" onclick="savePenjualan(true)"><i class="bi bi-printer"></i> Simpan & Print</button>
+        <button class="btn btn-success flex-fill" onclick="savePenjualan(false)">Simpan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function onSelectBarang(el, tipe) {
+  var selected = $(el).find(':selected');
+  var harga = selected.data('harga') || 0;
+  $('#' + tipe + '_harga').val(harga);
+  $('#' + tipe + '_diskon').val(0);
+  $('#' + tipe + '_jumlah').val(1);
+  $('#' + tipe + '_fields').toggle(!!$(el).val());
+  calcTotal();
+}
+
+function getItemTotal(tipe) {
+  var bid = $('#' + tipe + '_barang_id').val();
+  if (!bid) return 0;
+  var h = parseFloat($('#' + tipe + '_harga').val()) || 0;
+  var d = parseFloat($('#' + tipe + '_diskon').val()) || 0;
+  var j = parseInt($('#' + tipe + '_jumlah').val()) || 1;
+  return (h - d) * j;
+}
+
+function calcTotal() {
+  var sub = getItemTotal('frame') + getItemTotal('lensa_l') + getItemTotal('lensa_r');
+  var biaya = parseFloat($('#biaya').val()) || 0;
+  $('#subtotalDisplay').text(fmtRp(sub));
+  $('#totalDisplay').text(fmtRp(sub + biaya));
+}
+
+function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
+
+$(document).on('input', '.calc-input', calcTotal);
+
+function buildItem(tipe) {
+  var bid = $('#' + tipe + '_barang_id').val();
+  if (!bid) return null;
+  return { tipe: tipe, barang_id: parseInt(bid),
+    harga: parseFloat($('#' + tipe + '_harga').val())||0,
+    diskon: parseFloat($('#' + tipe + '_diskon').val())||0,
+    jumlah: parseInt($('#' + tipe + '_jumlah').val())||1 };
+}
+
+function savePenjualan(withPrint) {
+  var items = [buildItem('frame'), buildItem('lensa_l'), buildItem('lensa_r')].filter(Boolean);
+  if (items.length === 0) { showToast('Pilih minimal satu barang', 'danger'); return; }
+  var payload = {
+    pelanggan_id: $('#pelanggan_id').val() || null,
+    sales_id: $('#sales_id').val() || null,
+    order_date: $('#order_date').val(),
+    biaya: parseFloat($('#biaya').val()) || 0,
+    bpjs: $('#bpjs').val(),
+    items: items,
+  };
+  $.ajax({ url: '/penjualan', method: 'POST', contentType: 'application/json', data: JSON.stringify(payload),
+    success: function(res) {
+      if (res.success && withPrint) printNotaData(res.data);
+      window.location.href = '/penjualan';
+    },
+    error: function(xhr) { showToast(xhr.responseJSON?.message || 'Gagal menyimpan', 'danger'); }
+  });
+}
+
+function printNotaData(d) {
+  var lines = [];
+  lines.push('================================');
+  lines.push('         KACAMATA POS');
+  lines.push('================================');
+  lines.push('No Nota : ' + d.no_nota);
+  lines.push('Tanggal : ' + new Date(d.order_date).toLocaleDateString('id-ID'));
+  if (d.pelanggan_nama) lines.push('Customer: ' + d.pelanggan_nama);
+  if (d.sales_nama) lines.push('Sales   : ' + d.sales_nama);
+  lines.push('--------------------------------');
+  (d.detail||[]).forEach(function(item) {
+    var tipe = item.tipe === 'frame' ? 'Frame' : item.tipe === 'lensa_l' ? 'Lensa L' : 'Lensa R';
+    lines.push(tipe + ': ' + (item.nama_barang||'-'));
+    var sub = ((item.harga||0) - (item.diskon||0)) * (item.jumlah||1);
+    lines.push('  ' + fmtRp(item.harga) + (item.diskon > 0 ? ' disc ' + fmtRp(item.diskon) : '') + ' x' + item.jumlah + ' = ' + fmtRp(sub));
+  });
+  lines.push('--------------------------------');
+  lines.push('Subtotal: ' + fmtRp(d.subtotal));
+  if (d.biaya > 0) lines.push('Biaya   : ' + fmtRp(d.biaya));
+  if (d.bpjs) lines.push('BPJS    : ' + d.bpjs);
+  lines.push('TOTAL   : ' + fmtRp(d.total));
+  lines.push('================================');
+  lines.push('       Terima Kasih!');
+  var w = window.open('','_blank','width=400,height=600');
+  w.document.write('<html><head><title>Nota</title><style>body{font-family:monospace;font-size:12px;white-space:pre;margin:20px}</style></head><body>' + lines.join('\n') + '</body></html>');
+  w.document.close();
+  w.onload = function() { w.print(); };
+}
+</script>
+
+<%- include('../partials/bottom') %>

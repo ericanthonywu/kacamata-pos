@@ -1,0 +1,91 @@
+<%
+function fmtDate(d) { return d ? new Date(d).toLocaleDateString('id-ID') : '-'; }
+%>
+<%- include('../partials/top', { title, activePage }) %>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div></div>
+  <button class="btn btn-primary btn-sm" onclick="openForm()"><i class="bi bi-plus"></i> Tambah Sales</button>
+</div>
+
+<div class="card p-3">
+  <table id="tblSales" class="table table-hover mb-0" style="width:100%">
+    <thead><tr><th style="width:50px">No</th><th>Nama</th><th>Tanggal Kerja</th><th>Status</th><th style="width:120px">Aksi</th></tr></thead>
+    <tbody>
+      <% data.forEach(function(item, i) { %>
+      <tr>
+        <td><%= i + 1 %></td>
+        <td><%= item.nama %></td>
+        <td><%= fmtDate(item.tanggal_kerja) %></td>
+        <td>
+          <span class="badge <%= item.status === 'aktif' ? 'bg-success' : 'bg-danger' %>"><%= item.status %></span>
+        </td>
+        <td>
+          <button class="btn btn-sm btn-outline-secondary me-1 btn-edit"
+            data-id="<%= item.id %>" data-nama="<%= item.nama %>"
+            data-tanggal="<%= (item.tanggal_kerja || '').toString().slice(0,10) %>"
+            data-status="<%= item.status %>">
+            <i class="bi bi-pencil"></i>
+          </button>
+          <button class="btn btn-sm btn-outline-danger" onclick="confirmDelete(<%= item.id %>, '/sales/<%= item.id %>')"><i class="bi bi-trash"></i></button>
+        </td>
+      </tr>
+      <% }); %>
+    </tbody>
+  </table>
+</div>
+
+<!-- Form Modal -->
+<div class="modal fade" id="formModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Sales</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <input type="hidden" id="editId">
+        <div class="mb-3"><label class="form-label small">Nama Sales</label><input type="text" class="form-control" id="nama" placeholder="Nama sales"></div>
+        <div class="row">
+          <div class="col-6 mb-3"><label class="form-label small">Tanggal Kerja</label><input type="date" class="form-control" id="tanggal_kerja"></div>
+          <div class="col-6 mb-3"><label class="form-label small">Status</label>
+            <select class="form-select" id="status"><option value="aktif">Aktif</option><option value="tidak aktif">Tidak Aktif</option></select>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+        <button class="btn btn-primary btn-sm" onclick="saveForm()">Simpan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+$(function() {
+  $('#tblSales').DataTable({ order: [], language: { url: '//cdn.datatables.net/plug-ins/2.0.8/i18n/id.json' } });
+
+  $(document).on('click', '.btn-edit', function() {
+    var $b = $(this);
+    openForm($b.data('id'), $b.data('nama'), $b.data('tanggal'), $b.data('status'));
+  });
+});
+
+function openForm(id, nama, tanggal, status) {
+  $('#editId').val(id || '');
+  $('#nama').val(nama || '');
+  $('#tanggal_kerja').val(tanggal || new Date().toISOString().slice(0,10));
+  $('#status').val(status || 'aktif');
+  $('.modal-title').text(id ? 'Edit Sales' : 'Tambah Sales');
+  new bootstrap.Modal('#formModal').show();
+}
+
+function saveForm() {
+  var id = $('#editId').val();
+  $.ajax({ url: id ? '/sales/' + id : '/sales', method: id ? 'PUT' : 'POST',
+    contentType: 'application/json',
+    data: JSON.stringify({ nama: $('#nama').val(), tanggal_kerja: $('#tanggal_kerja').val(), status: $('#status').val() }),
+    success: function(r) { if (r.success) location.reload(); },
+    error: function(xhr) { showToast(xhr.responseJSON?.message || 'Gagal', 'danger'); }
+  });
+}
+</script>
+
+<%- include('../partials/bottom') %>

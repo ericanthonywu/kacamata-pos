@@ -1,0 +1,23 @@
+{
+  "name": "kacamata-pos",
+  "version": "1.0.0",
+  "description": "Kacamata POS - Optical Shop Admin Panel",
+  "main": "src/app.js",
+  "scripts": {
+    "start": "node src/app.js",
+    "dev": "node --watch src/app.js",
+    "migrate": "knex migrate:latest",
+    "migrate:rollback": "knex migrate:rollback",
+    "seed": "knex seed:run"
+  },
+  "dependencies": {
+    "bcryptjs": "^2.4.3",
+    "connect-flash": "^0.1.1",
+    "dotenv": "^16.4.7",
+    "ejs": "^3.1.10",
+    "express": "^4.21.2",
+    "express-session": "^1.18.1",
+    "knex": "^3.1.0",
+    "pg": "^8.13.1"
+  }
+}

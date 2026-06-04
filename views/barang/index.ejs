@@ -1,0 +1,130 @@
+<%
+function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
+%>
+<%- include('../partials/top', { title, activePage }) %>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div></div>
+  <button class="btn btn-primary btn-sm" onclick="openForm()"><i class="bi bi-plus"></i> Tambah Barang</button>
+</div>
+
+<div class="card p-3">
+  <table id="tblBarang" class="table table-hover mb-0" style="width:100%">
+    <thead>
+      <tr><th>Nama Barang</th><th>Kategori</th><th>Qty</th><th>Harga Jual</th><th>Barcode</th><th style="width:160px">Aksi</th></tr>
+    </thead>
+    <tbody>
+      <% data.forEach(function(item) { %>
+      <tr data-id="<%= item.id %>">
+        <td><%= item.nama_barang %></td>
+        <td><span class="badge bg-info bg-opacity-25 text-info"><%= item.kategori_nama || '-' %></span></td>
+        <td class="<%= item.qty <= 0 ? 'text-danger fw-bold' : '' %>"><%= item.qty %></td>
+        <td><%= fmtRp(item.harga_jual) %></td>
+        <td class="font-monospace small"><%= item.barcode_id || '-' %></td>
+        <td>
+          <button class="btn btn-sm btn-outline-secondary me-1 btn-edit"
+            data-item="<%= encodeURIComponent(JSON.stringify(item)) %>">
+            <i class="bi bi-pencil"></i>
+          </button>
+          <% if (item.barcode_id) { %>
+          <button class="btn btn-sm btn-outline-info me-1"
+            onclick="printBarcode('<%= item.barcode_id %>', '<%= item.nama_barang.replace(/'/g, "\\'") %>')"
+            title="Print Barcode"><i class="bi bi-upc-scan"></i>
+          </button>
+          <% } %>
+          <button class="btn btn-sm btn-outline-danger" onclick="confirmDelete(<%= item.id %>, '/barang/<%= item.id %>')"><i class="bi bi-trash"></i></button>
+        </td>
+      </tr>
+      <% }); %>
+    </tbody>
+  </table>
+</div>
+
+<!-- Form Modal -->
+<div class="modal fade" id="formModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Barang</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <input type="hidden" id="editId">
+        <div class="mb-3"><label class="form-label small">Nama Barang</label><input type="text" class="form-control" id="nama_barang"></div>
+        <div class="row">
+          <div class="col-md-6 mb-3"><label class="form-label small">Kategori</label>
+            <select class="form-select" id="kategori_id">
+              <option value="">-- Pilih --</option>
+              <% kategoriList.forEach(function(k) { %>
+              <option value="<%= k.id %>"><%= k.nama %></option>
+              <% }); %>
+            </select>
+          </div>
+          <div class="col-md-6 mb-3"><label class="form-label small">Qty</label><input type="number" class="form-control" id="qty" min="0" value="0"></div>
+        </div>
+        <div class="row">
+          <div class="col-md-6 mb-3"><label class="form-label small">Harga Jual</label><input type="number" class="form-control" id="harga_jual" min="0" value="0"></div>
+          <div class="col-md-6 mb-3"><label class="form-label small">Barcode ID</label><input type="text" class="form-control" id="barcode_id" placeholder="BRG-001"></div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+        <button class="btn btn-primary btn-sm" onclick="saveForm()">Simpan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+$(function() {
+  $('#tblBarang').DataTable({ order: [], language: { url: '//cdn.datatables.net/plug-ins/2.0.8/i18n/id.json' } });
+
+  $(document).on('click', '.btn-edit', function() {
+    var item = JSON.parse(decodeURIComponent($(this).data('item')));
+    openForm(item);
+  });
+});
+
+function openForm(item) {
+  if (item) {
+    $('#editId').val(item.id);
+    $('#nama_barang').val(item.nama_barang);
+    $('#kategori_id').val(item.kategori_id || '');
+    $('#qty').val(item.qty);
+    $('#harga_jual').val(item.harga_jual);
+    $('#barcode_id').val(item.barcode_id || '');
+    $('.modal-title').text('Edit Barang');
+  } else {
+    $('#editId').val('');
+    $('#formModal input:not([type=hidden]), #formModal select').val('');
+    $('#qty, #harga_jual').val(0);
+    $('.modal-title').text('Tambah Barang');
+  }
+  new bootstrap.Modal('#formModal').show();
+}
+
+function saveForm() {
+  var id = $('#editId').val();
+  var payload = {
+    nama_barang: $('#nama_barang').val(),
+    kategori_id: $('#kategori_id').val() || null,
+    qty: $('#qty').val(),
+    harga_jual: $('#harga_jual').val(),
+    barcode_id: $('#barcode_id').val(),
+  };
+  $.ajax({ url: id ? '/barang/' + id : '/barang', method: id ? 'PUT' : 'POST',
+    contentType: 'application/json', data: JSON.stringify(payload),
+    success: function(res) { if (res.success) location.reload(); },
+    error: function(xhr) { showToast(xhr.responseJSON?.message || 'Gagal', 'danger'); }
+  });
+}
+
+function printBarcode(code, name) {
+  var w = window.open('', '_blank', 'width=400,height=300');
+  w.document.write('<html><head><title>Barcode</title>'
+    + '<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"><\/script>'
+    + '<style>body{display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;font-family:sans-serif;}.label{text-align:center}.name{font-size:11px;margin-top:4px}</style></head><body>'
+    + '<div class="label"><svg id="bc"></svg><div class="name">' + name + '</div></div>'
+    + '<script>JsBarcode("#bc","' + code + '",{format:"CODE128",width:2,height:60,displayValue:true,fontSize:14,margin:10});window.print();<\/script></body></html>');
+  w.document.close();
+}
+</script>
+
+<%- include('../partials/bottom') %>

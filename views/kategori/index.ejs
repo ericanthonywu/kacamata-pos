@@ -1,0 +1,68 @@
+<%- include('../partials/top', { title, activePage }) %>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div></div>
+  <button class="btn btn-primary btn-sm" onclick="openForm()"><i class="bi bi-plus"></i> Tambah Kategori</button>
+</div>
+
+<div class="card p-3">
+  <table id="tblKategori" class="table table-hover mb-0" style="width:100%">
+    <thead>
+      <tr><th style="width:50px">No</th><th>Nama Kategori</th><th style="width:120px">Aksi</th></tr>
+    </thead>
+    <tbody>
+      <% data.forEach(function(item, i) { %>
+      <tr>
+        <td><%= i + 1 %></td>
+        <td><%= item.nama %></td>
+        <td>
+          <button class="btn btn-sm btn-outline-secondary me-1" onclick="openForm(<%= item.id %>, '<%= item.nama.replace(/'/g, "\\'") %>')"><i class="bi bi-pencil"></i></button>
+          <button class="btn btn-sm btn-outline-danger" onclick="confirmDelete(<%= item.id %>, '/kategori/<%= item.id %>')"><i class="bi bi-trash"></i></button>
+        </td>
+      </tr>
+      <% }); %>
+    </tbody>
+  </table>
+</div>
+
+<!-- Form Modal -->
+<div class="modal fade" id="formModal" tabindex="-1">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header"><h5 class="modal-title">Kategori</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
+      <div class="modal-body">
+        <input type="hidden" id="editId">
+        <div class="mb-3">
+          <label class="form-label small">Nama Kategori</label>
+          <input type="text" class="form-control" id="nama" placeholder="Masukkan nama">
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+        <button class="btn btn-primary btn-sm" onclick="saveForm()">Simpan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+$(function() { $('#tblKategori').DataTable({ order: [], language: { url: '//cdn.datatables.net/plug-ins/2.0.8/i18n/id.json' } }); });
+
+function openForm(id, nama) {
+  $('#editId').val(id || '');
+  $('#nama').val(nama || '');
+  $('.modal-title').text(id ? 'Edit Kategori' : 'Tambah Kategori');
+  new bootstrap.Modal('#formModal').show();
+}
+
+function saveForm() {
+  var id = $('#editId').val();
+  $.ajax({ url: id ? '/kategori/' + id : '/kategori', method: id ? 'PUT' : 'POST',
+    contentType: 'application/json', data: JSON.stringify({ nama: $('#nama').val() }),
+    success: function(res) { if (res.success) location.reload(); },
+    error: function(xhr) { showToast(xhr.responseJSON?.message || 'Gagal menyimpan', 'danger'); }
+  });
+}
+</script>
+
+<%- include('../partials/bottom') %>

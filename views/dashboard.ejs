@@ -1,0 +1,38 @@
+<%- include('./partials/top', { title, activePage }) %>
+
+<div class="mb-4">
+  <h3 class="fw-bold">Selamat Datang, <%= currentUser?.nama %> 👋</h3>
+  <p class="text-muted">Panel admin Kacamata POS — kelola data toko Anda.</p>
+</div>
+<div class="row g-3">
+  <div class="col-md-3 col-6">
+    <div class="stat-card">
+      <i class="bi bi-receipt stat-icon text-info"></i>
+      <div class="stat-label">Penjualan</div>
+      <a href="/penjualan" class="stretched-link"></a>
+    </div>
+  </div>
+  <div class="col-md-3 col-6">
+    <div class="stat-card">
+      <i class="bi bi-box-seam stat-icon text-success"></i>
+      <div class="stat-label">Barang</div>
+      <a href="/barang" class="stretched-link"></a>
+    </div>
+  </div>
+  <div class="col-md-3 col-6">
+    <div class="stat-card">
+      <i class="bi bi-people stat-icon text-warning"></i>
+      <div class="stat-label">Pelanggan</div>
+      <a href="/pelanggan" class="stretched-link"></a>
+    </div>
+  </div>
+  <div class="col-md-3 col-6">
+    <div class="stat-card">
+      <i class="bi bi-graph-up stat-icon text-primary"></i>
+      <div class="stat-label">Laporan Kas</div>
+      <a href="/laporan/kas" class="stretched-link"></a>
+    </div>
+  </div>
+</div>
+
+<%- include('./partials/bottom') %>

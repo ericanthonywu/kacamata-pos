@@ -1,0 +1,61 @@
+<nav class="sidebar">
+  <div class="sidebar-brand">
+    <i class="bi bi-eyeglasses"></i>
+    <span>Kacamata POS</span>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Menu Utama</div>
+    <a href="/" class="sidebar-link <%= activePage === 'dashboard' ? 'active' : '' %>">
+      <i class="bi bi-grid-1x2"></i> Dashboard
+    </a>
+    <a href="/penjualan" class="sidebar-link <%= activePage === 'penjualan' ? 'active' : '' %>">
+      <i class="bi bi-receipt"></i> Penjualan
+    </a>
+    <a href="/laporan/kas" class="sidebar-link <%= activePage === 'laporan-kas' ? 'active' : '' %>">
+      <i class="bi bi-graph-up"></i> Laporan Kas
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Master Data</div>
+    <a href="/kategori" class="sidebar-link <%= activePage === 'kategori' ? 'active' : '' %>">
+      <i class="bi bi-folder"></i> Kategori
+    </a>
+    <a href="/barang" class="sidebar-link <%= activePage === 'barang' ? 'active' : '' %>">
+      <i class="bi bi-box-seam"></i> Barang
+    </a>
+    <a href="/stock-gudang" class="sidebar-link <%= activePage === 'stock-gudang' ? 'active' : '' %>">
+      <i class="bi bi-house-gear"></i> Stock Gudang
+    </a>
+    <a href="/supplier" class="sidebar-link <%= activePage === 'supplier' ? 'active' : '' %>">
+      <i class="bi bi-truck"></i> Supplier
+    </a>
+    <a href="/pelanggan" class="sidebar-link <%= activePage === 'pelanggan' ? 'active' : '' %>">
+      <i class="bi bi-people"></i> Pelanggan
+    </a>
+    <a href="/sales" class="sidebar-link <%= activePage === 'sales' ? 'active' : '' %>">
+      <i class="bi bi-person-badge"></i> Sales
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Pengaturan</div>
+    <a href="/pengguna" class="sidebar-link <%= activePage === 'pengguna' ? 'active' : '' %>">
+      <i class="bi bi-gear"></i> Pengguna
+    </a>
+  </div>
+
+  <div class="sidebar-footer">
+    <div class="sidebar-user">
+      <div class="user-avatar"><%= currentUser?.nama?.charAt(0).toUpperCase() || 'U' %></div>
+      <div class="user-info">
+        <div class="user-name"><%= currentUser?.nama || 'User' %></div>
+        <div class="user-role"><%= currentUser?.hak_akses || '-' %></div>
+      </div>
+      <a href="/logout" class="btn btn-sm btn-outline-secondary ms-auto" title="Logout">
+        <i class="bi bi-box-arrow-right"></i>
+      </a>
+    </div>
+  </div>
+</nav>
