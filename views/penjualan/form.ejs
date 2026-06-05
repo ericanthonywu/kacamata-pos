@@ -46,7 +46,7 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
       <select class="form-select mb-2" id="frame_barang_id" onchange="onSelectBarang(this, 'frame')">
         <option value="">-- Pilih Frame --</option>
         <% barangList.forEach(function(b) { %>
-        <option value="<%= b.id %>" data-harga="<%= b.harga_jual %>"><%= b.nama_barang %> (<%= fmtRp(b.harga_jual) %> | Stok: <%= b.qty %>)</option>
+        <option value="<%= b.id %>" data-harga="<%= b.harga_jual %>" data-qty="<%= b.qty %>"><%= b.nama_barang %> (<%= fmtRp(b.harga_jual) %> | Stok: <%= b.qty %>)</option>
         <% }); %>
       </select>
       <div class="row g-2" id="frame_fields" style="display:none">
@@ -62,7 +62,7 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
       <select class="form-select mb-2" id="lensa_l_barang_id" onchange="onSelectBarang(this, 'lensa_l')">
         <option value="">-- Pilih Lensa Kiri --</option>
         <% barangList.forEach(function(b) { %>
-        <option value="<%= b.id %>" data-harga="<%= b.harga_jual %>"><%= b.nama_barang %> (<%= fmtRp(b.harga_jual) %> | Stok: <%= b.qty %>)</option>
+        <option value="<%= b.id %>" data-harga="<%= b.harga_jual %>" data-qty="<%= b.qty %>"><%= b.nama_barang %> (<%= fmtRp(b.harga_jual) %> | Stok: <%= b.qty %>)</option>
         <% }); %>
       </select>
       <div class="row g-2" id="lensa_l_fields" style="display:none">
@@ -78,7 +78,7 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
       <select class="form-select mb-2" id="lensa_r_barang_id" onchange="onSelectBarang(this, 'lensa_r')">
         <option value="">-- Pilih Lensa Kanan --</option>
         <% barangList.forEach(function(b) { %>
-        <option value="<%= b.id %>" data-harga="<%= b.harga_jual %>"><%= b.nama_barang %> (<%= fmtRp(b.harga_jual) %> | Stok: <%= b.qty %>)</option>
+        <option value="<%= b.id %>" data-harga="<%= b.harga_jual %>" data-qty="<%= b.qty %>"><%= b.nama_barang %> (<%= fmtRp(b.harga_jual) %> | Stok: <%= b.qty %>)</option>
         <% }); %>
       </select>
       <div class="row g-2" id="lensa_r_fields" style="display:none">
@@ -158,6 +158,30 @@ function buildItem(tipe) {
 function savePenjualan(withPrint) {
   var items = [buildItem('frame'), buildItem('lensa_l'), buildItem('lensa_r')].filter(Boolean);
   if (items.length === 0) { showToast('Pilih minimal satu barang', 'danger'); return; }
+
+  // --- Client-side stock validation ---
+  var stockErrors = [];
+  var qtyPerBarang = {};
+  ['frame', 'lensa_l', 'lensa_r'].forEach(function(tipe) {
+    var sel = $('#' + tipe + '_barang_id');
+    var bid = sel.val();
+    if (!bid) return;
+    var qty = parseInt($('#' + tipe + '_jumlah').val()) || 1;
+    qtyPerBarang[bid] = (qtyPerBarang[bid] || { total: 0, stok: 0, nama: '' });
+    qtyPerBarang[bid].total += qty;
+    qtyPerBarang[bid].stok = parseInt(sel.find(':selected').data('qty')) || 0;
+    qtyPerBarang[bid].nama = sel.find(':selected').text().split('(')[0].trim();
+  });
+  for (var bid in qtyPerBarang) {
+    var info = qtyPerBarang[bid];
+    if (info.total > info.stok) {
+      stockErrors.push('Stok "' + info.nama + '" tidak cukup (tersedia: ' + info.stok + ', dibutuhkan: ' + info.total + ')');
+    }
+  }
+  if (stockErrors.length > 0) {
+    showToast(stockErrors.join('\n'), 'danger');
+    return;
+  }
   var payload = {
     pelanggan_id: $('#pelanggan_id').val() || null,
     sales_id: $('#sales_id').val() || null,

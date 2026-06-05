@@ -1,4 +1,5 @@
 const repo = require('../repositories/penjualan.repository');
+const barangRepo = require('../repositories/barang.repository');
 
 exports.getAll = function () { return repo.findAll(); };
 
@@ -15,6 +16,27 @@ exports.create = async function (data, userId) {
 
   let subtotal = 0;
   const items = data.items.filter(i => i.barang_id);
+
+  // --- Stock validation ---
+  // Aggregate quantities per barang_id (in case same item appears multiple times)
+  const qtyMap = {};
+  for (const item of items) {
+    const id = item.barang_id;
+    qtyMap[id] = (qtyMap[id] || 0) + (parseInt(item.jumlah) || 1);
+  }
+
+  for (const [barangId, totalQty] of Object.entries(qtyMap)) {
+    const barang = await barangRepo.findById(barangId);
+    if (!barang) {
+      throw Object.assign(new Error(`Barang dengan ID ${barangId} tidak ditemukan`), { status: 400 });
+    }
+    if (barang.qty < totalQty) {
+      throw Object.assign(
+        new Error(`Stok "${barang.nama_barang}" tidak cukup (tersedia: ${barang.qty}, dibutuhkan: ${totalQty})`),
+        { status: 400 }
+      );
+    }
+  }
   for (const item of items) {
     subtotal += ((parseFloat(item.harga) || 0) - (parseFloat(item.diskon) || 0)) * (parseInt(item.jumlah) || 1);
   }
