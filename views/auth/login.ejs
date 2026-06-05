@@ -1,35 +1,41 @@
 <!DOCTYPE html>
 <html lang="id" data-bs-theme="dark">
+
 <head>
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width, initial-scale=1.0">
-  <title>Login — Kacamata POS</title>
+  <title>Login — Sentral Optik</title>
   <link href="https://cdn.jsdelivr.net/npm/bootstrap@5.3.3/dist/css/bootstrap.min.css" rel="stylesheet">
   <link href="/css/app.css" rel="stylesheet">
 </head>
+
 <body class="login-page">
   <div class="login-container">
     <div class="login-card">
       <div class="text-center mb-4">
         <div class="login-logo">👓</div>
-        <h3 class="fw-bold">Kacamata POS</h3>
+        <h3 class="fw-bold">Sentral Optik</h3>
         <p class="text-muted small">Masuk ke panel admin</p>
       </div>
       <% if (error) { %>
-        <div class="alert alert-danger py-2 small"><%= error %></div>
-      <% } %>
-      <form method="POST" action="/login">
-        <div class="mb-3">
-          <label class="form-label small">Username</label>
-          <input type="text" name="username" class="form-control" placeholder="Masukkan username" autofocus required>
+        <div class="alert alert-danger py-2 small">
+          <%= error %>
         </div>
-        <div class="mb-3">
-          <label class="form-label small">Password</label>
-          <input type="password" name="password" class="form-control" placeholder="Masukkan password" required>
-        </div>
-        <button type="submit" class="btn btn-primary w-100">Masuk</button>
-      </form>
+        <% } %>
+          <form method="POST" action="/login">
+            <div class="mb-3">
+              <label class="form-label small">Username</label>
+              <input type="text" name="username" class="form-control" placeholder="Masukkan username" autofocus
+                required>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small">Password</label>
+              <input type="password" name="password" class="form-control" placeholder="Masukkan password" required>
+            </div>
+            <button type="submit" class="btn btn-primary w-100">Masuk</button>
+          </form>
     </div>
   </div>
 </body>
+
 </html>
