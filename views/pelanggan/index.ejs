@@ -2,7 +2,7 @@
 
 <div class="d-flex justify-content-between align-items-center mb-3">
   <div></div>
-  <button class="btn btn-primary btn-sm" onclick="openForm()"><i class="bi bi-plus"></i> Tambah Pelanggan</button>
+  <button class="btn btn-primary btn-sm" id="btnAdd"><i class="bi bi-plus"></i> Tambah Pelanggan</button>
 </div>
 
 <div class="card p-3">
@@ -19,7 +19,7 @@
             data-id="<%= item.id %>" data-nama="<%= item.nama %>" data-telp="<%= item.no_telp || '' %>">
             <i class="bi bi-pencil"></i>
           </button>
-          <button class="btn btn-sm btn-outline-danger" onclick="confirmDelete(<%= item.id %>, '/pelanggan/<%= item.id %>')"><i class="bi bi-trash"></i></button>
+          <button class="btn btn-sm btn-outline-danger btn-del" data-id="<%= item.id %>" data-url="/pelanggan/<%= item.id %>"><i class="bi bi-trash"></i></button>
         </td>
       </tr>
       <% }); %>
@@ -27,7 +27,6 @@
   </table>
 </div>
 
-<!-- Form Modal -->
 <div class="modal fade" id="formModal" tabindex="-1">
   <div class="modal-dialog modal-sm modal-dialog-centered">
     <div class="modal-content">
@@ -39,7 +38,7 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
-        <button class="btn btn-primary btn-sm" onclick="saveForm()">Simpan</button>
+        <button class="btn btn-primary btn-sm" id="btnSave">Simpan</button>
       </div>
     </div>
   </div>
@@ -49,28 +48,38 @@
 $(function() {
   $('#tblPelanggan').DataTable({ order: [], language: { url: '//cdn.datatables.net/plug-ins/2.0.8/i18n/id.json' } });
 
+  var formModal = new bootstrap.Modal(document.getElementById('formModal'));
+
+  $('#btnAdd').on('click', function() {
+    $('#editId').val('');
+    $('#nama').val('');
+    $('#no_telp').val('');
+    $('.modal-title').text('Tambah Pelanggan');
+    formModal.show();
+  });
+
   $(document).on('click', '.btn-edit', function() {
     var $b = $(this);
-    openForm($b.data('id'), $b.data('nama'), $b.data('telp'));
+    $('#editId').val($b.data('id'));
+    $('#nama').val($b.data('nama'));
+    $('#no_telp').val($b.data('telp'));
+    $('.modal-title').text('Edit Pelanggan');
+    formModal.show();
+  });
+
+  $(document).on('click', '.btn-del', function() {
+    confirmDelete($(this).data('id'), $(this).data('url'));
+  });
+
+  $('#btnSave').on('click', function() {
+    var id = $('#editId').val();
+    $.ajax({ url: id ? '/pelanggan/' + id : '/pelanggan', method: id ? 'PUT' : 'POST',
+      contentType: 'application/json', data: JSON.stringify({ nama: $('#nama').val(), no_telp: $('#no_telp').val() }),
+      success: function(r) { if (r.success) location.reload(); },
+      error: function(xhr) { showToast(xhr.responseJSON?.message || 'Gagal', 'danger'); }
+    });
   });
 });
-
-function openForm(id, nama, telp) {
-  $('#editId').val(id || '');
-  $('#nama').val(nama || '');
-  $('#no_telp').val(telp || '');
-  $('.modal-title').text(id ? 'Edit Pelanggan' : 'Tambah Pelanggan');
-  new bootstrap.Modal('#formModal').show();
-}
-
-function saveForm() {
-  var id = $('#editId').val();
-  $.ajax({ url: id ? '/pelanggan/' + id : '/pelanggan', method: id ? 'PUT' : 'POST',
-    contentType: 'application/json', data: JSON.stringify({ nama: $('#nama').val(), no_telp: $('#no_telp').val() }),
-    success: function(r) { if (r.success) location.reload(); },
-    error: function(xhr) { showToast(xhr.responseJSON?.message || 'Gagal', 'danger'); }
-  });
-}
 </script>
 
 <%- include('../partials/bottom') %>

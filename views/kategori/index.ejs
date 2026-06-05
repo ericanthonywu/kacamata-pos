@@ -2,7 +2,7 @@
 
 <div class="d-flex justify-content-between align-items-center mb-3">
   <div></div>
-  <button class="btn btn-primary btn-sm" onclick="openForm()"><i class="bi bi-plus"></i> Tambah Kategori</button>
+  <button class="btn btn-primary btn-sm" id="btnAdd"><i class="bi bi-plus"></i> Tambah Kategori</button>
 </div>
 
 <div class="card p-3">
@@ -16,8 +16,8 @@
         <td><%= i + 1 %></td>
         <td><%= item.nama %></td>
         <td>
-          <button class="btn btn-sm btn-outline-secondary me-1" onclick="openForm(<%= item.id %>, '<%= item.nama.replace(/'/g, "\\'") %>')"><i class="bi bi-pencil"></i></button>
-          <button class="btn btn-sm btn-outline-danger" onclick="confirmDelete(<%= item.id %>, '/kategori/<%= item.id %>')"><i class="bi bi-trash"></i></button>
+          <button class="btn btn-sm btn-outline-secondary me-1 btn-edit" data-id="<%= item.id %>" data-nama="<%= item.nama %>"><i class="bi bi-pencil"></i></button>
+          <button class="btn btn-sm btn-outline-danger btn-del" data-id="<%= item.id %>" data-url="/kategori/<%= item.id %>"><i class="bi bi-trash"></i></button>
         </td>
       </tr>
       <% }); %>
@@ -39,30 +39,46 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
-        <button class="btn btn-primary btn-sm" onclick="saveForm()">Simpan</button>
+        <button class="btn btn-primary btn-sm" id="btnSave">Simpan</button>
       </div>
     </div>
   </div>
 </div>
 
 <script>
-$(function() { $('#tblKategori').DataTable({ order: [], language: { url: '//cdn.datatables.net/plug-ins/2.0.8/i18n/id.json' } }); });
+$(function() {
+  $('#tblKategori').DataTable({ order: [], language: { url: '//cdn.datatables.net/plug-ins/2.0.8/i18n/id.json' } });
 
-function openForm(id, nama) {
-  $('#editId').val(id || '');
-  $('#nama').val(nama || '');
-  $('.modal-title').text(id ? 'Edit Kategori' : 'Tambah Kategori');
-  new bootstrap.Modal('#formModal').show();
-}
+  var formModal = new bootstrap.Modal(document.getElementById('formModal'));
 
-function saveForm() {
-  var id = $('#editId').val();
-  $.ajax({ url: id ? '/kategori/' + id : '/kategori', method: id ? 'PUT' : 'POST',
-    contentType: 'application/json', data: JSON.stringify({ nama: $('#nama').val() }),
-    success: function(res) { if (res.success) location.reload(); },
-    error: function(xhr) { showToast(xhr.responseJSON?.message || 'Gagal menyimpan', 'danger'); }
+  $('#btnAdd').on('click', function() {
+    $('#editId').val('');
+    $('#nama').val('');
+    $('.modal-title').text('Tambah Kategori');
+    formModal.show();
   });
-}
+
+  $(document).on('click', '.btn-edit', function() {
+    var $b = $(this);
+    $('#editId').val($b.data('id'));
+    $('#nama').val($b.data('nama'));
+    $('.modal-title').text('Edit Kategori');
+    formModal.show();
+  });
+
+  $(document).on('click', '.btn-del', function() {
+    confirmDelete($(this).data('id'), $(this).data('url'));
+  });
+
+  $('#btnSave').on('click', function() {
+    var id = $('#editId').val();
+    $.ajax({ url: id ? '/kategori/' + id : '/kategori', method: id ? 'PUT' : 'POST',
+      contentType: 'application/json', data: JSON.stringify({ nama: $('#nama').val() }),
+      success: function(res) { if (res.success) location.reload(); },
+      error: function(xhr) { showToast(xhr.responseJSON?.message || 'Gagal menyimpan', 'danger'); }
+    });
+  });
+});
 </script>
 
 <%- include('../partials/bottom') %>

@@ -5,17 +5,17 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
 
 <div class="d-flex justify-content-between align-items-center mb-3">
   <div></div>
-  <button class="btn btn-primary btn-sm" onclick="openForm()"><i class="bi bi-plus"></i> Tambah Barang</button>
+  <button class="btn btn-primary btn-sm" id="btnAdd"><i class="bi bi-plus"></i> Tambah Barang</button>
 </div>
 
 <div class="card p-3">
   <table id="tblBarang" class="table table-hover mb-0" style="width:100%">
     <thead>
-      <tr><th>Nama Barang</th><th>Kategori</th><th>Qty</th><th>Harga Jual</th><th>Barcode</th><th style="width:160px">Aksi</th></tr>
+      <tr><th>Nama Barang</th><th>Kategori</th><th>Qty</th><th>Harga Jual</th><th>Barcode</th><th style="width:180px">Aksi</th></tr>
     </thead>
     <tbody>
       <% data.forEach(function(item) { %>
-      <tr data-id="<%= item.id %>">
+      <tr>
         <td><%= item.nama_barang %></td>
         <td><span class="badge bg-info bg-opacity-25 text-info"><%= item.kategori_nama || '-' %></span></td>
         <td class="<%= item.qty <= 0 ? 'text-danger fw-bold' : '' %>"><%= item.qty %></td>
@@ -23,16 +23,22 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
         <td class="font-monospace small"><%= item.barcode_id || '-' %></td>
         <td>
           <button class="btn btn-sm btn-outline-secondary me-1 btn-edit"
-            data-item="<%= encodeURIComponent(JSON.stringify(item)) %>">
-            <i class="bi bi-pencil"></i>
+            data-id="<%= item.id %>"
+            data-nama="<%= item.nama_barang %>"
+            data-kategori="<%= item.kategori_id || '' %>"
+            data-qty="<%= item.qty %>"
+            data-harga="<%= item.harga_jual %>"
+            title="Edit"><i class="bi bi-pencil"></i>
           </button>
           <% if (item.barcode_id) { %>
-          <button class="btn btn-sm btn-outline-info me-1"
-            onclick="printBarcode('<%= item.barcode_id %>', '<%= item.nama_barang.replace(/'/g, "\\'") %>')"
+          <button class="btn btn-sm btn-outline-info me-1 btn-print-barcode"
+            data-barcode="<%= item.barcode_id %>"
+            data-nama="<%= item.nama_barang %>"
+            data-harga="<%= item.harga_jual %>"
             title="Print Barcode"><i class="bi bi-upc-scan"></i>
           </button>
           <% } %>
-          <button class="btn btn-sm btn-outline-danger" onclick="confirmDelete(<%= item.id %>, '/barang/<%= item.id %>')"><i class="bi bi-trash"></i></button>
+          <button class="btn btn-sm btn-outline-danger btn-del" data-id="<%= item.id %>" data-url="/barang/<%= item.id %>"><i class="bi bi-trash"></i></button>
         </td>
       </tr>
       <% }); %>
@@ -57,16 +63,13 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
               <% }); %>
             </select>
           </div>
-          <div class="col-md-6 mb-3"><label class="form-label small">Qty</label><input type="number" class="form-control" id="qty" min="0" value="0"></div>
-        </div>
-        <div class="row">
-          <div class="col-md-6 mb-3"><label class="form-label small">Harga Jual</label><input type="number" class="form-control" id="harga_jual" min="0" value="0"></div>
-          <div class="col-md-6 mb-3"><label class="form-label small">Barcode ID</label><input type="text" class="form-control" id="barcode_id" placeholder="BRG-001"></div>
+          <div class="col-md-3 mb-3"><label class="form-label small">Qty</label><input type="number" class="form-control" id="qty" min="0" value="0"></div>
+          <div class="col-md-3 mb-3"><label class="form-label small">Harga Jual</label><input type="number" class="form-control" id="harga_jual" min="0" value="0"></div>
         </div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
-        <button class="btn btn-primary btn-sm" onclick="saveForm()">Simpan</button>
+        <button class="btn btn-primary btn-sm" id="btnSave">Simpan</button>
       </div>
     </div>
   </div>
@@ -76,53 +79,80 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
 $(function() {
   $('#tblBarang').DataTable({ order: [], language: { url: '//cdn.datatables.net/plug-ins/2.0.8/i18n/id.json' } });
 
+  var formModal = new bootstrap.Modal(document.getElementById('formModal'));
+
+  $('#btnAdd').on('click', function() {
+    $('#editId').val('');
+    $('#nama_barang').val('');
+    $('#kategori_id').val('');
+    $('#qty').val(0);
+    $('#harga_jual').val(0);
+    $('.modal-title').text('Tambah Barang');
+    formModal.show();
+  });
+
   $(document).on('click', '.btn-edit', function() {
-    var item = JSON.parse(decodeURIComponent($(this).data('item')));
-    openForm(item);
+    var $b = $(this);
+    $('#editId').val($b.data('id'));
+    $('#nama_barang').val($b.data('nama'));
+    $('#kategori_id').val($b.data('kategori'));
+    $('#qty').val($b.data('qty'));
+    $('#harga_jual').val($b.data('harga'));
+    $('.modal-title').text('Edit Barang');
+    formModal.show();
+  });
+
+  $(document).on('click', '.btn-del', function() {
+    confirmDelete($(this).data('id'), $(this).data('url'));
+  });
+
+  $(document).on('click', '.btn-print-barcode', function() {
+    var $b = $(this);
+    printBarcodeTSC($b.data('barcode'), $b.data('nama'), $b.data('harga'));
+  });
+
+  $('#btnSave').on('click', function() {
+    var id = $('#editId').val();
+    var payload = {
+      nama_barang: $('#nama_barang').val(),
+      kategori_id: $('#kategori_id').val() || null,
+      qty: $('#qty').val(),
+      harga_jual: $('#harga_jual').val(),
+    };
+    $.ajax({ url: id ? '/barang/' + id : '/barang', method: id ? 'PUT' : 'POST',
+      contentType: 'application/json', data: JSON.stringify(payload),
+      success: function(res) { if (res.success) location.reload(); },
+      error: function(xhr) { showToast(xhr.responseJSON?.message || 'Gagal', 'danger'); }
+    });
   });
 });
 
-function openForm(item) {
-  if (item) {
-    $('#editId').val(item.id);
-    $('#nama_barang').val(item.nama_barang);
-    $('#kategori_id').val(item.kategori_id || '');
-    $('#qty').val(item.qty);
-    $('#harga_jual').val(item.harga_jual);
-    $('#barcode_id').val(item.barcode_id || '');
-    $('.modal-title').text('Edit Barang');
-  } else {
-    $('#editId').val('');
-    $('#formModal input:not([type=hidden]), #formModal select').val('');
-    $('#qty, #harga_jual').val(0);
-    $('.modal-title').text('Tambah Barang');
-  }
-  new bootstrap.Modal('#formModal').show();
-}
-
-function saveForm() {
-  var id = $('#editId').val();
-  var payload = {
-    nama_barang: $('#nama_barang').val(),
-    kategori_id: $('#kategori_id').val() || null,
-    qty: $('#qty').val(),
-    harga_jual: $('#harga_jual').val(),
-    barcode_id: $('#barcode_id').val(),
-  };
-  $.ajax({ url: id ? '/barang/' + id : '/barang', method: id ? 'PUT' : 'POST',
-    contentType: 'application/json', data: JSON.stringify(payload),
-    success: function(res) { if (res.success) location.reload(); },
-    error: function(xhr) { showToast(xhr.responseJSON?.message || 'Gagal', 'danger'); }
-  });
-}
-
-function printBarcode(code, name) {
-  var w = window.open('', '_blank', 'width=400,height=300');
-  w.document.write('<html><head><title>Barcode</title>'
-    + '<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"><\/script>'
-    + '<style>body{display:flex;align-items:center;justify-content:center;min-height:100vh;margin:0;font-family:sans-serif;}.label{text-align:center}.name{font-size:11px;margin-top:4px}</style></head><body>'
-    + '<div class="label"><svg id="bc"></svg><div class="name">' + name + '</div></div>'
-    + '<script>JsBarcode("#bc","' + code + '",{format:"CODE128",width:2,height:60,displayValue:true,fontSize:14,margin:10});window.print();<\/script></body></html>');
+function printBarcodeTSC(code, name, harga) {
+  var w = window.open('', '_blank', 'width=450,height=350');
+  var html = [
+    '<!DOCTYPE html>',
+    '<html><head><title>Barcode ' + code + '</title>',
+    '<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"><\/script>',
+    '<style>',
+    '@page { size: 40mm 25mm; margin: 0; }',
+    '* { margin: 0; padding: 0; box-sizing: border-box; }',
+    'body { width: 40mm; height: 25mm; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: Arial, sans-serif; }',
+    '.label { text-align: center; width: 100%; padding: 1mm; }',
+    '.name { font-size: 7pt; font-weight: bold; margin-bottom: 0.5mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 38mm; }',
+    '.price { font-size: 7pt; margin-top: 0.5mm; }',
+    'svg { display: block; margin: 0 auto; }',
+    '</style></head><body>',
+    '<div class="label">',
+    '  <div class="name">' + name + '</div>',
+    '  <svg id="bc"></svg>',
+    '  <div class="price">Rp ' + Number(harga||0).toLocaleString('id-ID') + '</div>',
+    '</div>',
+    '<script>',
+    'JsBarcode("#bc", "' + code + '", { format: "CODE128", width: 1.2, height: 30, displayValue: true, fontSize: 9, margin: 2, textMargin: 1 });',
+    'window.onload = function() { window.print(); };',
+    '<\/script></body></html>'
+  ].join('\n');
+  w.document.write(html);
   w.document.close();
 }
 </script>

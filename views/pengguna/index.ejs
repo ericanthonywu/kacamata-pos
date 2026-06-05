@@ -2,7 +2,7 @@
 
 <div class="d-flex justify-content-between align-items-center mb-3">
   <div></div>
-  <button class="btn btn-primary btn-sm" onclick="openForm()"><i class="bi bi-plus"></i> Tambah Pengguna</button>
+  <button class="btn btn-primary btn-sm" id="btnAdd"><i class="bi bi-plus"></i> Tambah Pengguna</button>
 </div>
 
 <div class="card p-3">
@@ -21,7 +21,7 @@
             data-username="<%= item.username %>" data-hakakses="<%= item.hak_akses %>">
             <i class="bi bi-pencil"></i>
           </button>
-          <button class="btn btn-sm btn-outline-danger" onclick="confirmDelete(<%= item.id %>, '/pengguna/<%= item.id %>')"><i class="bi bi-trash"></i></button>
+          <button class="btn btn-sm btn-outline-danger btn-del" data-id="<%= item.id %>" data-url="/pengguna/<%= item.id %>"><i class="bi bi-trash"></i></button>
         </td>
       </tr>
       <% }); %>
@@ -29,7 +29,6 @@
   </table>
 </div>
 
-<!-- Form Modal -->
 <div class="modal fade" id="formModal" tabindex="-1">
   <div class="modal-dialog modal-dialog-centered">
     <div class="modal-content">
@@ -47,7 +46,7 @@
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
-        <button class="btn btn-primary btn-sm" onclick="saveForm()">Simpan</button>
+        <button class="btn btn-primary btn-sm" id="btnSave">Simpan</button>
       </div>
     </div>
   </div>
@@ -57,40 +56,46 @@
 $(function() {
   $('#tblPengguna').DataTable({ order: [], language: { url: '//cdn.datatables.net/plug-ins/2.0.8/i18n/id.json' } });
 
-  $(document).on('click', '.btn-edit', function() {
-    var $b = $(this);
-    openForm($b.data('id'), $b.data('nama'), $b.data('username'), $b.data('hakakses'));
-  });
-});
+  var formModal = new bootstrap.Modal(document.getElementById('formModal'));
 
-function openForm(id, nama, username, hakAkses) {
-  $('#editId').val(id || '');
-  $('#nama').val(nama || '');
-  $('#username').val(username || '');
-  $('#hak_akses').val(hakAkses || 'kasir');
-  $('#password').val('');
-  if (id) {
-    $('#pwdLabel').text('Password (kosongkan jika tidak diubah)');
-    $('.modal-title').text('Edit Pengguna');
-  } else {
+  $('#btnAdd').on('click', function() {
+    $('#editId').val('');
+    $('#nama, #username, #password').val('');
+    $('#hak_akses').val('kasir');
     $('#pwdLabel').text('Password');
     $('.modal-title').text('Tambah Pengguna');
-  }
-  new bootstrap.Modal('#formModal').show();
-}
-
-function saveForm() {
-  var id = $('#editId').val();
-  var payload = { nama: $('#nama').val(), username: $('#username').val(), hak_akses: $('#hak_akses').val() };
-  var pwd = $('#password').val();
-  if (pwd) payload.password = pwd;
-  else if (!id) { showToast('Password harus diisi', 'danger'); return; }
-  $.ajax({ url: id ? '/pengguna/' + id : '/pengguna', method: id ? 'PUT' : 'POST',
-    contentType: 'application/json', data: JSON.stringify(payload),
-    success: function(r) { if (r.success) location.reload(); },
-    error: function(xhr) { showToast(xhr.responseJSON?.message || 'Gagal', 'danger'); }
+    formModal.show();
   });
-}
+
+  $(document).on('click', '.btn-edit', function() {
+    var $b = $(this);
+    $('#editId').val($b.data('id'));
+    $('#nama').val($b.data('nama'));
+    $('#username').val($b.data('username'));
+    $('#hak_akses').val($b.data('hakakses'));
+    $('#password').val('');
+    $('#pwdLabel').text('Password (kosongkan jika tidak diubah)');
+    $('.modal-title').text('Edit Pengguna');
+    formModal.show();
+  });
+
+  $(document).on('click', '.btn-del', function() {
+    confirmDelete($(this).data('id'), $(this).data('url'));
+  });
+
+  $('#btnSave').on('click', function() {
+    var id = $('#editId').val();
+    var payload = { nama: $('#nama').val(), username: $('#username').val(), hak_akses: $('#hak_akses').val() };
+    var pwd = $('#password').val();
+    if (pwd) payload.password = pwd;
+    else if (!id) { showToast('Password harus diisi', 'danger'); return; }
+    $.ajax({ url: id ? '/pengguna/' + id : '/pengguna', method: id ? 'PUT' : 'POST',
+      contentType: 'application/json', data: JSON.stringify(payload),
+      success: function(r) { if (r.success) location.reload(); },
+      error: function(xhr) { showToast(xhr.responseJSON?.message || 'Gagal', 'danger'); }
+    });
+  });
+});
 </script>
 
 <%- include('../partials/bottom') %>
