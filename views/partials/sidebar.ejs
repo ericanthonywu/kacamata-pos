@@ -1,7 +1,7 @@
 <nav class="sidebar">
   <div class="sidebar-brand">
     <i class="bi bi-eyeglasses"></i>
-    <span>Kacamata POS</span>
+    <span>Sentral Optik</span>
   </div>
 
   <div class="sidebar-section">
@@ -48,10 +48,16 @@
 
   <div class="sidebar-footer">
     <div class="sidebar-user">
-      <div class="user-avatar"><%= currentUser?.nama?.charAt(0).toUpperCase() || 'U' %></div>
+      <div class="user-avatar">
+        <%= currentUser?.nama?.charAt(0).toUpperCase() || 'U' %>
+      </div>
       <div class="user-info">
-        <div class="user-name"><%= currentUser?.nama || 'User' %></div>
-        <div class="user-role"><%= currentUser?.hak_akses || '-' %></div>
+        <div class="user-name">
+          <%= currentUser?.nama || 'User' %>
+        </div>
+        <div class="user-role">
+          <%= currentUser?.hak_akses || '-' %>
+        </div>
       </div>
       <a href="/logout" class="btn btn-sm btn-outline-secondary ms-auto" title="Logout">
         <i class="bi bi-box-arrow-right"></i>
