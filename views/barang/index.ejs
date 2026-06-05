@@ -128,18 +128,18 @@ $(function() {
 });
 
 function printBarcodeTSC(code, name, harga) {
-  var w = window.open('', '_blank', 'width=450,height=350');
+  var w = window.open('', '_blank', 'width=400,height=250');
   var html = [
     '<!DOCTYPE html>',
     '<html><head><title>Barcode ' + code + '</title>',
     '<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"><\/script>',
     '<style>',
-    '@page { size: 40mm 25mm; margin: 0; }',
+    '@page { size: 33mm 15mm; margin: 0; }',
     '* { margin: 0; padding: 0; box-sizing: border-box; }',
-    'body { width: 40mm; height: 25mm; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: Arial, sans-serif; }',
-    '.label { text-align: center; width: 100%; padding: 1mm; }',
-    '.name { font-size: 7pt; font-weight: bold; margin-bottom: 0.5mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 38mm; }',
-    '.price { font-size: 7pt; margin-top: 0.5mm; }',
+    'body { width: 33mm; height: 15mm; display: flex; flex-direction: column; align-items: center; justify-content: center; font-family: Arial, sans-serif; overflow: hidden; }',
+    '.label { text-align: center; width: 100%; padding: 0.5mm 1mm; }',
+    '.name { font-size: 5pt; font-weight: bold; margin-bottom: 0.3mm; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 31mm; }',
+    '.price { font-size: 5pt; margin-top: 0.3mm; }',
     'svg { display: block; margin: 0 auto; }',
     '</style></head><body>',
     '<div class="label">',
@@ -148,7 +148,7 @@ function printBarcodeTSC(code, name, harga) {
     '  <div class="price">Rp ' + Number(harga||0).toLocaleString('id-ID') + '</div>',
     '</div>',
     '<script>',
-    'JsBarcode("#bc", "' + code + '", { format: "CODE128", width: 1.2, height: 30, displayValue: true, fontSize: 9, margin: 2, textMargin: 1 });',
+    'JsBarcode("#bc", "' + code + '", { format: "CODE128", width: 0.8, height: 18, displayValue: true, fontSize: 6, margin: 1, textMargin: 0 });',
     'window.onload = function() { window.print(); };',
     '<\/script></body></html>'
   ].join('\n');
