@@ -1,7 +1,7 @@
 <nav class="sidebar">
   <div class="sidebar-brand">
     <i class="bi bi-eyeglasses"></i>
-    <span>Sentral Optik</span>
+    <span>Optik</span>
   </div>
 
   <div class="sidebar-section">
@@ -17,6 +17,26 @@
     </a>
     <a href="/laporan/kas" class="sidebar-link <%= activePage === 'laporan-kas' ? 'active' : '' %>">
       <i class="bi bi-graph-up"></i> Laporan Kas
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Retur</div>
+    <a href="/penjualan-retur" class="sidebar-link <%= activePage === 'penjualan-retur' ? 'active' : '' %>">
+      <i class="bi bi-arrow-return-left"></i> Retur Penjualan
+    </a>
+    <a href="/pembelian-retur" class="sidebar-link <%= activePage === 'pembelian-retur' ? 'active' : '' %>">
+      <i class="bi bi-arrow-return-right"></i> Retur Pembelian
+    </a>
+  </div>
+
+  <div class="sidebar-section">
+    <div class="sidebar-label">Hutang / Piutang</div>
+    <a href="/pembayaran-pembelian" class="sidebar-link <%= activePage === 'hutang-pembelian' ? 'active' : '' %>">
+      <i class="bi bi-wallet2"></i> Hutang Pembelian
+    </a>
+    <a href="/pembayaran-penjualan" class="sidebar-link <%= activePage === 'hutang-penjualan' ? 'active' : '' %>">
+      <i class="bi bi-cash-coin"></i> Hutang Penjualan
     </a>
   </div>
 

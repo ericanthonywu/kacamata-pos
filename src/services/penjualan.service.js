@@ -54,6 +54,8 @@ exports.create = async function (data, userId) {
     subtotal,
     bpjs: data.bpjs || '',
     total,
+    status_bayar: data.status_bayar || 'lunas',
+    dp: parseFloat(data.dp) || 0,
   };
 
   const penjualan = await repo.create(penjualanData, items);

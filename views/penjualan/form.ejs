@@ -103,6 +103,20 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
         <div class="col-6"><input type="text" class="form-control form-control-sm" id="bpjs" placeholder="No. BPJS"></div>
       </div>
       <hr>
+      <div class="row g-2 align-items-center mb-2">
+        <div class="col-6"><label class="form-label small mb-0">Pembayaran</label></div>
+        <div class="col-6">
+          <select class="form-select form-select-sm" id="status_bayar" onchange="toggleDP()">
+            <option value="lunas">Lunas (Bayar Penuh)</option>
+            <option value="dp">DP (Uang Muka)</option>
+          </select>
+        </div>
+      </div>
+      <div class="row g-2 align-items-center mb-2" id="dpRow" style="display:none">
+        <div class="col-6"><label class="form-label small mb-0">Jumlah DP</label></div>
+        <div class="col-6"><input type="number" class="form-control form-control-sm" id="dp_amount" value="0" min="0"></div>
+      </div>
+      <hr>
       <div class="row g-2 align-items-center">
         <div class="col-6"><strong class="fs-5">TOTAL</strong></div>
         <div class="col-6 text-end fw-bold fs-5 text-success" id="totalDisplay">Rp 0</div>
@@ -146,6 +160,11 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
 
 $(document).on('input', '.calc-input', calcTotal);
 
+function toggleDP() {
+  var status = $('#status_bayar').val();
+  if (status === 'dp') { $('#dpRow').show(); } else { $('#dpRow').hide(); }
+}
+
 function buildItem(tipe) {
   var bid = $('#' + tipe + '_barang_id').val();
   if (!bid) return null;
@@ -188,6 +207,8 @@ function savePenjualan(withPrint) {
     order_date: $('#order_date').val(),
     biaya: parseFloat($('#biaya').val()) || 0,
     bpjs: $('#bpjs').val(),
+    status_bayar: $('#status_bayar').val(),
+    dp: parseFloat($('#dp_amount').val()) || 0,
     items: items,
   };
   $.ajax({ url: '/penjualan', method: 'POST', contentType: 'application/json', data: JSON.stringify(payload),

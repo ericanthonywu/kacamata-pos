@@ -57,7 +57,7 @@ function fmtDate(d) { return d ? new Date(d).toLocaleDateString('id-ID') : '-'; 
 
 <script>
 $(function() {
-  $('#tblSales').DataTable({ order: [], language: { url: '//cdn.datatables.net/plug-ins/2.0.8/i18n/id.json' } });
+  $('#tblSales').DataTable({ order: [], language: dtLanguageID });
 
   var formModal = new bootstrap.Modal(document.getElementById('formModal'));
 

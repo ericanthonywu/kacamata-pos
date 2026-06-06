@@ -1,15 +1,55 @@
+<%
+function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
+%>
 <%- include('./partials/top', { title, activePage }) %>
 
 <div class="mb-4">
   <h3 class="fw-bold">Selamat Datang, <%= currentUser?.nama %> 👋</h3>
   <p class="text-muted">Panel admin Kacamata POS — kelola data toko Anda.</p>
 </div>
+
+<% if (hutangPembelian.length > 0 || hutangPenjualan.length > 0) { %>
+<div class="row g-3 mb-4">
+  <% if (hutangPembelian.length > 0) { %>
+  <div class="col-md-6">
+    <div class="card border-danger p-3">
+      <div class="d-flex align-items-center mb-2">
+        <i class="bi bi-exclamation-triangle text-danger me-2" style="font-size:1.5rem"></i>
+        <h6 class="mb-0 text-danger">Hutang Pembelian (Supplier)</h6>
+      </div>
+      <p class="mb-2"><strong><%= hutangPembelian.length %></strong> pembelian belum lunas — total sisa: <strong class="text-danger"><%= fmtRp(totalHutangPembelian) %></strong></p>
+      <a href="/pembayaran-pembelian" class="btn btn-outline-danger btn-sm"><i class="bi bi-wallet2"></i> Lihat & Bayar</a>
+    </div>
+  </div>
+  <% } %>
+  <% if (hutangPenjualan.length > 0) { %>
+  <div class="col-md-6">
+    <div class="card border-warning p-3">
+      <div class="d-flex align-items-center mb-2">
+        <i class="bi bi-clock-history text-warning me-2" style="font-size:1.5rem"></i>
+        <h6 class="mb-0 text-warning">Hutang Penjualan (DP Pelanggan)</h6>
+      </div>
+      <p class="mb-2"><strong><%= hutangPenjualan.length %></strong> penjualan DP belum lunas — total sisa: <strong class="text-warning"><%= fmtRp(totalHutangPenjualan) %></strong></p>
+      <a href="/pembayaran-penjualan" class="btn btn-outline-warning btn-sm"><i class="bi bi-wallet2"></i> Lihat & Bayar</a>
+    </div>
+  </div>
+  <% } %>
+</div>
+<% } %>
+
 <div class="row g-3">
   <div class="col-md-3 col-6">
     <div class="stat-card">
       <i class="bi bi-receipt stat-icon text-info"></i>
       <div class="stat-label">Penjualan</div>
       <a href="/penjualan" class="stretched-link"></a>
+    </div>
+  </div>
+  <div class="col-md-3 col-6">
+    <div class="stat-card">
+      <i class="bi bi-cart-plus stat-icon text-primary"></i>
+      <div class="stat-label">Pembelian</div>
+      <a href="/pembelian" class="stretched-link"></a>
     </div>
   </div>
   <div class="col-md-3 col-6">
@@ -21,14 +61,7 @@
   </div>
   <div class="col-md-3 col-6">
     <div class="stat-card">
-      <i class="bi bi-people stat-icon text-warning"></i>
-      <div class="stat-label">Pelanggan</div>
-      <a href="/pelanggan" class="stretched-link"></a>
-    </div>
-  </div>
-  <div class="col-md-3 col-6">
-    <div class="stat-card">
-      <i class="bi bi-graph-up stat-icon text-primary"></i>
+      <i class="bi bi-graph-up stat-icon text-warning"></i>
       <div class="stat-label">Laporan Kas</div>
       <a href="/laporan/kas" class="stretched-link"></a>
     </div>

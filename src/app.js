@@ -32,8 +32,20 @@ app.use((req, res, next) => {
 app.use('/', require('./routes/auth.routes'));
 
 // Dashboard
-app.get('/', auth, (req, res) => {
-  res.render('dashboard', { title: 'Dashboard', activePage: 'dashboard' });
+const pembayaranPembelianService = require('./services/pembayaran-pembelian.service');
+const pembayaranPenjualanService = require('./services/pembayaran-penjualan.service');
+app.get('/', auth, async (req, res, next) => {
+  try {
+    const hutangPembelian = await pembayaranPembelianService.getUnpaid();
+    const hutangPenjualan = await pembayaranPenjualanService.getUnpaid();
+    const totalHutangPembelian = hutangPembelian.reduce((s, p) => s + (parseFloat(p.total_harga) - parseFloat(p.total_dibayar)), 0);
+    const totalHutangPenjualan = hutangPenjualan.reduce((s, p) => s + (parseFloat(p.total) - parseFloat(p.total_dibayar)), 0);
+    res.render('dashboard', {
+      title: 'Dashboard', activePage: 'dashboard',
+      hutangPembelian, hutangPenjualan,
+      totalHutangPembelian, totalHutangPenjualan,
+    });
+  } catch (err) { next(err); }
 });
 
 // Stock Gudang (read-only, reuses barang data)
@@ -53,6 +65,10 @@ app.use('/sales', require('./routes/sales.routes'));
 app.use('/pengguna', require('./routes/pengguna.routes'));
 app.use('/penjualan', require('./routes/penjualan.routes'));
 app.use('/pembelian', require('./routes/pembelian.routes'));
+app.use('/pembelian-retur', require('./routes/pembelian-retur.routes'));
+app.use('/penjualan-retur', require('./routes/penjualan-retur.routes'));
+app.use('/pembayaran-pembelian', require('./routes/pembayaran-pembelian.routes'));
+app.use('/pembayaran-penjualan', require('./routes/pembayaran-penjualan.routes'));
 app.use('/laporan', require('./routes/laporan.routes'));
 
 // Error handler

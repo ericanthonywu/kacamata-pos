@@ -1,7 +1,7 @@
 # Kacamata POS — Project Context
 
 > **Optical shop (toko kacamata) Point-of-Sale admin panel.**
-> Brand name shown in UI: **Sentral Optik**
+> Brand name shown in UI: **Optik**
 
 ---
 

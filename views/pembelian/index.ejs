@@ -11,7 +11,7 @@ function fmtDate(d) { return d ? new Date(d).toLocaleDateString('id-ID') : '-'; 
 
 <div class="card p-3">
   <table id="tblPembelian" class="table table-hover mb-0" style="width:100%">
-    <thead><tr><th>Kode</th><th>Tanggal</th><th>Supplier</th><th>Total Harga</th><th style="width:150px">Aksi</th></tr></thead>
+    <thead><tr><th>Kode</th><th>Tanggal</th><th>Supplier</th><th>Total Harga</th><th>Status</th><th style="width:180px">Aksi</th></tr></thead>
     <tbody>
       <% data.forEach(function(item) { %>
       <tr>
@@ -20,8 +20,18 @@ function fmtDate(d) { return d ? new Date(d).toLocaleDateString('id-ID') : '-'; 
         <td><%= item.supplier_nama || '-' %></td>
         <td class="fw-bold"><%= fmtRp(item.total_harga) %></td>
         <td>
+          <% if (item.status_bayar === 'lunas') { %>
+            <span class="badge bg-success">Lunas</span>
+          <% } else { %>
+            <span class="badge bg-danger">Belum Lunas</span>
+          <% } %>
+        </td>
+        <td>
           <button class="btn btn-sm btn-outline-info me-1" onclick="showDetail(<%= item.id %>)"><i class="bi bi-eye"></i></button>
-          <button class="btn btn-sm btn-outline-danger" onclick="confirmVoid(<%= item.id %>)"><i class="bi bi-x-circle"></i></button>
+          <% if (item.status_bayar !== 'lunas') { %>
+          <a href="/pembayaran-pembelian?pembelian_id=<%= item.id %>" class="btn btn-sm btn-outline-success me-1" title="Bayar"><i class="bi bi-wallet2"></i></a>
+          <% } %>
+          <a href="/pembelian-retur/baru?pembelian_id=<%= item.id %>" class="btn btn-sm btn-outline-warning" title="Retur"><i class="bi bi-arrow-return-left"></i></a>
         </td>
       </tr>
       <% }); %>
@@ -39,29 +49,9 @@ function fmtDate(d) { return d ? new Date(d).toLocaleDateString('id-ID') : '-'; 
   </div>
 </div>
 
-<!-- Void Modal -->
-<div class="modal fade" id="voidModal" tabindex="-1">
-  <div class="modal-dialog modal-sm modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-body text-center py-4">
-        <i class="bi bi-exclamation-triangle text-warning" style="font-size:2.5rem"></i>
-        <h5 class="mt-3">Batalkan Pembelian?</h5>
-        <p class="text-muted small">Stok barang akan dikurangi kembali.</p>
-      </div>
-      <div class="modal-footer justify-content-center border-0 pt-0">
-        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Kembali</button>
-        <button class="btn btn-danger btn-sm" id="voidBtn">Ya, Batalkan</button>
-      </div>
-    </div>
-  </div>
-</div>
-
 <script>
 $(function() {
-  $('#tblPembelian').DataTable({
-    order: [],
-    language: { url: '//cdn.datatables.net/plug-ins/2.0.8/i18n/id.json' }
-  });
+  $('#tblPembelian').DataTable({ order: [], language: dtLanguageID });
 });
 
 function showDetail(id) {
@@ -87,16 +77,6 @@ function showDetail(id) {
     new bootstrap.Modal('#detailModal').show();
   });
 }
-
-var voidId = null;
-function confirmVoid(id) { voidId = id; new bootstrap.Modal('#voidModal').show(); }
-$('#voidBtn').on('click', function() {
-  if (!voidId) return;
-  $.ajax({ url: '/pembelian/' + voidId, method: 'DELETE',
-    success: function() { location.reload(); },
-    error: function(xhr) { showToast(xhr.responseJSON?.message || 'Gagal', 'danger'); }
-  });
-});
 </script>
 
 <%- include('../partials/bottom') %>

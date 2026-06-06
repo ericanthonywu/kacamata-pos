@@ -77,7 +77,7 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
 
 <script>
 $(function() {
-  $('#tblBarang').DataTable({ order: [], language: { url: '//cdn.datatables.net/plug-ins/2.0.8/i18n/id.json' } });
+  $('#tblBarang').DataTable({ order: [], language: dtLanguageID });
 
   var formModal = new bootstrap.Modal(document.getElementById('formModal'));
 

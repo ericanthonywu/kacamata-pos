@@ -39,6 +39,22 @@ exports.create = async function (penjualanData, detailItems) {
         await trx('barang').where('id', item.barang_id).decrement('qty', item.jumlah || 1);
       }
     }
+    // Auto-create first payment record
+    if (penjualanData.status_bayar === 'lunas') {
+      await trx('pembayaran_penjualan').insert({
+        penjualan_id: penjualan.id,
+        tanggal_bayar: penjualanData.order_date,
+        jumlah_bayar: penjualanData.total,
+        keterangan: 'Pembayaran lunas',
+      });
+    } else if (penjualanData.status_bayar === 'dp' && penjualanData.dp > 0) {
+      await trx('pembayaran_penjualan').insert({
+        penjualan_id: penjualan.id,
+        tanggal_bayar: penjualanData.order_date,
+        jumlah_bayar: penjualanData.dp,
+        keterangan: 'Down Payment',
+      });
+    }
     return penjualan;
   });
 };
