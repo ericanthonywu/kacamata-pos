@@ -62,6 +62,7 @@ kacamata-pos/
 │   │   ├── laporan.controller.js
 │   │   ├── pelanggan.controller.js
 │   │   ├── pengguna.controller.js
+│   │   ├── pembelian.controller.js
 │   │   ├── penjualan.controller.js
 │   │   ├── sales.controller.js
 │   │   └── supplier.controller.js
@@ -70,6 +71,7 @@ kacamata-pos/
 │   │   ├── kategori.service.js
 │   │   ├── laporan.service.js
 │   │   ├── pelanggan.service.js
+│   │   ├── pembelian.service.js
 │   │   ├── pengguna.service.js
 │   │   ├── penjualan.service.js
 │   │   ├── sales.service.js
@@ -79,6 +81,7 @@ kacamata-pos/
 │   │   ├── kategori.repository.js
 │   │   ├── laporan.repository.js
 │   │   ├── pelanggan.repository.js
+│   │   ├── pembelian.repository.js
 │   │   ├── pengguna.repository.js
 │   │   ├── penjualan.repository.js
 │   │   ├── sales.repository.js
@@ -89,6 +92,7 @@ kacamata-pos/
 │   │   ├── kategori.routes.js
 │   │   ├── laporan.routes.js
 │   │   ├── pelanggan.routes.js
+│   │   ├── pembelian.routes.js
 │   │   ├── pengguna.routes.js
 │   │   ├── penjualan.routes.js
 │   │   ├── sales.routes.js
@@ -111,6 +115,9 @@ kacamata-pos/
 │   ├── penjualan/
 │   │   ├── index.ejs             # Sales list with DataTable + detail modal + void
 │   │   └── form.ejs              # New sale form (frame + lensa L + lensa R)
+│   ├── pembelian/
+│   │   ├── index.ejs             # Purchase list with DataTable + detail modal + void
+│   │   └── form.ejs              # New purchase form (dynamic item rows)
 │   ├── sales/                    # CRUD views for salespeople
 │   ├── stock-gudang/             # Read-only stock view (reuses barang data)
 │   ├── supplier/                 # CRUD views for suppliers
@@ -121,7 +128,8 @@ kacamata-pos/
 │   └── js/app.js                 # Shared utilities (showToast, confirmDelete, fmtRp)
 ├── db/
 │   ├── migrations/
-│   │   └── 20240101000000_initial.js   # Creates all 8 tables
+│   │   ├── 20240101000000_initial.js   # Creates all 8 tables
+│   │   └── 20240102000000_pembelian.js # Creates pembelian + pembelian_detail
 │   └── seeds/
 │       └── 001_admin.js                # Admin user + default categories
 ├── knexfile.js                   # Knex configuration (PostgreSQL)
@@ -164,7 +172,7 @@ fail(res, err, status)    // { success: false, message }
 
 ## Database Schema
 
-All tables created in a single migration: `db/migrations/20240101000000_initial.js`
+Tables created across migrations: `db/migrations/20240101000000_initial.js` and `db/migrations/20240102000000_pembelian.js`
 
 ### Tables
 
@@ -178,6 +186,8 @@ All tables created in a single migration: `db/migrations/20240101000000_initial.
 | `pengguna` | System users | `id`, `nama`, `username` (unique), `password_hash`, `hak_akses` (`admin`/`kasir`) |
 | `penjualan` | Sales transactions | `id`, `no_nota` (unique, format: `INV-YYYYMMDD-XXXX`), `pelanggan_id` (FK), `sales_id` (FK), `created_by` (FK→pengguna), `order_date`, `biaya` (additional fee), `subtotal`, `bpjs`, `total` |
 | `penjualan_detail` | Sale line items | `id`, `penjualan_id` (FK, CASCADE delete), `tipe` (`frame`/`lensa_l`/`lensa_r`), `barang_id` (FK→barang), `harga`, `diskon`, `jumlah` |
+| `pembelian` | Purchase transactions | `id`, `kode_pembelian` (unique, format: `PI-YYYYMMDD-XXXX`), `supplier_id` (FK), `tanggal_pembelian`, `total_harga`, `created_at`, `updated_at` |
+| `pembelian_detail` | Purchase line items | `id`, `pembelian_id` (FK, CASCADE delete), `barang_id` (FK→barang), `jumlah`, `harga_beli` |
 
 ### Relationships
 ```
@@ -187,6 +197,9 @@ sales ←──── penjualan (sales_id, SET NULL)
 pengguna ←──── penjualan (created_by, SET NULL)
 barang ←──── penjualan_detail (barang_id, SET NULL)
 penjualan ←──── penjualan_detail (penjualan_id, CASCADE)
+supplier ←──── pembelian (supplier_id, SET NULL)
+barang ←──── pembelian_detail (barang_id, SET NULL)
+pembelian ←──── pembelian_detail (pembelian_id, CASCADE)
 ```
 
 ### Seed Data
@@ -218,9 +231,28 @@ This is the main business flow of the application.
 - Restores stock for all items
 - Deletes the sale and all detail records (CASCADE)
 
+### Pembelian (Purchases)
+
+Purchase flow for buying products from suppliers.
+
+**Creating a purchase** (`POST /pembelian`):
+1. Form at `/pembelian/baru` — select supplier (required) + add dynamic item rows
+2. Each item: select `barang` → auto-fills `harga_jual` as default `harga_beli` → user can adjust `harga_beli` and `jumlah`
+3. Total auto-calculated from sum of (harga_beli × jumlah) per item
+4. Submit via AJAX (`savePembelian()`)
+
+**Stock behavior**:
+- On purchase creation: stock (`barang.qty`) is **incremented** for each item (in `pembelian.repository.js` within a transaction)
+- On purchase deletion (void): stock is **decremented** back (restored)
+- Kode pembelian: auto-generated as `PI-YYYYMMDD-XXXX` (sequential per day)
+
+**Voiding a purchase** (`DELETE /pembelian/:id`):
+- Decrements stock for all items
+- Deletes the purchase and all detail records (CASCADE)
+
 ### Barang (Products)
 - CRUD with auto-generated `barcode_id` (format: `BRG-XXXXXX`)
-- `qty` is managed via direct edit and auto-adjusted by sales
+- `qty` is managed via direct edit and auto-adjusted by sales (decrement) and purchases (increment)
 - Has search endpoint (`GET /barang/search?q=`) for typeahead (used by `ilike` on `nama_barang` and `barcode_id`)
 
 ### Stock Gudang (Warehouse Stock)
@@ -234,7 +266,7 @@ This is the main business flow of the application.
 
 ### Other Master Data (standard CRUD)
 - **Kategori**: name only
-- **Supplier**: name only (no purchase module yet)
+- **Supplier**: name only
 - **Pelanggan**: name + phone number
 - **Sales**: name + `tanggal_kerja` (start date) + `status` (aktif/nonaktif)
 - **Pengguna**: name + username + password (hashed) + `hak_akses`
@@ -297,20 +329,17 @@ PORT=3000
 
 5. **No role-based access control**: The `hak_akses` field exists but is not enforced on any route. All authenticated users have full access.
 
-6. **No purchase/procurement module**: Supplier entity exists but there's no purchase order or stock-in flow. Stock is managed by directly editing `barang.qty`.
+6. **No pagination**: All list queries return full dataset. DataTables handles client-side pagination.
 
-7. **No pagination**: All list queries return full dataset. DataTables handles client-side pagination.
-
-8. **Transactions**: Only used in `penjualan.repository.js` for creating and deleting sales (to ensure stock adjustments are atomic).
+7. **Transactions**: Used in `penjualan.repository.js` and `pembelian.repository.js` for creating and deleting sales/purchases (to ensure stock adjustments are atomic).
 
 ---
 
 ## What's NOT Implemented Yet
 
 - Role-based access control (admin vs kasir restrictions)
-- Purchase orders / stock-in from suppliers
 - Audit trail / activity log
 - API token authentication
 - Pagination on backend queries
 - Payment tracking (e.g., paid/unpaid status, payment methods)
-- Edit existing sale (only create and void/delete)
+- Edit existing sale or purchase (only create and void/delete)

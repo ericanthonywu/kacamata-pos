@@ -52,6 +52,7 @@ app.use('/pelanggan', require('./routes/pelanggan.routes'));
 app.use('/sales', require('./routes/sales.routes'));
 app.use('/pengguna', require('./routes/pengguna.routes'));
 app.use('/penjualan', require('./routes/penjualan.routes'));
+app.use('/pembelian', require('./routes/pembelian.routes'));
 app.use('/laporan', require('./routes/laporan.routes'));
 
 // Error handler
