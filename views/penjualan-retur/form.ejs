@@ -1,0 +1,129 @@
+<%
+function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
+%>
+<%- include('../partials/top', { title, activePage }) %>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div></div>
+  <a href="/penjualan-retur" class="btn btn-secondary btn-sm"><i class="bi bi-arrow-left"></i> Kembali</a>
+</div>
+
+<div class="row g-3">
+  <div class="col-md-4">
+    <div class="card p-3">
+      <h6 class="mb-3">Info Retur</h6>
+      <div class="mb-3">
+        <label class="form-label small">Penjualan <span class="text-danger">*</span></label>
+        <select class="form-select" id="penjualan_id" onchange="loadPenjualanDetail()">
+          <option value="">-- Pilih Penjualan --</option>
+          <% penjualanList.forEach(function(p) { %>
+          <option value="<%= p.id %>" <%= selectedPenjualan && selectedPenjualan.id == p.id ? 'selected' : '' %>><%= p.no_nota %> — <%= p.pelanggan_nama || 'Walk-in' %> (<%= fmtRp(p.total) %>)</option>
+          <% }); %>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label small">Tanggal Retur</label>
+        <input type="date" class="form-control" id="tanggal_retur" value="<%= new Date().toISOString().slice(0,10) %>">
+      </div>
+    </div>
+  </div>
+
+  <div class="col-md-8">
+    <div class="card p-3 mb-3">
+      <h6>🔄 Item Retur</h6>
+      <div id="itemList"></div>
+      <div id="emptyMsg" class="text-center text-muted py-3">
+        <i class="bi bi-inbox" style="font-size:1.5rem"></i>
+        <div class="small mt-1">Pilih penjualan untuk melihat item yang dapat diretur.</div>
+      </div>
+    </div>
+
+    <div class="card p-3">
+      <div class="row g-2 align-items-center">
+        <div class="col-6"><strong class="fs-5">TOTAL RETUR</strong></div>
+        <div class="col-6 text-end fw-bold fs-5 text-warning" id="totalDisplay">Rp 0</div>
+      </div>
+      <div class="d-flex gap-2 mt-3">
+        <button class="btn btn-warning flex-fill" onclick="saveRetur()"><i class="bi bi-check-lg"></i> Simpan Retur</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+function loadPenjualanDetail() {
+  var pid = $('#penjualan_id').val();
+  if (!pid) { $('#itemList').empty(); $('#emptyMsg').show(); calcTotal(); return; }
+  $.get('/penjualan-retur/penjualan/' + pid, function(res) {
+    if (!res.success || !res.data.detail) return;
+    $('#emptyMsg').hide();
+    var html = '';
+    res.data.detail.forEach(function(item, i) {
+      var tipe = item.tipe === 'frame' ? 'Frame' : item.tipe === 'lensa_l' ? 'Lensa L' : 'Lensa R';
+      var netHarga = (item.harga || 0) - (item.diskon || 0);
+      html += '<div class="row g-2 align-items-end mb-2 item-row" data-idx="' + i + '">' +
+        '<div class="col-md-2"><label class="form-label small">Tipe</label>' +
+        '<input type="text" class="form-control form-control-sm" value="' + tipe + '" readonly>' +
+        '<input type="hidden" class="item-tipe" value="' + item.tipe + '"></div>' +
+        '<div class="col-md-3"><label class="form-label small">Barang</label>' +
+        '<input type="text" class="form-control form-control-sm" value="' + (item.nama_barang || '-') + '" readonly>' +
+        '<input type="hidden" class="item-barang" value="' + item.barang_id + '">' +
+        '<input type="hidden" class="item-harga" value="' + netHarga + '"></div>' +
+        '<div class="col-md-2"><label class="form-label small">Qty Jual</label>' +
+        '<input type="number" class="form-control form-control-sm" value="' + item.jumlah + '" readonly></div>' +
+        '<div class="col-md-2"><label class="form-label small">Qty Retur</label>' +
+        '<input type="number" class="form-control form-control-sm calc-input item-jumlah" value="' + item.jumlah + '" min="0" max="' + item.jumlah + '"></div>' +
+        '<div class="col-md-3"><label class="form-label small">Subtotal</label>' +
+        '<div class="form-control-plaintext form-control-sm fw-bold item-subtotal">Rp 0</div></div>' +
+        '</div>';
+    });
+    $('#itemList').html(html);
+    calcTotal();
+  });
+}
+
+function calcTotal() {
+  var total = 0;
+  $('.item-row').each(function() {
+    var h = parseFloat($(this).find('.item-harga').val()) || 0;
+    var j = parseInt($(this).find('.item-jumlah').val()) || 0;
+    var sub = h * j;
+    total += sub;
+    $(this).find('.item-subtotal').text(fmtRp(sub));
+  });
+  $('#totalDisplay').text(fmtRp(total));
+}
+
+$(document).on('input', '.calc-input', calcTotal);
+
+function saveRetur() {
+  var penjualanId = $('#penjualan_id').val();
+  if (!penjualanId) { showToast('Pilih penjualan', 'danger'); return; }
+
+  var items = [];
+  $('.item-row').each(function() {
+    var j = parseInt($(this).find('.item-jumlah').val()) || 0;
+    if (j <= 0) return;
+    items.push({
+      barang_id: parseInt($(this).find('.item-barang').val()),
+      tipe: $(this).find('.item-tipe').val(),
+      jumlah: j,
+      harga: parseFloat($(this).find('.item-harga').val()) || 0,
+    });
+  });
+
+  if (items.length === 0) { showToast('Isi minimal satu item retur', 'danger'); return; }
+
+  $.ajax({ url: '/penjualan-retur', method: 'POST', contentType: 'application/json',
+    data: JSON.stringify({ penjualan_id: penjualanId, tanggal_retur: $('#tanggal_retur').val(), items: items }),
+    success: function(res) { if (res.success) window.location.href = '/penjualan-retur'; },
+    error: function(xhr) { showToast(xhr.responseJSON?.message || 'Gagal', 'danger'); }
+  });
+}
+
+<% if (selectedPenjualan) { %>
+$(function() { loadPenjualanDetail(); });
+<% } %>
+</script>
+
+<%- include('../partials/bottom') %>
