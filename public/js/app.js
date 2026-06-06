@@ -1,5 +1,17 @@
 /* app.js — Shared jQuery utilities */
 
+// DataTables Indonesian language
+var dtLanguageID = {
+  search: 'Cari:',
+  lengthMenu: 'Tampilkan _MENU_ data',
+  info: 'Menampilkan _START_ - _END_ dari _TOTAL_ data',
+  infoEmpty: 'Tidak ada data',
+  infoFiltered: '(difilter dari _MAX_ total data)',
+  zeroRecords: 'Data tidak ditemukan',
+  emptyTable: 'Tidak ada data tersedia',
+  paginate: { first: 'Pertama', last: 'Terakhir', next: 'Berikutnya', previous: 'Sebelumnya' }
+};
+
 // Toast notification
 function showToast(message, type) {
   type = type || 'success';
