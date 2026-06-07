@@ -137,6 +137,9 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
 $(function() {
   $('#pelanggan_id').select2({ theme: 'bootstrap-5', placeholder: '-- Pilih --', allowClear: true });
   $('#sales_id').select2({ theme: 'bootstrap-5', placeholder: '-- Pilih --', allowClear: true });
+  $('#frame_barang_id').select2({ theme: 'bootstrap-5', placeholder: '-- Pilih Frame --', allowClear: true });
+  $('#lensa_l_barang_id').select2({ theme: 'bootstrap-5', placeholder: '-- Pilih Lensa Kiri --', allowClear: true });
+  $('#lensa_r_barang_id').select2({ theme: 'bootstrap-5', placeholder: '-- Pilih Lensa Kanan --', allowClear: true });
 });
 
 function onSelectBarang(el, tipe) {

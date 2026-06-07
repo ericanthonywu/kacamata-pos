@@ -24,17 +24,31 @@ exports.kas = async function (req, res, next) {
 
 exports.komisi = async function (req, res, next) {
   try {
-    const today = new Date().toISOString().split('T')[0];
-    const firstOfMonth = today.slice(0, 8) + '01';
+    const today = new Date();
+    const currentMonth = today.getMonth() + 1;
+    const currentYear = today.getFullYear();
+    const bulan = req.query.bulan ? parseInt(req.query.bulan) : currentMonth;
+    const tahun = req.query.tahun ? parseInt(req.query.tahun) : currentYear;
+    
+    // Calculate first and last day of the month
+    const from = `${tahun}-${bulan.toString().padStart(2, '0')}-01`;
+    const lastDay = new Date(tahun, bulan, 0).getDate();
+    const to = `${tahun}-${bulan.toString().padStart(2, '0')}-${lastDay}`;
+
     const filters = {
-      from: req.query.from || firstOfMonth,
-      to: req.query.to || today,
+      from, to, bulan, tahun,
+      sales_id: req.query.sales_id || null,
     };
-    const data = await laporanService.getKomisiReport(filters);
+
+    const [data, salesList] = await Promise.all([
+      laporanService.getKomisiReport(filters),
+      salesService.getAll()
+    ]);
+
     const grandTotal = data.reduce((s, r) => s + (parseFloat(r.total_komisi) || 0), 0);
     res.render('laporan/komisi', {
       title: 'Laporan Komisi Sales',
-      data, filters, grandTotal,
+      data, filters, grandTotal, salesList,
       activePage: 'laporan-komisi',
     });
   } catch (err) { next(err); }

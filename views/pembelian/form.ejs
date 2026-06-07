@@ -47,6 +47,14 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
 
     <!-- Summary -->
     <div class="card p-3">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div class="small text-muted">Pilih lunas jika sudah dibayar penuh. Jika tidak, akan masuk Hutang.</div>
+        <div class="form-check mb-0">
+          <input class="form-check-input" type="checkbox" id="status_bayar">
+          <label class="form-check-label small fw-bold" for="status_bayar">Tandai Lunas</label>
+        </div>
+      </div>
+      <hr class="mt-0">
       <div class="row g-2 align-items-center">
         <div class="col-6"><strong class="fs-5">TOTAL</strong></div>
         <div class="col-6 text-end fw-bold fs-5 text-success" id="totalDisplay">Rp 0</div>
@@ -132,6 +140,7 @@ function savePembelian() {
   var payload = {
     supplier_id: supplierId,
     tanggal_pembelian: $('#tanggal_pembelian').val(),
+    status_bayar: $('#status_bayar').is(':checked') ? 'lunas' : 'belum_lunas',
     items: items,
   };
 

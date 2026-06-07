@@ -42,6 +42,7 @@ exports.create = async function (data) {
     tanggal_pembelian: data.tanggal_pembelian || new Date().toISOString().split('T')[0],
     supplier_id: data.supplier_id,
     total_harga,
+    status_bayar: data.status_bayar || 'belum_lunas',
   };
 
   const pembelian = await repo.create(pembelianData, items);

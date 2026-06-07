@@ -6,15 +6,34 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
 <div class="card p-3 mb-3">
   <form method="get" action="/laporan/komisi" class="row g-2 align-items-end">
     <div class="col-auto">
-      <label class="form-label small mb-0">Dari</label>
-      <input type="date" class="form-control form-control-sm" name="from" value="<%= filters.from %>">
+      <label class="form-label small mb-0">Bulan</label>
+      <select class="form-select form-select-sm" name="bulan">
+        <% var months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember']; %>
+        <% for(var i=1; i<=12; i++) { %>
+        <option value="<%= i %>" <%= filters.bulan === i ? 'selected' : '' %>><%= months[i-1] %></option>
+        <% } %>
+      </select>
     </div>
     <div class="col-auto">
-      <label class="form-label small mb-0">Sampai</label>
-      <input type="date" class="form-control form-control-sm" name="to" value="<%= filters.to %>">
+      <label class="form-label small mb-0">Tahun</label>
+      <select class="form-select form-select-sm" name="tahun">
+        <% var curYear = new Date().getFullYear(); %>
+        <% for(var y = curYear - 2; y <= curYear + 2; y++) { %>
+        <option value="<%= y %>" <%= filters.tahun === y ? 'selected' : '' %>><%= y %></option>
+        <% } %>
+      </select>
     </div>
     <div class="col-auto">
-      <button class="btn btn-primary btn-sm"><i class="bi bi-funnel"></i> Filter</button>
+      <label class="form-label small mb-0">Sales</label>
+      <select class="form-select form-select-sm" name="sales_id">
+        <option value="">Semua Sales</option>
+        <% salesList.forEach(function(s) { %>
+        <option value="<%= s.id %>" <%= filters.sales_id == s.id ? 'selected' : '' %>><%= s.nama %></option>
+        <% }); %>
+      </select>
+    </div>
+    <div class="col-auto">
+      <button class="btn btn-primary btn-sm"><i class="bi bi-funnel"></i> Tampilkan</button>
     </div>
   </form>
 </div>

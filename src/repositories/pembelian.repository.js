@@ -37,6 +37,15 @@ exports.create = async function (pembelianData, detailItems) {
         await trx('barang').where('id', item.barang_id).increment('qty', item.jumlah || 1);
       }
     }
+    // Auto-create payment record if lunas
+    if (pembelianData.status_bayar === 'lunas') {
+      await trx('pembayaran_pembelian').insert({
+        pembelian_id: pembelian.id,
+        tanggal_bayar: pembelianData.tanggal_pembelian,
+        jumlah_bayar: pembelianData.total_harga,
+        keterangan: 'Pembayaran lunas (saat nota dibuat)',
+      });
+    }
     return pembelian;
   });
 };

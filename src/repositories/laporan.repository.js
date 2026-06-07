@@ -26,7 +26,7 @@ exports.getSummary = function ({ from, to, sales_id } = {}) {
   return query.first();
 };
 
-exports.getKomisiReport = function ({ from, to } = {}) {
+exports.getKomisiReport = function ({ from, to, sales_id } = {}) {
   let query = db('penjualan')
     .select(
       'sales.id as sales_id',
@@ -40,6 +40,7 @@ exports.getKomisiReport = function ({ from, to } = {}) {
     .where('penjualan.status_bayar', 'lunas');
   if (from) query = query.where('penjualan.order_date', '>=', from);
   if (to) query = query.where('penjualan.order_date', '<=', to);
+  if (sales_id) query = query.where('penjualan.sales_id', sales_id);
   return query
     .groupBy('sales.id', 'sales.nama', 'sales.persentase_komisi')
     .orderBy('total_komisi', 'desc');
