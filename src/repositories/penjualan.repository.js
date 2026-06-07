@@ -67,19 +67,19 @@ exports.create = async function (penjualanData, detailItems) {
       }
       
       const sales = await trx('sales').where('id', penjualanData.sales_id).first();
-      if (sales && parseFloat(sales.persentase_komisi) > 0) {
-        if (frameTotal > 0) {
-          const nominal = frameTotal * parseFloat(sales.persentase_komisi) / 100;
+      if (sales) {
+        if (frameTotal > 0 && parseFloat(sales.komisi_frame) > 0) {
+          const nominal = frameTotal * parseFloat(sales.komisi_frame) / 100;
           await trx('komisi_sales').insert({
             penjualan_id: penjualan.id, sales_id: sales.id, tipe: 'frame',
-            persentase: sales.persentase_komisi, nominal_komisi: nominal
+            persentase: sales.komisi_frame, nominal_komisi: nominal
           });
         }
-        if (lensaTotal > 0) {
-          const nominal = lensaTotal * parseFloat(sales.persentase_komisi) / 100;
+        if (lensaTotal > 0 && parseFloat(sales.komisi_lensa) > 0) {
+          const nominal = lensaTotal * parseFloat(sales.komisi_lensa) / 100;
           await trx('komisi_sales').insert({
             penjualan_id: penjualan.id, sales_id: sales.id, tipe: 'lensa',
-            persentase: sales.persentase_komisi, nominal_komisi: nominal
+            persentase: sales.komisi_lensa, nominal_komisi: nominal
           });
         }
       }

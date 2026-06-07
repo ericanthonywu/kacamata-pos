@@ -1,14 +1,26 @@
 <%- include('../partials/top', { title, activePage }) %>
 
+<div class="row g-2 align-items-center mb-3">
+  <div class="col-auto"><label class="form-label small fw-bold mb-0">Filter Kategori:</label></div>
+  <div class="col-md-3">
+    <select class="form-select form-select-sm" id="filterKategori">
+      <option value="">Semua Kategori</option>
+      <% kategoriList.forEach(function(k) { %>
+      <option value="<%= k.nama %>"><%= k.nama %></option>
+      <% }); %>
+    </select>
+  </div>
+</div>
+
 <div class="row g-3 mb-4">
   <div class="col-md-4 col-6">
-    <div class="stat-card"><i class="bi bi-box-seam stat-icon text-info"></i><div class="stat-value"><%= data.length %></div><div class="stat-label">Jenis Barang</div></div>
+    <div class="stat-card"><i class="bi bi-box-seam stat-icon text-info"></i><div class="stat-value" id="valJenis"><%= data.length %></div><div class="stat-label">Jenis Barang</div></div>
   </div>
   <div class="col-md-4 col-6">
-    <div class="stat-card"><i class="bi bi-house-gear stat-icon text-success"></i><div class="stat-value"><%= data.reduce(function(s,d){ return s + (d.qty||0); }, 0) %></div><div class="stat-label">Total Unit</div></div>
+    <div class="stat-card"><i class="bi bi-house-gear stat-icon text-success"></i><div class="stat-value" id="valUnit"><%= data.reduce(function(s,d){ return s + (d.qty||0); }, 0) %></div><div class="stat-label">Total Unit</div></div>
   </div>
   <div class="col-md-4 col-6">
-    <div class="stat-card"><i class="bi bi-exclamation-triangle stat-icon text-warning"></i><div class="stat-value"><%= data.filter(function(d){ return d.qty <= 5; }).length %></div><div class="stat-label">Stock Rendah (≤5)</div></div>
+    <div class="stat-card"><i class="bi bi-exclamation-triangle stat-icon text-warning"></i><div class="stat-value" id="valRendah"><%= data.filter(function(d){ return d.qty <= 5; }).length %></div><div class="stat-label">Stock Rendah (≤5)</div></div>
   </div>
 </div>
 
@@ -38,7 +50,29 @@
 </div>
 
 <script>
-$(function() { $('#tblStock').DataTable({ order: [[3, 'asc']], language: dtLanguageID }); });
+$(function() { 
+  var table = $('#tblStock').DataTable({ order: [[3, 'asc']], language: dtLanguageID }); 
+
+  $('#filterKategori').on('change', function() {
+    var val = $.fn.dataTable.util.escapeRegex($(this).val());
+    table.column(1).search(val ? '^' + val + '$' : '', true, false).draw();
+    recalcStats();
+  });
+
+  function recalcStats() {
+    var jenis = 0, unit = 0, rendah = 0;
+    table.rows({ search: 'applied' }).every(function() {
+      jenis++;
+      var data = this.node();
+      var qty = parseInt($(data).find('td:eq(3)').text()) || 0;
+      unit += qty;
+      if (qty <= 5) rendah++;
+    });
+    $('#valJenis').text(jenis);
+    $('#valUnit').text(unit);
+    $('#valRendah').text(rendah);
+  }
+});
 </script>
 
 <%- include('../partials/bottom') %>

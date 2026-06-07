@@ -19,6 +19,14 @@ exports.create = async function (data) {
     kategori_id: data.kategori_id || null,
     qty: parseInt(data.qty) || 0,
     harga_jual: parseFloat(data.harga_jual) || 0,
+    sph_r: data.sph_r || null,
+    sph_l: data.sph_l || null,
+    cyl_r: data.cyl_r || null,
+    cyl_l: data.cyl_l || null,
+    axis_r: data.axis_r || null,
+    axis_l: data.axis_l || null,
+    add_r: data.add_r || null,
+    add_l: data.add_l || null,
     barcode_id,
   });
 };
@@ -30,6 +38,14 @@ exports.update = function (id, data) {
     kategori_id: data.kategori_id || null,
     qty: parseInt(data.qty) || 0,
     harga_jual: parseFloat(data.harga_jual) || 0,
+    sph_r: data.sph_r || null,
+    sph_l: data.sph_l || null,
+    cyl_r: data.cyl_r || null,
+    cyl_l: data.cyl_l || null,
+    axis_r: data.axis_r || null,
+    axis_l: data.axis_l || null,
+    add_r: data.add_r || null,
+    add_l: data.add_l || null,
   });
 };
 

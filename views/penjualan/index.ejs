@@ -54,35 +54,7 @@ $(function() {
 
 function printNota(id) {
   $.get('/penjualan/' + id, function(res) {
-    if (!res.success) return;
-    var d = res.data;
-    var lines = [];
-    lines.push('================================');
-    lines.push('         KACAMATA POS');
-    lines.push('================================');
-    lines.push('No Nota : ' + d.no_nota);
-    lines.push('Tanggal : ' + new Date(d.order_date).toLocaleDateString('id-ID'));
-    if (d.tanggal_selesai) lines.push('Selesai : ' + new Date(d.tanggal_selesai).toLocaleDateString('id-ID'));
-    if (d.pelanggan_nama) lines.push('Customer: ' + d.pelanggan_nama);
-    if (d.sales_nama) lines.push('Sales   : ' + d.sales_nama);
-    lines.push('--------------------------------');
-    (d.detail||[]).forEach(function(item) {
-      var tipe = item.tipe === 'frame' ? 'Frame' : item.tipe === 'lensa_l' ? 'Lensa L' : 'Lensa R';
-      lines.push(tipe + ': ' + (item.nama_barang||'-'));
-      var sub = ((item.harga||0) - (item.diskon||0)) * (item.jumlah||1);
-      lines.push('  ' + fmtRp(item.harga) + (item.diskon > 0 ? ' disc ' + fmtRp(item.diskon) : '') + ' x' + item.jumlah + ' = ' + fmtRp(sub));
-    });
-    lines.push('--------------------------------');
-    lines.push('Subtotal: ' + fmtRp(d.subtotal));
-    if (d.bpjs > 0) lines.push('BPJS    : - ' + fmtRp(d.bpjs));
-    lines.push('TOTAL   : ' + fmtRp(d.total));
-    lines.push('================================');
-    lines.push('       Terima Kasih!');
-
-    var w = window.open('','_blank','width=400,height=600');
-    w.document.write('<html><head><title>Nota ' + d.no_nota + '</title><style>body{font-family:monospace;font-size:12px;white-space:pre;margin:20px}@media print{body{margin:0}}</style></head><body>' + lines.join('\n') + '</body></html>');
-    w.document.close();
-    w.onload = function() { w.print(); };
+    if (res.success) printNotaData(res.data);
   });
 }
 

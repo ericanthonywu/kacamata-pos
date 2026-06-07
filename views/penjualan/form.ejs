@@ -2,10 +2,8 @@
 function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
 %>
 <%- include('../partials/top', { title, activePage }) %>
+<%- include('../partials/select2') %>
 
-<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
-<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet">
-<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
   <div></div>
@@ -53,17 +51,23 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
   <div class="col-md-8">
     <!-- Frame -->
     <div class="card p-3 mb-3">
-      <h6>🖼️ Frame</h6>
+      <h6>👓 Frame</h6>
       <select class="form-select mb-2" id="frame_barang_id" onchange="onSelectBarang(this, 'frame')">
         <option value="">-- Pilih Frame --</option>
-        <% barangList.forEach(function(b) { %>
-        <option value="<%= b.id %>" data-harga="<%= b.harga_jual %>" data-qty="<%= b.qty %>"><%= b.nama_barang %> (<%= fmtRp(b.harga_jual) %> | Stok: <%= b.qty %>)</option>
+        <% barangList.filter(b => b.kategori_nama && b.kategori_nama.toLowerCase() === 'frame').forEach(function(b) { %>
+        <option value="<%= b.id %>" data-harga="<%= b.harga_jual %>" data-qty="<%= b.qty %>"
+          data-sph_r="<%= b.sph_r %>" data-cyl_r="<%= b.cyl_r %>" data-axis_r="<%= b.axis_r %>" data-add_r="<%= b.add_r %>"
+          data-sph_l="<%= b.sph_l %>" data-cyl_l="<%= b.cyl_l %>" data-axis_l="<%= b.axis_l %>" data-add_l="<%= b.add_l %>">
+          <%= b.nama_barang %> 
+          <% var res = []; if(b.sph_r||b.cyl_r||b.add_r) res.push('R: SPH '+b.sph_r+' CYL '+b.cyl_r+' ADD '+b.add_r); if(b.sph_l||b.cyl_l||b.add_l) res.push('L: SPH '+b.sph_l+' CYL '+b.cyl_l+' ADD '+b.add_l); %>
+          <% if(res.length) { %>(<%= res.join(' | ') %>)<% } %>
+          (Stok: <%= b.qty %>)
+        </option>
         <% }); %>
       </select>
       <div class="row g-2" id="frame_fields" style="display:none">
-        <div class="col-4"><label class="form-label small">Harga</label><input type="text" class="form-control form-control-sm calc-input input-currency" id="frame_harga" value="0"></div>
-        <div class="col-4"><label class="form-label small">Diskon</label><input type="text" class="form-control form-control-sm calc-input input-currency" id="frame_diskon" value="0"></div>
-        <div class="col-4"><label class="form-label small">Qty</label><input type="number" class="form-control form-control-sm calc-input" id="frame_jumlah" value="1" min="1"></div>
+        <div class="col-6"><label class="form-label small">Harga</label><input type="text" class="form-control form-control-sm calc-input input-currency" id="frame_harga" value="0"></div>
+        <div class="col-6"><label class="form-label small">Qty</label><input type="number" class="form-control form-control-sm calc-input" id="frame_jumlah" value="1" min="1"></div>
       </div>
     </div>
 
@@ -72,14 +76,20 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
       <h6>👁️ Lensa (R)</h6>
       <select class="form-select mb-2" id="lensa_r_barang_id" onchange="onSelectBarang(this, 'lensa_r')">
         <option value="">-- Pilih Lensa Kanan --</option>
-        <% barangList.forEach(function(b) { %>
-        <option value="<%= b.id %>" data-harga="<%= b.harga_jual %>" data-qty="<%= b.qty %>"><%= b.nama_barang %> (<%= fmtRp(b.harga_jual) %> | Stok: <%= b.qty %>)</option>
+        <% barangList.filter(b => b.kategori_nama && b.kategori_nama.toLowerCase() === 'lensa').forEach(function(b) { %>
+        <option value="<%= b.id %>" data-harga="<%= b.harga_jual %>" data-qty="<%= b.qty %>"
+          data-sph_r="<%= b.sph_r %>" data-cyl_r="<%= b.cyl_r %>" data-axis_r="<%= b.axis_r %>" data-add_r="<%= b.add_r %>"
+          data-sph_l="<%= b.sph_l %>" data-cyl_l="<%= b.cyl_l %>" data-axis_l="<%= b.axis_l %>" data-add_l="<%= b.add_l %>">
+          <%= b.nama_barang %> 
+          <% var res = []; if(b.sph_r||b.cyl_r||b.add_r) res.push('R: SPH '+b.sph_r+' CYL '+b.cyl_r+' ADD '+b.add_r); if(b.sph_l||b.cyl_l||b.add_l) res.push('L: SPH '+b.sph_l+' CYL '+b.cyl_l+' ADD '+b.add_l); %>
+          <% if(res.length) { %>(<%= res.join(' | ') %>)<% } %>
+          (Stok: <%= b.qty %>)
+        </option>
         <% }); %>
       </select>
       <div class="row g-2" id="lensa_r_fields" style="display:none">
-        <div class="col-4"><label class="form-label small">Harga</label><input type="text" class="form-control form-control-sm calc-input input-currency" id="lensa_r_harga" value="0"></div>
-        <div class="col-4"><label class="form-label small">Diskon</label><input type="text" class="form-control form-control-sm calc-input input-currency" id="lensa_r_diskon" value="0"></div>
-        <div class="col-4"><label class="form-label small">Qty</label><input type="number" class="form-control form-control-sm calc-input" id="lensa_r_jumlah" value="1" min="1"></div>
+        <div class="col-6"><label class="form-label small">Harga</label><input type="text" class="form-control form-control-sm calc-input input-currency" id="lensa_r_harga" value="0"></div>
+        <div class="col-6"><label class="form-label small">Qty</label><input type="number" class="form-control form-control-sm calc-input" id="lensa_r_jumlah" value="1" min="1"></div>
       </div>
     </div>
 
@@ -88,14 +98,39 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
       <h6>👁️ Lensa (L)</h6>
       <select class="form-select mb-2" id="lensa_l_barang_id" onchange="onSelectBarang(this, 'lensa_l')">
         <option value="">-- Pilih Lensa Kiri --</option>
-        <% barangList.forEach(function(b) { %>
-        <option value="<%= b.id %>" data-harga="<%= b.harga_jual %>" data-qty="<%= b.qty %>"><%= b.nama_barang %> (<%= fmtRp(b.harga_jual) %> | Stok: <%= b.qty %>)</option>
+        <% barangList.filter(b => b.kategori_nama && b.kategori_nama.toLowerCase() === 'lensa').forEach(function(b) { %>
+        <option value="<%= b.id %>" data-harga="<%= b.harga_jual %>" data-qty="<%= b.qty %>"
+          data-sph_r="<%= b.sph_r %>" data-cyl_r="<%= b.cyl_r %>" data-axis_r="<%= b.axis_r %>" data-add_r="<%= b.add_r %>"
+          data-sph_l="<%= b.sph_l %>" data-cyl_l="<%= b.cyl_l %>" data-axis_l="<%= b.axis_l %>" data-add_l="<%= b.add_l %>">
+          <%= b.nama_barang %> 
+          <% var res = []; if(b.sph_r||b.cyl_r||b.add_r) res.push('R: SPH '+b.sph_r+' CYL '+b.cyl_r+' ADD '+b.add_r); if(b.sph_l||b.cyl_l||b.add_l) res.push('L: SPH '+b.sph_l+' CYL '+b.cyl_l+' ADD '+b.add_l); %>
+          <% if(res.length) { %>(<%= res.join(' | ') %>)<% } %>
+          (Stok: <%= b.qty %>)
+        </option>
         <% }); %>
       </select>
       <div class="row g-2" id="lensa_l_fields" style="display:none">
-        <div class="col-4"><label class="form-label small">Harga</label><input type="text" class="form-control form-control-sm calc-input input-currency" id="lensa_l_harga" value="0"></div>
-        <div class="col-4"><label class="form-label small">Diskon</label><input type="text" class="form-control form-control-sm calc-input input-currency" id="lensa_l_diskon" value="0"></div>
-        <div class="col-4"><label class="form-label small">Qty</label><input type="number" class="form-control form-control-sm calc-input" id="lensa_l_jumlah" value="1" min="1"></div>
+        <div class="col-6"><label class="form-label small">Harga</label><input type="text" class="form-control form-control-sm calc-input input-currency" id="lensa_l_harga" value="0"></div>
+        <div class="col-6"><label class="form-label small">Qty</label><input type="number" class="form-control form-control-sm calc-input" id="lensa_l_jumlah" value="1" min="1"></div>
+      </div>
+    </div>
+
+    <!-- Resep -->
+    <div class="card p-3 mb-3">
+      <h6>📝 Resep Kacamata (Opsional)</h6>
+      <div class="row g-2 mb-2">
+        <div class="col-12"><div class="small fw-bold text-muted mb-1">Kanan (R)</div></div>
+        <div class="col-3"><input type="text" class="form-control form-control-sm" id="sph_r" placeholder="SPH"></div>
+        <div class="col-3"><input type="text" class="form-control form-control-sm" id="cyl_r" placeholder="CYL"></div>
+        <div class="col-3"><input type="text" class="form-control form-control-sm" id="axis_r" placeholder="AXIS"></div>
+        <div class="col-3"><input type="text" class="form-control form-control-sm" id="add_r" placeholder="ADD"></div>
+      </div>
+      <div class="row g-2 mb-3">
+        <div class="col-12"><div class="small fw-bold text-muted mb-1">Kiri (L)</div></div>
+        <div class="col-3"><input type="text" class="form-control form-control-sm" id="sph_l" placeholder="SPH"></div>
+        <div class="col-3"><input type="text" class="form-control form-control-sm" id="cyl_l" placeholder="CYL"></div>
+        <div class="col-3"><input type="text" class="form-control form-control-sm" id="axis_l" placeholder="AXIS"></div>
+        <div class="col-3"><input type="text" class="form-control form-control-sm" id="add_l" placeholder="ADD"></div>
       </div>
     </div>
 
@@ -200,35 +235,57 @@ function saveNewPelanggan() {
   });
 }
 
-function onSelectBarang(el, tipe) {
-  var selected = $(el).find(':selected');
-  var harga = parseInt(selected.data('harga')) || 0;
-  $('#' + tipe + '_harga').val(harga).trigger('input');
-  $('#' + tipe + '_diskon').val(0).trigger('input');
-  $('#' + tipe + '_jumlah').val(1);
-  $('#' + tipe + '_fields').toggle(!!$(el).val());
-  calcTotal();
+function onSelectBarang(el, type) {
+  var opt = $(el).find(':selected')[0];
+  if (opt && opt.value) {
+    var p = parseInt(opt.dataset.harga) || 0;
+    $('#' + type + '_harga').val(p).trigger('input');
+    $('#' + type + '_fields').show();
+    
+    // Auto-fill prescription if empty
+    if(type === 'lensa_r') {
+      if(!$('#sph_r').val()) $('#sph_r').val(opt.dataset.sph_r || '');
+      if(!$('#cyl_r').val()) $('#cyl_r').val(opt.dataset.cyl_r || '');
+      if(!$('#axis_r').val()) $('#axis_r').val(opt.dataset.axis_r || '');
+      if(!$('#add_r').val()) $('#add_r').val(opt.dataset.add_r || '');
+    }
+    if(type === 'lensa_l') {
+      if(!$('#sph_l').val()) $('#sph_l').val(opt.dataset.sph_l || '');
+      if(!$('#cyl_l').val()) $('#cyl_l').val(opt.dataset.cyl_l || '');
+      if(!$('#axis_l').val()) $('#axis_l').val(opt.dataset.axis_l || '');
+      if(!$('#add_l').val()) $('#add_l').val(opt.dataset.add_l || '');
+    }
+  } else {
+    $('#' + type + '_fields').hide();
+  }
+  calculate();
 }
 
 function getItemTotal(tipe) {
   var bid = $('#' + tipe + '_barang_id').val();
   if (!bid) return 0;
   var h = parseFloat($('#' + tipe + '_harga').val().replace(/[^0-9]/g,'')) || 0;
-  var d = parseFloat($('#' + tipe + '_diskon').val().replace(/[^0-9]/g,'')) || 0;
   var j = parseInt($('#' + tipe + '_jumlah').val()) || 1;
-  return (h - d) * j;
+  return h * j;
 }
 
-function calcTotal() {
-  var sub = getItemTotal('frame') + getItemTotal('lensa_l') + getItemTotal('lensa_r');
+function calculate() {
+  var subtotal = 0;
+  ['frame', 'lensa_r', 'lensa_l'].forEach(function(type) {
+    if ($('#' + type + '_barang_id').val()) {
+      var h = parseInt($('#' + type + '_harga').data('raw-value') || $('#' + type + '_harga').val().replace(/[^0-9]/g, '')) || 0;
+      var q = parseInt($('#' + type + '_jumlah').val()) || 1;
+      subtotal += (h * q);
+    }
+  });
   var bpjs = parseFloat($('#bpjs').val().replace(/[^0-9]/g,'')) || 0;
-  $('#subtotalDisplay').text(fmtRp(sub));
-  $('#totalDisplay').text(fmtRp(sub - bpjs));
+  $('#subtotalDisplay').text(fmtRp(subtotal));
+  $('#totalDisplay').text(fmtRp(subtotal - bpjs));
 }
 
 function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
 
-$(document).on('input', '.calc-input', calcTotal);
+$(document).on('input', '.calc-input', calculate);
 
 function toggleDP() {
   var status = $('#status_bayar').val();
@@ -240,7 +297,6 @@ function buildItem(tipe) {
   if (!bid) return null;
   return { tipe: tipe, barang_id: parseInt(bid),
     harga: parseFloat($('#' + tipe + '_harga').data('raw-value') || $('#' + tipe + '_harga').val().replace(/[^0-9]/g,''))||0,
-    diskon: parseFloat($('#' + tipe + '_diskon').data('raw-value') || $('#' + tipe + '_diskon').val().replace(/[^0-9]/g,''))||0,
     jumlah: parseInt($('#' + tipe + '_jumlah').val())||1 };
 }
 
@@ -278,7 +334,9 @@ function savePenjualan(withPrint) {
     tanggal_selesai: $('#tanggal_selesai').val() || null,
     bpjs: parseFloat($('#bpjs').data('raw-value') || $('#bpjs').val().replace(/[^0-9]/g,'')) || 0,
     status_bayar: $('#status_bayar').val(),
-    dp: parseFloat($('#dp_amount').data('raw-value') || $('#dp_amount').val().replace(/[^0-9]/g,'')) || 0,
+    dp: parseInt($('#dp_amount').data('raw-value') || $('#dp_amount').val().replace(/[^0-9]/g, '')) || 0,
+    sph_r: $('#sph_r').val(), cyl_r: $('#cyl_r').val(), axis_r: $('#axis_r').val(), add_r: $('#add_r').val(),
+    sph_l: $('#sph_l').val(), cyl_l: $('#cyl_l').val(), axis_l: $('#axis_l').val(), add_l: $('#add_l').val(),
     items: items,
   };
   $.ajax({ url: '/penjualan', method: 'POST', contentType: 'application/json', data: JSON.stringify(payload),
@@ -288,34 +346,6 @@ function savePenjualan(withPrint) {
     },
     error: function(xhr) { showToast(xhr.responseJSON?.message || 'Gagal menyimpan', 'danger'); }
   });
-}
-
-function printNotaData(d) {
-  var lines = [];
-  lines.push('================================');
-  lines.push('         KACAMATA POS');
-  lines.push('================================');
-  lines.push('No Nota : ' + d.no_nota);
-  lines.push('Tanggal : ' + new Date(d.order_date).toLocaleDateString('id-ID'));
-  if (d.pelanggan_nama) lines.push('Customer: ' + d.pelanggan_nama);
-  if (d.sales_nama) lines.push('Sales   : ' + d.sales_nama);
-  lines.push('--------------------------------');
-  (d.detail||[]).forEach(function(item) {
-    var tipe = item.tipe === 'frame' ? 'Frame' : item.tipe === 'lensa_l' ? 'Lensa L' : 'Lensa R';
-    lines.push(tipe + ': ' + (item.nama_barang||'-'));
-    var sub = ((item.harga||0) - (item.diskon||0)) * (item.jumlah||1);
-    lines.push('  ' + fmtRp(item.harga) + (item.diskon > 0 ? ' disc ' + fmtRp(item.diskon) : '') + ' x' + item.jumlah + ' = ' + fmtRp(sub));
-  });
-  lines.push('--------------------------------');
-  lines.push('Subtotal: ' + fmtRp(d.subtotal));
-  if (d.bpjs > 0) lines.push('BPJS    : - ' + fmtRp(d.bpjs));
-  lines.push('TOTAL   : ' + fmtRp(d.total));
-  lines.push('================================');
-  lines.push('       Terima Kasih!');
-  var w = window.open('','_blank','width=400,height=600');
-  w.document.write('<html><head><title>Nota</title><style>body{font-family:monospace;font-size:12px;white-space:pre;margin:20px}</style></head><body>' + lines.join('\n') + '</body></html>');
-  w.document.close();
-  w.onload = function() { w.print(); };
 }
 </script>
 

@@ -8,7 +8,8 @@ exports.create = function (data) {
   if (!data.nama?.trim()) throw Object.assign(new Error('Nama sales harus diisi'), { status: 400 });
   return repo.create({
     nama: data.nama.trim(),
-    persentase_komisi: parseFloat(data.persentase_komisi) || 0,
+    komisi_frame: parseFloat(data.komisi_frame) || 0,
+    komisi_lensa: parseFloat(data.komisi_lensa) || 0,
     tanggal_kerja: data.tanggal_kerja || new Date().toISOString().split('T')[0],
     status: data.status || 'aktif',
   });
@@ -18,7 +19,8 @@ exports.update = function (id, data) {
   if (!data.nama?.trim()) throw Object.assign(new Error('Nama sales harus diisi'), { status: 400 });
   return repo.update(id, {
     nama: data.nama.trim(),
-    persentase_komisi: parseFloat(data.persentase_komisi) || 0,
+    komisi_frame: parseFloat(data.komisi_frame) || 0,
+    komisi_lensa: parseFloat(data.komisi_lensa) || 0,
     tanggal_kerja: data.tanggal_kerja,
     status: data.status || 'aktif',
   });

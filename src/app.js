@@ -53,10 +53,11 @@ app.get('/', auth, async (req, res, next) => {
 
 // Stock Gudang (read-only, reuses barang data)
 const barangService = require('./services/barang.service');
+const kategoriService = require('./services/kategori.service');
 app.get('/stock-gudang', auth, async (req, res, next) => {
   try {
-    const data = await barangService.getAll();
-    res.render('stock-gudang/index', { title: 'Stock Gudang', data, activePage: 'stock-gudang' });
+    const [data, kategoriList] = await Promise.all([barangService.getAll(), kategoriService.getAll()]);
+    res.render('stock-gudang/index', { title: 'Stock Gudang', data, kategoriList, activePage: 'stock-gudang' });
   } catch (err) { next(err); }
 });
 

@@ -28,6 +28,8 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
             data-kategori="<%= item.kategori_id || '' %>"
             data-qty="<%= item.qty %>"
             data-harga="<%= item.harga_jual %>"
+            data-sph_r="<%= item.sph_r || '' %>" data-cyl_r="<%= item.cyl_r || '' %>" data-axis_r="<%= item.axis_r || '' %>" data-add_r="<%= item.add_r || '' %>"
+            data-sph_l="<%= item.sph_l || '' %>" data-cyl_l="<%= item.cyl_l || '' %>" data-axis_l="<%= item.axis_l || '' %>" data-add_l="<%= item.add_l || '' %>"
             title="Edit"><i class="bi bi-pencil"></i>
           </button>
           <% if (item.barcode_id) { %>
@@ -66,6 +68,20 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
           <div class="col-md-3 mb-3"><label class="form-label small">Qty</label><input type="text" class="form-control input-currency" id="qty" min="0" value="0"></div>
           <div class="col-md-3 mb-3"><label class="form-label small">Harga Jual</label><input type="text" class="form-control input-currency" id="harga_jual" min="0" value="0"></div>
         </div>
+        <div class="row g-2 mb-2">
+          <div class="col-12"><hr class="my-1"><div class="small fw-bold text-muted mb-1">Resep Kanan (R)</div></div>
+          <div class="col-3"><input type="text" class="form-control form-control-sm" id="sph_r" placeholder="SPH"></div>
+          <div class="col-3"><input type="text" class="form-control form-control-sm" id="cyl_r" placeholder="CYL"></div>
+          <div class="col-3"><input type="text" class="form-control form-control-sm" id="axis_r" placeholder="AXIS"></div>
+          <div class="col-3"><input type="text" class="form-control form-control-sm" id="add_r" placeholder="ADD"></div>
+        </div>
+        <div class="row g-2 mb-3">
+          <div class="col-12"><div class="small fw-bold text-muted mb-1">Resep Kiri (L)</div></div>
+          <div class="col-3"><input type="text" class="form-control form-control-sm" id="sph_l" placeholder="SPH"></div>
+          <div class="col-3"><input type="text" class="form-control form-control-sm" id="cyl_l" placeholder="CYL"></div>
+          <div class="col-3"><input type="text" class="form-control form-control-sm" id="axis_l" placeholder="AXIS"></div>
+          <div class="col-3"><input type="text" class="form-control form-control-sm" id="add_l" placeholder="ADD"></div>
+        </div>
       </div>
       <div class="modal-footer">
         <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
@@ -87,6 +103,7 @@ $(function() {
     $('#kategori_id').val('');
     $('#qty').val(0).trigger('input');
     $('#harga_jual').val(0).trigger('input');
+    $('#sph_r, #cyl_r, #axis_r, #add_r, #sph_l, #cyl_l, #axis_l, #add_l').val('');
     $('.modal-title').text('Tambah Barang');
     formModal.show();
   });
@@ -98,6 +115,8 @@ $(function() {
     $('#kategori_id').val($b.data('kategori'));
     $('#qty').val(parseInt($b.data('qty')) || 0).trigger('input');
     $('#harga_jual').val(parseInt($b.data('harga')) || 0).trigger('input');
+    $('#sph_r').val($b.data('sph_r')); $('#cyl_r').val($b.data('cyl_r')); $('#axis_r').val($b.data('axis_r')); $('#add_r').val($b.data('add_r'));
+    $('#sph_l').val($b.data('sph_l')); $('#cyl_l').val($b.data('cyl_l')); $('#axis_l').val($b.data('axis_l')); $('#add_l').val($b.data('add_l'));
     $('.modal-title').text('Edit Barang');
     formModal.show();
   });
@@ -118,6 +137,8 @@ $(function() {
       kategori_id: $('#kategori_id').val() || null,
       qty: $('#qty').data('raw-value') || $('#qty').val().replace(/[^0-9]/g, ''),
       harga_jual: $('#harga_jual').data('raw-value') || $('#harga_jual').val().replace(/[^0-9]/g, ''),
+      sph_r: $('#sph_r').val(), cyl_r: $('#cyl_r').val(), axis_r: $('#axis_r').val(), add_r: $('#add_r').val(),
+      sph_l: $('#sph_l').val(), cyl_l: $('#cyl_l').val(), axis_l: $('#axis_l').val(), add_l: $('#add_l').val(),
     };
     $.ajax({ url: id ? '/barang/' + id : '/barang', method: id ? 'PUT' : 'POST',
       contentType: 'application/json', data: JSON.stringify(payload),
