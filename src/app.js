@@ -79,6 +79,6 @@ app.use('/laporan', require('./routes/laporan.routes'));
 app.use(errorHandler);
 
 app.listen(PORT, () => {
-  console.log(`\n🚀 Kacamata POS running on http://localhost:${PORT}`);
+  console.log(`\n🚀 OPTIK SENTRAL running on http://localhost:${PORT}`);
   console.log(`   Login: admin / admin123\n`);
 });
