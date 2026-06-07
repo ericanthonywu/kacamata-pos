@@ -1,0 +1,75 @@
+<%
+function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
+%>
+<%- include('../partials/top', { title, activePage }) %>
+
+<div class="card p-3 mb-3">
+  <form method="get" action="/laporan/komisi" class="row g-2 align-items-end">
+    <div class="col-auto">
+      <label class="form-label small mb-0">Dari</label>
+      <input type="date" class="form-control form-control-sm" name="from" value="<%= filters.from %>">
+    </div>
+    <div class="col-auto">
+      <label class="form-label small mb-0">Sampai</label>
+      <input type="date" class="form-control form-control-sm" name="to" value="<%= filters.to %>">
+    </div>
+    <div class="col-auto">
+      <button class="btn btn-primary btn-sm"><i class="bi bi-funnel"></i> Filter</button>
+    </div>
+  </form>
+</div>
+
+<div class="row g-3 mb-3">
+  <div class="col-md-4">
+    <div class="stat-card">
+      <i class="bi bi-people stat-icon text-info"></i>
+      <div class="stat-value"><%= data.length %></div>
+      <div class="stat-label">Sales</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card">
+      <i class="bi bi-receipt stat-icon text-success"></i>
+      <div class="stat-value"><%= data.reduce(function(s,r){ return s + parseInt(r.total_transaksi||0); }, 0) %></div>
+      <div class="stat-label">Total Transaksi Lunas</div>
+    </div>
+  </div>
+  <div class="col-md-4">
+    <div class="stat-card">
+      <i class="bi bi-cash-stack stat-icon text-warning"></i>
+      <div class="stat-value"><%= fmtRp(grandTotal) %></div>
+      <div class="stat-label">Total Komisi</div>
+    </div>
+  </div>
+</div>
+
+<div class="card p-3">
+  <table id="tblKomisi" class="table table-hover mb-0" style="width:100%">
+    <thead>
+      <tr><th>Sales</th><th>Komisi (%)</th><th>Transaksi Lunas</th><th>Total Penjualan</th><th>Total Komisi</th></tr>
+    </thead>
+    <tbody>
+      <% data.forEach(function(row) { %>
+      <tr>
+        <td class="fw-bold"><%= row.sales_nama %></td>
+        <td><span class="badge bg-info bg-opacity-25 text-info"><%= row.persentase_komisi %>%</span></td>
+        <td><%= row.total_transaksi %></td>
+        <td><%= fmtRp(row.total_penjualan) %></td>
+        <td class="fw-bold text-success"><%= fmtRp(row.total_komisi) %></td>
+      </tr>
+      <% }); %>
+    </tbody>
+    <tfoot>
+      <tr class="table-active">
+        <td colspan="4" class="text-end fw-bold">Grand Total Komisi</td>
+        <td class="fw-bold text-success fs-5"><%= fmtRp(grandTotal) %></td>
+      </tr>
+    </tfoot>
+  </table>
+</div>
+
+<script>
+$(function() { $('#tblKomisi').DataTable({ order: [], language: dtLanguageID, paging: false, info: false }); });
+</script>
+
+<%- include('../partials/bottom') %>

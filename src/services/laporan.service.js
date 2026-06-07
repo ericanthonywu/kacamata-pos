@@ -15,3 +15,7 @@ exports.getKasReport = async function (filters) {
     transactions,
   };
 };
+
+exports.getKomisiReport = async function (filters) {
+  return repo.getKomisiReport(filters);
+};

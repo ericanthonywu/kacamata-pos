@@ -2,21 +2,27 @@ const service = require('../services/pembayaran-pembelian.service');
 const pembelianService = require('../services/pembelian.service');
 const { ok, fail } = require('../utils/response');
 
+// Page 1: List of all unpaid pembelian
 exports.index = async function (req, res, next) {
   try {
     const unpaid = await service.getUnpaid();
-
-    // If specific pembelian_id is provided, show payment history
-    let selectedPembelian = null;
-    let payments = [];
-    if (req.query.pembelian_id) {
-      selectedPembelian = await pembelianService.getById(req.query.pembelian_id);
-      payments = await service.getByPembelianId(req.query.pembelian_id);
-    }
-
     res.render('pembayaran-pembelian/index', {
       title: 'Hutang Pembelian',
-      unpaid, selectedPembelian, payments,
+      unpaid,
+      activePage: 'hutang-pembelian',
+    });
+  } catch (err) { next(err); }
+};
+
+// Page 2: Payment form + history for a specific pembelian
+exports.bayarForm = async function (req, res, next) {
+  try {
+    const pembelian = await pembelianService.getById(req.params.id);
+    if (!pembelian) { req.flash('error', 'Pembelian tidak ditemukan'); return res.redirect('/pembayaran-pembelian'); }
+    const payments = await service.getByPembelianId(req.params.id);
+    res.render('pembayaran-pembelian/form', {
+      title: 'Bayar Hutang Pembelian',
+      pembelian, payments,
       activePage: 'hutang-pembelian',
     });
   } catch (err) { next(err); }

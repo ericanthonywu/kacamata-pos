@@ -21,3 +21,21 @@ exports.kas = async function (req, res, next) {
     });
   } catch (err) { next(err); }
 };
+
+exports.komisi = async function (req, res, next) {
+  try {
+    const today = new Date().toISOString().split('T')[0];
+    const firstOfMonth = today.slice(0, 8) + '01';
+    const filters = {
+      from: req.query.from || firstOfMonth,
+      to: req.query.to || today,
+    };
+    const data = await laporanService.getKomisiReport(filters);
+    const grandTotal = data.reduce((s, r) => s + (parseFloat(r.total_komisi) || 0), 0);
+    res.render('laporan/komisi', {
+      title: 'Laporan Komisi Sales',
+      data, filters, grandTotal,
+      activePage: 'laporan-komisi',
+    });
+  } catch (err) { next(err); }
+};

@@ -21,15 +21,16 @@ function fmtDate(d) { return d ? new Date(d).toLocaleDateString('id-ID') : '-'; 
         <td class="fw-bold"><%= fmtRp(item.total_harga) %></td>
         <td>
           <% if (item.status_bayar === 'lunas') { %>
-            <span class="badge bg-success">Lunas</span>
+            <span class="badge bg-success">✅ Lunas</span>
           <% } else { %>
-            <span class="badge bg-danger">Belum Lunas</span>
+            <a href="/pembayaran-pembelian/bayar/<%= item.id %>" class="badge bg-danger text-decoration-none">❌ Belum Lunas</a>
           <% } %>
         </td>
         <td>
           <button class="btn btn-sm btn-outline-info me-1" onclick="showDetail(<%= item.id %>)"><i class="bi bi-eye"></i></button>
+          <button class="btn btn-sm btn-outline-primary me-1" onclick="printBarcodes(<%= item.id %>)" title="Print Barcode"><i class="bi bi-upc-scan"></i></button>
           <% if (item.status_bayar !== 'lunas') { %>
-          <a href="/pembayaran-pembelian?pembelian_id=<%= item.id %>" class="btn btn-sm btn-outline-success me-1" title="Bayar"><i class="bi bi-wallet2"></i></a>
+          <a href="/pembayaran-pembelian/bayar/<%= item.id %>" class="btn btn-sm btn-outline-success me-1" title="Bayar"><i class="bi bi-wallet2"></i></a>
           <% } %>
           <a href="/pembelian-retur/baru?pembelian_id=<%= item.id %>" class="btn btn-sm btn-outline-warning" title="Retur"><i class="bi bi-arrow-return-left"></i></a>
         </td>
@@ -75,6 +76,45 @@ function showDetail(id) {
     html += '<hr><div class="d-flex justify-content-between"><strong>Total</strong><strong class="text-success">' + fmtRp(d.total_harga) + '</strong></div>';
     $('#detailBody').html(html);
     new bootstrap.Modal('#detailModal').show();
+  });
+}
+
+function printBarcodes(id) {
+  $.get('/pembelian/' + id, function(res) {
+    if (!res.success || !res.data.detail) return;
+    var items = res.data.detail.filter(function(i) { return i.barcode_id; });
+    if (items.length === 0) { showToast('Tidak ada item dengan barcode', 'warning'); return; }
+    var w = window.open('', '_blank', 'width=600,height=400');
+    var labels = '';
+    items.forEach(function(item) {
+      for (var q = 0; q < item.jumlah; q++) {
+        labels += '<div class="label">';
+        labels += '  <div class="name">' + (item.nama_barang || '-') + '</div>';
+        labels += '  <svg class="bc" data-code="' + item.barcode_id + '"></svg>';
+        labels += '</div>';
+      }
+    });
+    var html = [
+      '<!DOCTYPE html>',
+      '<html><head><title>Barcode Pembelian</title>',
+      '<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"><\/script>',
+      '<style>',
+      '@page { size: 33mm 15mm; margin: 0; }',
+      '* { margin: 0; padding: 0; box-sizing: border-box; }',
+      '.label { width: 33mm; height: 15mm; display: flex; flex-direction: column; align-items: center; justify-content: center; page-break-after: always; overflow: hidden; padding: 0.5mm 1mm; }',
+      '.name { font-family: Arial, sans-serif; font-size: 5pt; font-weight: bold; text-align: center; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; max-width: 31mm; margin-bottom: 0.3mm; }',
+      'svg { display: block; margin: 0 auto; }',
+      '</style></head><body>',
+      labels,
+      '<script>',
+      'document.querySelectorAll(".bc").forEach(function(el) {',
+      '  JsBarcode(el, el.dataset.code, { format: "CODE128", width: 0.8, height: 18, displayValue: true, fontSize: 6, margin: 1, textMargin: 0 });',
+      '});',
+      'window.onload = function() { window.print(); };',
+      '<\/script></body></html>'
+    ].join('\n');
+    w.document.write(html);
+    w.document.close();
   });
 }
 </script>

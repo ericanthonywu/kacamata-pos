@@ -22,17 +22,17 @@ function fmtDate(d) { return d ? new Date(d).toLocaleDateString('id-ID') : '-'; 
         <td class="fw-bold"><%= fmtRp(item.total) %></td>
         <td>
           <% if (item.status_bayar === 'lunas') { %>
-            <span class="badge bg-success">Lunas</span>
+            <span class="badge bg-success">✅ Lunas</span>
           <% } else if (item.status_bayar === 'dp') { %>
-            <span class="badge bg-warning text-dark">DP</span>
+            <a href="/pembayaran-penjualan/bayar/<%= item.id %>" class="badge bg-warning text-dark text-decoration-none">⏳ DP</a>
           <% } else { %>
-            <span class="badge bg-danger">Belum Lunas</span>
+            <a href="/pembayaran-penjualan/bayar/<%= item.id %>" class="badge bg-danger text-decoration-none">❌ Belum Lunas</a>
           <% } %>
         </td>
         <td>
           <button class="btn btn-sm btn-outline-info me-1" onclick="printNota(<%= item.id %>)"><i class="bi bi-printer"></i></button>
           <% if (item.status_bayar !== 'lunas') { %>
-          <a href="/pembayaran-penjualan?penjualan_id=<%= item.id %>" class="btn btn-sm btn-outline-success me-1" title="Bayar"><i class="bi bi-wallet2"></i></a>
+          <a href="/pembayaran-penjualan/bayar/<%= item.id %>" class="btn btn-sm btn-outline-success me-1" title="Bayar"><i class="bi bi-wallet2"></i></a>
           <% } %>
           <a href="/penjualan-retur/baru?penjualan_id=<%= item.id %>" class="btn btn-sm btn-outline-warning" title="Retur"><i class="bi bi-arrow-return-left"></i></a>
         </td>

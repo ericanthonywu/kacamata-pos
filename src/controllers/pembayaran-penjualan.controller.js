@@ -2,18 +2,27 @@ const service = require('../services/pembayaran-penjualan.service');
 const penjualanService = require('../services/penjualan.service');
 const { ok, fail } = require('../utils/response');
 
+// Page 1: List of all unpaid penjualan (DP/Belum Lunas)
 exports.index = async function (req, res, next) {
   try {
     const unpaid = await service.getUnpaid();
-    let selectedPenjualan = null;
-    let payments = [];
-    if (req.query.penjualan_id) {
-      selectedPenjualan = await penjualanService.getById(req.query.penjualan_id);
-      payments = await service.getByPenjualanId(req.query.penjualan_id);
-    }
     res.render('pembayaran-penjualan/index', {
-      title: 'Hutang Penjualan',
-      unpaid, selectedPenjualan, payments,
+      title: 'Hutang Penjualan (DP Pelanggan)',
+      unpaid,
+      activePage: 'hutang-penjualan',
+    });
+  } catch (err) { next(err); }
+};
+
+// Page 2: Payment form + history for a specific penjualan
+exports.bayarForm = async function (req, res, next) {
+  try {
+    const penjualan = await penjualanService.getById(req.params.id);
+    if (!penjualan) { req.flash('error', 'Penjualan tidak ditemukan'); return res.redirect('/pembayaran-penjualan'); }
+    const payments = await service.getByPenjualanId(req.params.id);
+    res.render('pembayaran-penjualan/form', {
+      title: 'Pelunasan Hutang Penjualan',
+      penjualan, payments,
       activePage: 'hutang-penjualan',
     });
   } catch (err) { next(err); }

@@ -10,17 +10,19 @@ function fmtDate(d) { return d ? new Date(d).toLocaleDateString('id-ID') : '-'; 
 
 <div class="card p-3">
   <table id="tblSales" class="table table-hover mb-0" style="width:100%">
-    <thead><tr><th style="width:50px">No</th><th>Nama</th><th>Tanggal Kerja</th><th>Status</th><th style="width:120px">Aksi</th></tr></thead>
+    <thead><tr><th style="width:50px">No</th><th>Nama</th><th>Komisi (%)</th><th>Tanggal Kerja</th><th>Status</th><th style="width:120px">Aksi</th></tr></thead>
     <tbody>
       <% data.forEach(function(item, i) { %>
       <tr>
         <td><%= i + 1 %></td>
         <td><%= item.nama %></td>
+        <td><span class="badge bg-info bg-opacity-25 text-info"><%= item.persentase_komisi || 0 %>%</span></td>
         <td><%= fmtDate(item.tanggal_kerja) %></td>
         <td><span class="badge <%= item.status === 'aktif' ? 'bg-success' : 'bg-danger' %>"><%= item.status %></span></td>
         <td>
           <button class="btn btn-sm btn-outline-secondary me-1 btn-edit"
             data-id="<%= item.id %>" data-nama="<%= item.nama %>"
+            data-komisi="<%= item.persentase_komisi || 0 %>"
             data-tanggal="<%= (item.tanggal_kerja || '').toString().slice(0,10) %>"
             data-status="<%= item.status %>">
             <i class="bi bi-pencil"></i>
@@ -40,6 +42,7 @@ function fmtDate(d) { return d ? new Date(d).toLocaleDateString('id-ID') : '-'; 
       <div class="modal-body">
         <input type="hidden" id="editId">
         <div class="mb-3"><label class="form-label small">Nama Sales</label><input type="text" class="form-control" id="nama" placeholder="Nama sales"></div>
+        <div class="mb-3"><label class="form-label small">Komisi (%)</label><input type="number" class="form-control" id="persentase_komisi" placeholder="Contoh: 5" min="0" max="100" step="0.5" value="0"></div>
         <div class="row">
           <div class="col-6 mb-3"><label class="form-label small">Tanggal Kerja</label><input type="date" class="form-control" id="tanggal_kerja"></div>
           <div class="col-6 mb-3"><label class="form-label small">Status</label>
@@ -61,9 +64,10 @@ $(function() {
 
   var formModal = new bootstrap.Modal(document.getElementById('formModal'));
 
-  $('#btnAdd').on('click', function() {
+   $('#btnAdd').on('click', function() {
     $('#editId').val('');
     $('#nama').val('');
+    $('#persentase_komisi').val(0);
     $('#tanggal_kerja').val(new Date().toISOString().slice(0,10));
     $('#status').val('aktif');
     $('.modal-title').text('Tambah Sales');
@@ -74,6 +78,7 @@ $(function() {
     var $b = $(this);
     $('#editId').val($b.data('id'));
     $('#nama').val($b.data('nama'));
+    $('#persentase_komisi').val($b.data('komisi'));
     $('#tanggal_kerja').val($b.data('tanggal'));
     $('#status').val($b.data('status'));
     $('.modal-title').text('Edit Sales');
@@ -88,7 +93,7 @@ $(function() {
     var id = $('#editId').val();
     $.ajax({ url: id ? '/sales/' + id : '/sales', method: id ? 'PUT' : 'POST',
       contentType: 'application/json',
-      data: JSON.stringify({ nama: $('#nama').val(), tanggal_kerja: $('#tanggal_kerja').val(), status: $('#status').val() }),
+      data: JSON.stringify({ nama: $('#nama').val(), persentase_komisi: parseFloat($('#persentase_komisi').val()) || 0, tanggal_kerja: $('#tanggal_kerja').val(), status: $('#status').val() }),
       success: function(r) { if (r.success) location.reload(); },
       error: function(xhr) { showToast(xhr.responseJSON?.message || 'Gagal', 'danger'); }
     });
