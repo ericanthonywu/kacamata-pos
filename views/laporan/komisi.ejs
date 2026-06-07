@@ -33,6 +33,14 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
       </select>
     </div>
     <div class="col-auto">
+      <label class="form-label small mb-0">Kategori</label>
+      <select class="form-select form-select-sm" name="tipe">
+        <option value="frame" <%= filters.tipe === 'frame' ? 'selected' : '' %>>Frame</option>
+        <option value="lensa" <%= filters.tipe === 'lensa' ? 'selected' : '' %>>Lensa</option>
+        <option value="semua" <%= filters.tipe === 'semua' ? 'selected' : '' %>>Semua Kategori</option>
+      </select>
+    </div>
+    <div class="col-auto">
       <button class="btn btn-primary btn-sm"><i class="bi bi-funnel"></i> Tampilkan</button>
     </div>
   </form>

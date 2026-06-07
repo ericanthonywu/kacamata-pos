@@ -51,3 +51,43 @@ $(function () {
 function fmtRp(value) {
   return 'Rp ' + Number(value || 0).toLocaleString('id-ID');
 }
+
+// Currency Input Handler
+$(function() {
+  function initCurrencyInput(input) {
+    let name = input.attr('name');
+    let hidden = input.siblings('.currency-hidden');
+    if (name && hidden.length === 0) {
+      input.removeAttr('name');
+      hidden = $('<input type="hidden" class="currency-hidden" name="'+name+'">');
+      input.after(hidden);
+    }
+    input.data('hidden-target', hidden);
+    updateCurrencyInput(input);
+  }
+
+  function updateCurrencyInput(input) {
+    let val = String(input.val() || '').replace(/[^0-9]/g, '');
+    let hidden = input.data('hidden-target');
+    
+    if (val === '') {
+      input.val('');
+      if (hidden && hidden.length) hidden.val('0');
+      input.data('raw-value', 0);
+    } else {
+      input.val(Number(val).toLocaleString('id-ID'));
+      if (hidden && hidden.length) hidden.val(val);
+      input.data('raw-value', val);
+    }
+  }
+
+  // Init existing ones
+  $('.input-currency').each(function() {
+    initCurrencyInput($(this));
+  });
+
+  // Handle dynamic inputs and typing
+  $(document).on('input', '.input-currency', function() {
+    updateCurrencyInput($(this));
+  });
+});

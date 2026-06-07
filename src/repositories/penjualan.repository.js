@@ -55,6 +55,36 @@ exports.create = async function (penjualanData, detailItems) {
         keterangan: 'Down Payment',
       });
     }
+
+    // Save komisi sales
+    if (penjualanData.sales_id) {
+      let frameTotal = 0;
+      let lensaTotal = 0;
+      for (const item of detailItems) {
+        const lineTotal = (parseFloat(item.harga || 0) - parseFloat(item.diskon || 0)) * parseInt(item.jumlah || 1);
+        if (item.tipe === 'frame') frameTotal += lineTotal;
+        else if (item.tipe === 'lensa_r' || item.tipe === 'lensa_l') lensaTotal += lineTotal;
+      }
+      
+      const sales = await trx('sales').where('id', penjualanData.sales_id).first();
+      if (sales && parseFloat(sales.persentase_komisi) > 0) {
+        if (frameTotal > 0) {
+          const nominal = frameTotal * parseFloat(sales.persentase_komisi) / 100;
+          await trx('komisi_sales').insert({
+            penjualan_id: penjualan.id, sales_id: sales.id, tipe: 'frame',
+            persentase: sales.persentase_komisi, nominal_komisi: nominal
+          });
+        }
+        if (lensaTotal > 0) {
+          const nominal = lensaTotal * parseFloat(sales.persentase_komisi) / 100;
+          await trx('komisi_sales').insert({
+            penjualan_id: penjualan.id, sales_id: sales.id, tipe: 'lensa',
+            persentase: sales.persentase_komisi, nominal_komisi: nominal
+          });
+        }
+      }
+    }
+
     return penjualan;
   });
 };

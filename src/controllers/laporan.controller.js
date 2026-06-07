@@ -38,6 +38,7 @@ exports.komisi = async function (req, res, next) {
     const filters = {
       from, to, bulan, tahun,
       sales_id: req.query.sales_id || null,
+      tipe: req.query.tipe || 'frame',
     };
 
     const [data, salesList] = await Promise.all([

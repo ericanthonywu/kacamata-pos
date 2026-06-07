@@ -41,7 +41,8 @@ exports.create = async function (data, userId) {
     subtotal += ((parseFloat(item.harga) || 0) - (parseFloat(item.diskon) || 0)) * (parseInt(item.jumlah) || 1);
   }
 
-  const total = subtotal + (parseFloat(data.biaya) || 0);
+  const bpjsAmount = parseFloat(data.bpjs) || 0;
+  const total = subtotal - bpjsAmount;
   const no_nota = await repo.generateNotaNumber();
 
   const penjualanData = {
@@ -50,9 +51,10 @@ exports.create = async function (data, userId) {
     sales_id: data.sales_id || null,
     created_by: userId,
     order_date: data.order_date || new Date().toISOString().split('T')[0],
-    biaya: parseFloat(data.biaya) || 0,
+    tanggal_selesai: data.tanggal_selesai || null,
+    biaya: 0,
     subtotal,
-    bpjs: data.bpjs || '',
+    bpjs: bpjsAmount,
     total,
     status_bayar: data.status_bayar || 'lunas',
     dp: parseFloat(data.dp) || 0,

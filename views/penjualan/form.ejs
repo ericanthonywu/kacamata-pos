@@ -18,7 +18,10 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
     <div class="card p-3">
       <h6 class="mb-3">Info Transaksi</h6>
       <div class="mb-3">
-        <label class="form-label small">Pelanggan</label>
+        <div class="d-flex justify-content-between align-items-center mb-1">
+          <label class="form-label small mb-0">Pelanggan</label>
+          <button type="button" class="btn btn-sm btn-outline-primary" style="font-size: 0.7rem; padding: 0.1rem 0.4rem;" data-bs-toggle="modal" data-bs-target="#pelangganModal"><i class="bi bi-plus"></i> Tambah</button>
+        </div>
         <select class="form-select" id="pelanggan_id">
           <option value="">-- Pilih --</option>
           <% pelanggan.forEach(function(p) { %>
@@ -39,6 +42,10 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
         <label class="form-label small">Tanggal Order</label>
         <input type="date" class="form-control" id="order_date" value="<%= new Date().toISOString().slice(0,10) %>">
       </div>
+      <div class="mb-3">
+        <label class="form-label small">Tanggal Selesai</label>
+        <input type="date" class="form-control" id="tanggal_selesai">
+      </div>
     </div>
   </div>
 
@@ -54,25 +61,9 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
         <% }); %>
       </select>
       <div class="row g-2" id="frame_fields" style="display:none">
-        <div class="col-4"><label class="form-label small">Harga</label><input type="number" class="form-control form-control-sm calc-input" id="frame_harga" value="0"></div>
-        <div class="col-4"><label class="form-label small">Diskon</label><input type="number" class="form-control form-control-sm calc-input" id="frame_diskon" value="0"></div>
+        <div class="col-4"><label class="form-label small">Harga</label><input type="text" class="form-control form-control-sm calc-input input-currency" id="frame_harga" value="0"></div>
+        <div class="col-4"><label class="form-label small">Diskon</label><input type="text" class="form-control form-control-sm calc-input input-currency" id="frame_diskon" value="0"></div>
         <div class="col-4"><label class="form-label small">Qty</label><input type="number" class="form-control form-control-sm calc-input" id="frame_jumlah" value="1" min="1"></div>
-      </div>
-    </div>
-
-    <!-- Lensa L -->
-    <div class="card p-3 mb-3">
-      <h6>👁️ Lensa (L)</h6>
-      <select class="form-select mb-2" id="lensa_l_barang_id" onchange="onSelectBarang(this, 'lensa_l')">
-        <option value="">-- Pilih Lensa Kiri --</option>
-        <% barangList.forEach(function(b) { %>
-        <option value="<%= b.id %>" data-harga="<%= b.harga_jual %>" data-qty="<%= b.qty %>"><%= b.nama_barang %> (<%= fmtRp(b.harga_jual) %> | Stok: <%= b.qty %>)</option>
-        <% }); %>
-      </select>
-      <div class="row g-2" id="lensa_l_fields" style="display:none">
-        <div class="col-4"><label class="form-label small">Harga</label><input type="number" class="form-control form-control-sm calc-input" id="lensa_l_harga" value="0"></div>
-        <div class="col-4"><label class="form-label small">Diskon</label><input type="number" class="form-control form-control-sm calc-input" id="lensa_l_diskon" value="0"></div>
-        <div class="col-4"><label class="form-label small">Qty</label><input type="number" class="form-control form-control-sm calc-input" id="lensa_l_jumlah" value="1" min="1"></div>
       </div>
     </div>
 
@@ -86,9 +77,25 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
         <% }); %>
       </select>
       <div class="row g-2" id="lensa_r_fields" style="display:none">
-        <div class="col-4"><label class="form-label small">Harga</label><input type="number" class="form-control form-control-sm calc-input" id="lensa_r_harga" value="0"></div>
-        <div class="col-4"><label class="form-label small">Diskon</label><input type="number" class="form-control form-control-sm calc-input" id="lensa_r_diskon" value="0"></div>
+        <div class="col-4"><label class="form-label small">Harga</label><input type="text" class="form-control form-control-sm calc-input input-currency" id="lensa_r_harga" value="0"></div>
+        <div class="col-4"><label class="form-label small">Diskon</label><input type="text" class="form-control form-control-sm calc-input input-currency" id="lensa_r_diskon" value="0"></div>
         <div class="col-4"><label class="form-label small">Qty</label><input type="number" class="form-control form-control-sm calc-input" id="lensa_r_jumlah" value="1" min="1"></div>
+      </div>
+    </div>
+
+    <!-- Lensa L -->
+    <div class="card p-3 mb-3">
+      <h6>👁️ Lensa (L)</h6>
+      <select class="form-select mb-2" id="lensa_l_barang_id" onchange="onSelectBarang(this, 'lensa_l')">
+        <option value="">-- Pilih Lensa Kiri --</option>
+        <% barangList.forEach(function(b) { %>
+        <option value="<%= b.id %>" data-harga="<%= b.harga_jual %>" data-qty="<%= b.qty %>"><%= b.nama_barang %> (<%= fmtRp(b.harga_jual) %> | Stok: <%= b.qty %>)</option>
+        <% }); %>
+      </select>
+      <div class="row g-2" id="lensa_l_fields" style="display:none">
+        <div class="col-4"><label class="form-label small">Harga</label><input type="text" class="form-control form-control-sm calc-input input-currency" id="lensa_l_harga" value="0"></div>
+        <div class="col-4"><label class="form-label small">Diskon</label><input type="text" class="form-control form-control-sm calc-input input-currency" id="lensa_l_diskon" value="0"></div>
+        <div class="col-4"><label class="form-label small">Qty</label><input type="number" class="form-control form-control-sm calc-input" id="lensa_l_jumlah" value="1" min="1"></div>
       </div>
     </div>
 
@@ -99,12 +106,8 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
         <div class="col-6 text-end fw-bold" id="subtotalDisplay">Rp 0</div>
       </div>
       <div class="row g-2 align-items-center mb-2">
-        <div class="col-6"><label class="form-label small mb-0">Biaya Tambahan</label></div>
-        <div class="col-6"><input type="number" class="form-control form-control-sm calc-input" id="biaya" value="0"></div>
-      </div>
-      <div class="row g-2 align-items-center mb-2">
         <div class="col-6"><label class="form-label small mb-0">BPJS</label></div>
-        <div class="col-6"><input type="text" class="form-control form-control-sm" id="bpjs" placeholder="No. BPJS"></div>
+        <div class="col-6"><input type="text" class="form-control form-control-sm calc-input input-currency" id="bpjs" value="0" min="0"></div>
       </div>
       <hr>
       <div class="row g-2 align-items-center mb-2">
@@ -118,7 +121,7 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
       </div>
       <div class="row g-2 align-items-center mb-2" id="dpRow" style="display:none">
         <div class="col-6"><label class="form-label small mb-0">Jumlah DP</label></div>
-        <div class="col-6"><input type="number" class="form-control form-control-sm" id="dp_amount" value="0" min="0"></div>
+        <div class="col-6"><input type="text" class="form-control form-control-sm input-currency" id="dp_amount" value="0" min="0"></div>
       </div>
       <hr>
       <div class="row g-2 align-items-center">
@@ -133,6 +136,33 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
   </div>
 </div>
 
+<!-- Modal Tambah Pelanggan -->
+<div class="modal fade" id="pelangganModal" tabindex="-1">
+  <div class="modal-dialog modal-sm modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h6 class="modal-title">Tambah Pelanggan</h6>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-2">
+          <label class="form-label small">Nama <span class="text-danger">*</span></label>
+          <input type="text" class="form-control form-control-sm" id="new_pelanggan_nama" required>
+        </div>
+        <div class="mb-2">
+          <label class="form-label small">No Telp</label>
+          <input type="text" class="form-control form-control-sm" id="new_pelanggan_telp">
+        </div>
+        <div class="mb-3">
+          <label class="form-label small">Alamat</label>
+          <textarea class="form-control form-control-sm" id="new_pelanggan_alamat" rows="2"></textarea>
+        </div>
+        <button type="button" class="btn btn-primary btn-sm w-100" onclick="saveNewPelanggan()">Simpan</button>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 $(function() {
   $('#pelanggan_id').select2({ theme: 'bootstrap-5', placeholder: '-- Pilih --', allowClear: true });
@@ -141,6 +171,34 @@ $(function() {
   $('#lensa_l_barang_id').select2({ theme: 'bootstrap-5', placeholder: '-- Pilih Lensa Kiri --', allowClear: true });
   $('#lensa_r_barang_id').select2({ theme: 'bootstrap-5', placeholder: '-- Pilih Lensa Kanan --', allowClear: true });
 });
+
+function saveNewPelanggan() {
+  var nama = $('#new_pelanggan_nama').val();
+  var telp = $('#new_pelanggan_telp').val();
+  var alamat = $('#new_pelanggan_alamat').val();
+  if (!nama) { showToast('Nama pelanggan wajib diisi', 'danger'); return; }
+
+  $.ajax({
+    url: '/pelanggan',
+    method: 'POST',
+    contentType: 'application/json',
+    data: JSON.stringify({ nama: nama, no_telp: telp, alamat: alamat }),
+    success: function(res) {
+      if (res.success && res.data) {
+        var p = res.data;
+        var text = p.nama + (p.no_telp ? ' (' + p.no_telp + ')' : '');
+        var newOption = new Option(text, p.id, true, true);
+        $('#pelanggan_id').append(newOption).trigger('change');
+        $('#pelangganModal').modal('hide');
+        $('#new_pelanggan_nama').val('');
+        $('#new_pelanggan_telp').val('');
+        $('#new_pelanggan_alamat').val('');
+        showToast('Pelanggan berhasil ditambahkan', 'success');
+      }
+    },
+    error: function(xhr) { showToast(xhr.responseJSON?.message || 'Gagal menambahkan pelanggan', 'danger'); }
+  });
+}
 
 function onSelectBarang(el, tipe) {
   var selected = $(el).find(':selected');
@@ -155,17 +213,17 @@ function onSelectBarang(el, tipe) {
 function getItemTotal(tipe) {
   var bid = $('#' + tipe + '_barang_id').val();
   if (!bid) return 0;
-  var h = parseFloat($('#' + tipe + '_harga').val()) || 0;
-  var d = parseFloat($('#' + tipe + '_diskon').val()) || 0;
+  var h = parseFloat($('#' + tipe + '_harga').val().replace(/[^0-9]/g,'')) || 0;
+  var d = parseFloat($('#' + tipe + '_diskon').val().replace(/[^0-9]/g,'')) || 0;
   var j = parseInt($('#' + tipe + '_jumlah').val()) || 1;
   return (h - d) * j;
 }
 
 function calcTotal() {
   var sub = getItemTotal('frame') + getItemTotal('lensa_l') + getItemTotal('lensa_r');
-  var biaya = parseFloat($('#biaya').val()) || 0;
+  var bpjs = parseFloat($('#bpjs').val().replace(/[^0-9]/g,'')) || 0;
   $('#subtotalDisplay').text(fmtRp(sub));
-  $('#totalDisplay').text(fmtRp(sub + biaya));
+  $('#totalDisplay').text(fmtRp(sub - bpjs));
 }
 
 function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
@@ -217,10 +275,10 @@ function savePenjualan(withPrint) {
     pelanggan_id: $('#pelanggan_id').val() || null,
     sales_id: $('#sales_id').val() || null,
     order_date: $('#order_date').val(),
-    biaya: parseFloat($('#biaya').val()) || 0,
-    bpjs: $('#bpjs').val(),
+    tanggal_selesai: $('#tanggal_selesai').val() || null,
+    bpjs: parseFloat($('#bpjs').data('raw-value') || $('#bpjs').val().replace(/[^0-9]/g,'')) || 0,
     status_bayar: $('#status_bayar').val(),
-    dp: parseFloat($('#dp_amount').val()) || 0,
+    dp: parseFloat($('#dp_amount').data('raw-value') || $('#dp_amount').val().replace(/[^0-9]/g,'')) || 0,
     items: items,
   };
   $.ajax({ url: '/penjualan', method: 'POST', contentType: 'application/json', data: JSON.stringify(payload),
@@ -250,8 +308,7 @@ function printNotaData(d) {
   });
   lines.push('--------------------------------');
   lines.push('Subtotal: ' + fmtRp(d.subtotal));
-  if (d.biaya > 0) lines.push('Biaya   : ' + fmtRp(d.biaya));
-  if (d.bpjs) lines.push('BPJS    : ' + d.bpjs);
+  if (d.bpjs > 0) lines.push('BPJS    : - ' + fmtRp(d.bpjs));
   lines.push('TOTAL   : ' + fmtRp(d.total));
   lines.push('================================');
   lines.push('       Terima Kasih!');

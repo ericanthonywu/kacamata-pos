@@ -34,16 +34,19 @@ app.use('/', require('./routes/auth.routes'));
 // Dashboard
 const pembayaranPembelianService = require('./services/pembayaran-pembelian.service');
 const pembayaranPenjualanService = require('./services/pembayaran-penjualan.service');
+const laporanRepo = require('./repositories/laporan.repository');
 app.get('/', auth, async (req, res, next) => {
   try {
     const hutangPembelian = await pembayaranPembelianService.getUnpaid();
     const hutangPenjualan = await pembayaranPenjualanService.getUnpaid();
     const totalHutangPembelian = hutangPembelian.reduce((s, p) => s + (parseFloat(p.total_harga) - parseFloat(p.total_dibayar)), 0);
     const totalHutangPenjualan = hutangPenjualan.reduce((s, p) => s + (parseFloat(p.total) - parseFloat(p.total_dibayar)), 0);
+    const lifetimeSummary = await laporanRepo.getSummary({});
     res.render('dashboard', {
       title: 'Dashboard', activePage: 'dashboard',
       hutangPembelian, hutangPenjualan,
       totalHutangPembelian, totalHutangPenjualan,
+      lifetimeSummary,
     });
   } catch (err) { next(err); }
 });

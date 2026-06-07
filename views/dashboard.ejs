@@ -37,6 +37,24 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
 </div>
 <% } %>
 
+<div class="row g-3 mb-4 row-cols-2 row-cols-md-5">
+  <div class="col">
+    <div class="stat-card"><i class="bi bi-receipt stat-icon text-info"></i><div class="stat-value"><%= lifetimeSummary.total_transaksi || 0 %></div><div class="stat-label">Total Transaksi</div></div>
+  </div>
+  <div class="col">
+    <div class="stat-card"><i class="bi bi-cash stat-icon text-primary"></i><div class="stat-value"><%= fmtRp(lifetimeSummary.total_subtotal) %></div><div class="stat-label">Total Subtotal</div></div>
+  </div>
+  <div class="col">
+    <div class="stat-card"><i class="bi bi-wallet2 stat-icon text-warning"></i><div class="stat-value"><%= fmtRp(lifetimeSummary.total_dp_belum_lunas) %></div><div class="stat-label">Total DP (Belum Lunas)</div></div>
+  </div>
+  <div class="col">
+    <div class="stat-card"><i class="bi bi-shield-plus stat-icon text-secondary"></i><div class="stat-value"><%= fmtRp(lifetimeSummary.total_bpjs) %></div><div class="stat-label">Total BPJS</div></div>
+  </div>
+  <div class="col">
+    <div class="stat-card"><i class="bi bi-graph-up stat-icon text-success"></i><div class="stat-value"><%= fmtRp(lifetimeSummary.total_penjualan) %></div><div class="stat-label">Total Penjualan Bersih</div></div>
+  </div>
+</div>
+
 <div class="row g-3">
   <div class="col-md-3 col-6">
     <div class="stat-card">

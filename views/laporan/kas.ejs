@@ -25,17 +25,20 @@ function fmtDate(d) { return d ? new Date(d).toLocaleDateString('id-ID') : '-'; 
   <div class="col-auto"><button type="submit" class="btn btn-primary btn-sm">Tampilkan</button></div>
 </form>
 
-<div class="row g-3 mb-4">
-  <div class="col-md-3 col-6">
+<div class="row g-3 mb-4 row-cols-2 row-cols-md-5">
+  <div class="col">
     <div class="stat-card"><i class="bi bi-receipt stat-icon text-info"></i><div class="stat-value"><%= summary.total_transaksi %></div><div class="stat-label">Transaksi</div></div>
   </div>
-  <div class="col-md-3 col-6">
+  <div class="col">
     <div class="stat-card"><i class="bi bi-cash stat-icon text-primary"></i><div class="stat-value"><%= fmtRp(summary.total_subtotal) %></div><div class="stat-label">Subtotal</div></div>
   </div>
-  <div class="col-md-3 col-6">
-    <div class="stat-card"><i class="bi bi-cash-coin stat-icon text-warning"></i><div class="stat-value"><%= fmtRp(summary.total_biaya) %></div><div class="stat-label">Biaya</div></div>
+  <div class="col">
+    <div class="stat-card"><i class="bi bi-wallet2 stat-icon text-warning"></i><div class="stat-value"><%= fmtRp(summary.total_dp_belum_lunas) %></div><div class="stat-label">Total DP (Belum Lunas)</div></div>
   </div>
-  <div class="col-md-3 col-6">
+  <div class="col">
+    <div class="stat-card"><i class="bi bi-shield-plus stat-icon text-secondary"></i><div class="stat-value"><%= fmtRp(summary.total_bpjs) %></div><div class="stat-label">Total BPJS</div></div>
+  </div>
+  <div class="col">
     <div class="stat-card"><i class="bi bi-graph-up stat-icon text-success"></i><div class="stat-value"><%= fmtRp(summary.total_penjualan) %></div><div class="stat-label">Total Penjualan</div></div>
   </div>
 </div>
@@ -43,7 +46,7 @@ function fmtDate(d) { return d ? new Date(d).toLocaleDateString('id-ID') : '-'; 
 <div class="card p-3">
   <table id="tblKas" class="table table-hover mb-0" style="width:100%">
     <thead>
-      <tr><th>No. Nota</th><th>Tanggal</th><th>Pelanggan</th><th>Sales</th><th>Subtotal</th><th>Biaya</th><th>BPJS</th><th>Total</th></tr>
+      <tr><th>No. Nota</th><th>Tanggal</th><th>Pelanggan</th><th>Sales</th><th>Total</th><th>DP</th><th>BPJS</th><th>Sisa</th></tr>
     </thead>
     <tbody>
       <% transactions.forEach(function(t) { %>
@@ -53,9 +56,12 @@ function fmtDate(d) { return d ? new Date(d).toLocaleDateString('id-ID') : '-'; 
         <td><%= t.pelanggan_nama || '-' %></td>
         <td><%= t.sales_nama || '-' %></td>
         <td><%= fmtRp(t.subtotal) %></td>
-        <td><%= fmtRp(t.biaya) %></td>
-        <td><%= t.bpjs || '-' %></td>
-        <td class="fw-bold"><%= fmtRp(t.total) %></td>
+        <td><%= t.dp > 0 ? fmtRp(t.dp) : '-' %></td>
+        <td><%= t.bpjs > 0 ? fmtRp(t.bpjs) : '-' %></td>
+        <% var sisa = t.status_bayar === 'lunas' ? 0 : (t.subtotal - (t.dp || 0) - (t.bpjs || 0)); %>
+        <td class="fw-bold <%= sisa === 0 ? 'text-success' : 'text-danger' %>">
+          <%= fmtRp(sisa) %> <%= sisa === 0 ? '(sudah lunas DP)' : '' %>
+        </td>
       </tr>
       <% }); %>
     </tbody>

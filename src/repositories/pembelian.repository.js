@@ -16,7 +16,7 @@ exports.findById = function (id) {
 
 exports.findDetailsByPembelianId = function (pembelianId) {
   return db('pembelian_detail')
-    .select('pembelian_detail.*', 'barang.nama_barang', 'barang.barcode_id')
+    .select('pembelian_detail.*', 'barang.nama_barang', 'barang.barcode_id', 'barang.harga_jual')
     .leftJoin('barang', 'pembelian_detail.barang_id', 'barang.id')
     .where('pembelian_detail.pembelian_id', pembelianId)
     .orderBy('pembelian_detail.id', 'asc');

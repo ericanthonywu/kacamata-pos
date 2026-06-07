@@ -62,6 +62,7 @@ function printNota(id) {
     lines.push('================================');
     lines.push('No Nota : ' + d.no_nota);
     lines.push('Tanggal : ' + new Date(d.order_date).toLocaleDateString('id-ID'));
+    if (d.tanggal_selesai) lines.push('Selesai : ' + new Date(d.tanggal_selesai).toLocaleDateString('id-ID'));
     if (d.pelanggan_nama) lines.push('Customer: ' + d.pelanggan_nama);
     if (d.sales_nama) lines.push('Sales   : ' + d.sales_nama);
     lines.push('--------------------------------');
@@ -73,8 +74,7 @@ function printNota(id) {
     });
     lines.push('--------------------------------');
     lines.push('Subtotal: ' + fmtRp(d.subtotal));
-    if (d.biaya > 0) lines.push('Biaya   : ' + fmtRp(d.biaya));
-    if (d.bpjs) lines.push('BPJS    : ' + d.bpjs);
+    if (d.bpjs > 0) lines.push('BPJS    : - ' + fmtRp(d.bpjs));
     lines.push('TOTAL   : ' + fmtRp(d.total));
     lines.push('================================');
     lines.push('       Terima Kasih!');
