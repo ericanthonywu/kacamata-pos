@@ -6,21 +6,18 @@
     <select class="form-select form-select-sm" id="filterKategori">
       <option value="">Semua Kategori</option>
       <% kategoriList.forEach(function(k) { %>
-      <option value="<%= k.nama %>"><%= k.nama %></option>
+      <option value="<%= k.id %>"><%= k.nama %></option>
       <% }); %>
     </select>
   </div>
 </div>
 
 <div class="row g-3 mb-4">
-  <div class="col-md-4 col-6">
-    <div class="stat-card"><i class="bi bi-box-seam stat-icon text-info"></i><div class="stat-value" id="valJenis"><%= data.length %></div><div class="stat-label">Jenis Barang</div></div>
+  <div class="col-md-6 col-6">
+    <div class="stat-card"><i class="bi bi-box-seam stat-icon text-info"></i><div class="stat-value" id="valJenis">0</div><div class="stat-label">Jenis Barang</div></div>
   </div>
-  <div class="col-md-4 col-6">
-    <div class="stat-card"><i class="bi bi-house-gear stat-icon text-success"></i><div class="stat-value" id="valUnit"><%= data.reduce(function(s,d){ return s + (d.qty||0); }, 0) %></div><div class="stat-label">Total Unit</div></div>
-  </div>
-  <div class="col-md-4 col-6">
-    <div class="stat-card"><i class="bi bi-exclamation-triangle stat-icon text-warning"></i><div class="stat-value" id="valRendah"><%= data.filter(function(d){ return d.qty <= 5; }).length %></div><div class="stat-label">Stock Rendah (≤5)</div></div>
+  <div class="col-md-6 col-6">
+    <div class="stat-card"><i class="bi bi-layers stat-icon text-success"></i><div class="stat-value" id="valStock">0</div><div class="stat-label">Total Stock</div></div>
   </div>
 </div>
 
@@ -28,50 +25,65 @@
   <table id="tblStock" class="table table-hover mb-0" style="width:100%">
     <thead><tr><th>Nama Barang</th><th>Kategori</th><th>Barcode</th><th>Qty</th><th>Status</th></tr></thead>
     <tbody>
-      <% data.forEach(function(item) { %>
-      <tr>
-        <td><%= item.nama_barang %></td>
-        <td><span class="badge bg-info bg-opacity-25 text-info"><%= item.kategori_nama || '-' %></span></td>
-        <td class="font-monospace small"><%= item.barcode_id || '-' %></td>
-        <td class="fw-bold <%= item.qty <= 0 ? 'text-danger' : item.qty <= 5 ? 'text-warning' : '' %>"><%= item.qty %></td>
-        <td>
-          <% if (item.qty <= 0) { %>
-            <span class="badge bg-danger">Habis</span>
-          <% } else if (item.qty <= 5) { %>
-            <span class="badge bg-warning text-dark">Rendah</span>
-          <% } else { %>
-            <span class="badge bg-success">Tersedia</span>
-          <% } %>
-        </td>
-      </tr>
-      <% }); %>
+      <!-- Data akan diload via AJAX -->
     </tbody>
   </table>
 </div>
 
 <script>
 $(function() { 
-  var table = $('#tblStock').DataTable({ order: [[3, 'asc']], language: dtLanguageID }); 
+  var table = $('#tblStock').DataTable({ 
+    processing: true,
+    serverSide: true,
+    ajax: {
+      url: '/barang/dt',
+      data: function(d) {
+        d.kategori_id = $('#filterKategori').val();
+      }
+    },
+    order: [[3, 'asc']], 
+    language: dtLanguageID,
+    columns: [
+      { data: 'nama_barang', render: function(d, type, row) {
+          var t = d;
+          var sph = row.sph_r || row.sph_l || '';
+          var cyl = row.cyl_r || row.cyl_l || '';
+          var add = row.add_r || row.add_l || '';
+          if (sph || cyl || add) {
+            t += ' <span class="text-muted small">(SPH : ' + sph + ' CYL : ' + cyl + ' ADD : ' + add + ')</span>';
+          }
+          return t;
+      } },
+      { data: 'kategori_nama', render: function(d) { return '<span class="badge bg-info bg-opacity-25 text-info">' + (d||'-') + '</span>'; } },
+      { data: 'barcode_id', render: function(d) { return '<span class="font-monospace small">' + (d||'-') + '</span>'; } },
+      { data: 'qty', render: function(d) { 
+          var cls = '';
+          if (d !== null) {
+            if (d <= 0) cls = 'text-danger';
+            else if (d <= 5) cls = 'text-warning text-dark';
+          }
+          return '<span class="fw-bold ' + cls + '">' + (d !== null ? d : '-') + '</span>'; 
+      } },
+      { data: 'qty', orderable: false, render: function(d) {
+          if (d === null) return '-';
+          if (d <= 0) return '<span class="badge bg-danger">Habis</span>';
+          if (d <= 5) return '<span class="badge bg-warning text-dark">Rendah</span>';
+          return '<span class="badge bg-success">Tersedia</span>';
+      } }
+    ]
+  }); 
 
-  $('#filterKategori').on('change', function() {
-    var val = $.fn.dataTable.util.escapeRegex($(this).val());
-    table.column(1).search(val ? '^' + val + '$' : '', true, false).draw();
-    recalcStats();
+  // Update stats when AJAX completes
+  table.on('xhr.dt', function (e, settings, json, xhr) {
+    if (json) {
+      $('#valJenis').text(json.recordsFiltered || 0);
+      $('#valStock').text(json.totalQty || 0);
+    }
   });
 
-  function recalcStats() {
-    var jenis = 0, unit = 0, rendah = 0;
-    table.rows({ search: 'applied' }).every(function() {
-      jenis++;
-      var data = this.node();
-      var qty = parseInt($(data).find('td:eq(3)').text()) || 0;
-      unit += qty;
-      if (qty <= 5) rendah++;
-    });
-    $('#valJenis').text(jenis);
-    $('#valUnit').text(unit);
-    $('#valRendah').text(rendah);
-  }
+  $('#filterKategori').on('change', function() {
+    table.ajax.reload();
+  });
 });
 </script>
 

@@ -52,18 +52,8 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
     <!-- Frame -->
     <div class="card p-3 mb-3">
       <h6>👓 Frame</h6>
-      <select class="form-select mb-2" id="frame_barang_id" onchange="onSelectBarang(this, 'frame')">
+      <select class="form-select mb-2" id="frame_barang_id">
         <option value="">-- Pilih Frame --</option>
-        <% barangList.filter(b => b.kategori_nama && b.kategori_nama.toLowerCase() === 'frame').forEach(function(b) { %>
-        <option value="<%= b.id %>" data-harga="<%= b.harga_jual %>" data-qty="<%= b.qty %>"
-          data-sph_r="<%= b.sph_r %>" data-cyl_r="<%= b.cyl_r %>" data-axis_r="<%= b.axis_r %>" data-add_r="<%= b.add_r %>"
-          data-sph_l="<%= b.sph_l %>" data-cyl_l="<%= b.cyl_l %>" data-axis_l="<%= b.axis_l %>" data-add_l="<%= b.add_l %>">
-          <%= b.nama_barang %> 
-          <% var res = []; if(b.sph_r||b.cyl_r||b.add_r) res.push('R: SPH '+b.sph_r+' CYL '+b.cyl_r+' ADD '+b.add_r); if(b.sph_l||b.cyl_l||b.add_l) res.push('L: SPH '+b.sph_l+' CYL '+b.cyl_l+' ADD '+b.add_l); %>
-          <% if(res.length) { %>(<%= res.join(' | ') %>)<% } %>
-          (Stok: <%= b.qty %>)
-        </option>
-        <% }); %>
       </select>
       <div class="row g-2" id="frame_fields" style="display:none">
         <div class="col-6"><label class="form-label small">Harga</label><input type="text" class="form-control form-control-sm calc-input input-currency" id="frame_harga" value="0"></div>
@@ -74,18 +64,8 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
     <!-- Lensa R -->
     <div class="card p-3 mb-3">
       <h6>👁️ Lensa (R)</h6>
-      <select class="form-select mb-2" id="lensa_r_barang_id" onchange="onSelectBarang(this, 'lensa_r')">
+      <select class="form-select mb-2" id="lensa_r_barang_id">
         <option value="">-- Pilih Lensa Kanan --</option>
-        <% barangList.filter(b => b.kategori_nama && b.kategori_nama.toLowerCase() === 'lensa').forEach(function(b) { %>
-        <option value="<%= b.id %>" data-harga="<%= b.harga_jual %>" data-qty="<%= b.qty %>"
-          data-sph_r="<%= b.sph_r %>" data-cyl_r="<%= b.cyl_r %>" data-axis_r="<%= b.axis_r %>" data-add_r="<%= b.add_r %>"
-          data-sph_l="<%= b.sph_l %>" data-cyl_l="<%= b.cyl_l %>" data-axis_l="<%= b.axis_l %>" data-add_l="<%= b.add_l %>">
-          <%= b.nama_barang %> 
-          <% var res = []; if(b.sph_r||b.cyl_r||b.add_r) res.push('R: SPH '+b.sph_r+' CYL '+b.cyl_r+' ADD '+b.add_r); if(b.sph_l||b.cyl_l||b.add_l) res.push('L: SPH '+b.sph_l+' CYL '+b.cyl_l+' ADD '+b.add_l); %>
-          <% if(res.length) { %>(<%= res.join(' | ') %>)<% } %>
-          (Stok: <%= b.qty %>)
-        </option>
-        <% }); %>
       </select>
       <div class="row g-2" id="lensa_r_fields" style="display:none">
         <div class="col-6"><label class="form-label small">Harga</label><input type="text" class="form-control form-control-sm calc-input input-currency" id="lensa_r_harga" value="0"></div>
@@ -96,18 +76,8 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
     <!-- Lensa L -->
     <div class="card p-3 mb-3">
       <h6>👁️ Lensa (L)</h6>
-      <select class="form-select mb-2" id="lensa_l_barang_id" onchange="onSelectBarang(this, 'lensa_l')">
+      <select class="form-select mb-2" id="lensa_l_barang_id">
         <option value="">-- Pilih Lensa Kiri --</option>
-        <% barangList.filter(b => b.kategori_nama && b.kategori_nama.toLowerCase() === 'lensa').forEach(function(b) { %>
-        <option value="<%= b.id %>" data-harga="<%= b.harga_jual %>" data-qty="<%= b.qty %>"
-          data-sph_r="<%= b.sph_r %>" data-cyl_r="<%= b.cyl_r %>" data-axis_r="<%= b.axis_r %>" data-add_r="<%= b.add_r %>"
-          data-sph_l="<%= b.sph_l %>" data-cyl_l="<%= b.cyl_l %>" data-axis_l="<%= b.axis_l %>" data-add_l="<%= b.add_l %>">
-          <%= b.nama_barang %> 
-          <% var res = []; if(b.sph_r||b.cyl_r||b.add_r) res.push('R: SPH '+b.sph_r+' CYL '+b.cyl_r+' ADD '+b.add_r); if(b.sph_l||b.cyl_l||b.add_l) res.push('L: SPH '+b.sph_l+' CYL '+b.cyl_l+' ADD '+b.add_l); %>
-          <% if(res.length) { %>(<%= res.join(' | ') %>)<% } %>
-          (Stok: <%= b.qty %>)
-        </option>
-        <% }); %>
       </select>
       <div class="row g-2" id="lensa_l_fields" style="display:none">
         <div class="col-6"><label class="form-label small">Harga</label><input type="text" class="form-control form-control-sm calc-input input-currency" id="lensa_l_harga" value="0"></div>
@@ -202,9 +172,74 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
 $(function() {
   $('#pelanggan_id').select2({ theme: 'bootstrap-5', placeholder: '-- Pilih --', allowClear: true });
   $('#sales_id').select2({ theme: 'bootstrap-5', placeholder: '-- Pilih --', allowClear: true });
-  $('#frame_barang_id').select2({ theme: 'bootstrap-5', placeholder: '-- Pilih Frame --', allowClear: true });
-  $('#lensa_l_barang_id').select2({ theme: 'bootstrap-5', placeholder: '-- Pilih Lensa Kiri --', allowClear: true });
-  $('#lensa_r_barang_id').select2({ theme: 'bootstrap-5', placeholder: '-- Pilih Lensa Kanan --', allowClear: true });
+  
+  function initSelect2Barang(selector, type, kategori) {
+    $(selector).select2({
+      theme: 'bootstrap-5',
+      placeholder: '-- Pilih --',
+      allowClear: true,
+      ajax: {
+        url: '/barang/search',
+        dataType: 'json',
+        delay: 250,
+        data: function (params) {
+          return {
+            q: params.term,
+            kategori_nama: kategori
+          };
+        },
+        processResults: function (data) {
+          return {
+            results: $.map(data.data, function (item) {
+              var text = item.nama_barang;
+              var sph = item.sph_r || item.sph_l || '';
+              var cyl = item.cyl_r || item.cyl_l || '';
+              var add = item.add_r || item.add_l || '';
+              if (sph || cyl || add) {
+                text += ' (SPH : ' + sph + ' CYL : ' + cyl + ' ADD : ' + add + ')';
+              }
+              text += ' (Stok: ' + (item.qty !== null ? item.qty : '-') + ')';
+              return {
+                id: item.id,
+                text: text,
+                item: item
+              }
+            })
+          };
+        },
+        cache: true
+      }
+    }).on('select2:select', function(e) {
+      var b = e.params.data.item;
+      
+      // Handle Price & Qty visibility
+      $('#' + type + '_harga').val(b.harga_jual || 0).trigger('input');
+      $('#' + type + '_fields').show();
+      
+      // Handle Prescription Autofill
+      if (type === 'lensa_r') {
+        $('#sph_r').val(b.sph_r !== null ? b.sph_r : '');
+        $('#cyl_r').val(b.cyl_r !== null ? b.cyl_r : '');
+        $('#axis_r').val(b.axis_r !== null ? b.axis_r : '');
+        $('#add_r').val(b.add_r !== null ? b.add_r : '');
+      }
+      if (type === 'lensa_l') {
+        $('#sph_l').val(b.sph_l !== null ? b.sph_l : '');
+        $('#cyl_l').val(b.cyl_l !== null ? b.cyl_l : '');
+        $('#axis_l').val(b.axis_l !== null ? b.axis_l : '');
+        $('#add_l').val(b.add_l !== null ? b.add_l : '');
+      }
+      
+      calculate();
+    }).on('select2:unselect', function(e) {
+      $('#' + type + '_fields').hide();
+      calculate();
+    });
+  }
+
+  initSelect2Barang('#frame_barang_id', 'frame', 'frame');
+  initSelect2Barang('#lensa_l_barang_id', 'lensa_l', 'lensa');
+  initSelect2Barang('#lensa_r_barang_id', 'lensa_r', 'lensa');
 });
 
 function saveNewPelanggan() {
@@ -235,31 +270,7 @@ function saveNewPelanggan() {
   });
 }
 
-function onSelectBarang(el, type) {
-  var opt = $(el).find(':selected')[0];
-  if (opt && opt.value) {
-    var p = parseInt(opt.dataset.harga) || 0;
-    $('#' + type + '_harga').val(p).trigger('input');
-    $('#' + type + '_fields').show();
-    
-    // Auto-fill prescription if empty
-    if(type === 'lensa_r') {
-      if(!$('#sph_r').val()) $('#sph_r').val(opt.dataset.sph_r || '');
-      if(!$('#cyl_r').val()) $('#cyl_r').val(opt.dataset.cyl_r || '');
-      if(!$('#axis_r').val()) $('#axis_r').val(opt.dataset.axis_r || '');
-      if(!$('#add_r').val()) $('#add_r').val(opt.dataset.add_r || '');
-    }
-    if(type === 'lensa_l') {
-      if(!$('#sph_l').val()) $('#sph_l').val(opt.dataset.sph_l || '');
-      if(!$('#cyl_l').val()) $('#cyl_l').val(opt.dataset.cyl_l || '');
-      if(!$('#axis_l').val()) $('#axis_l').val(opt.dataset.axis_l || '');
-      if(!$('#add_l').val()) $('#add_l').val(opt.dataset.add_l || '');
-    }
-  } else {
-    $('#' + type + '_fields').hide();
-  }
-  calculate();
-}
+// Removed onSelectBarang function
 
 function getItemTotal(tipe) {
   var bid = $('#' + tipe + '_barang_id').val();
@@ -304,29 +315,6 @@ function savePenjualan(withPrint) {
   var items = [buildItem('frame'), buildItem('lensa_l'), buildItem('lensa_r')].filter(Boolean);
   if (items.length === 0) { showToast('Pilih minimal satu barang', 'danger'); return; }
 
-  // --- Client-side stock validation ---
-  var stockErrors = [];
-  var qtyPerBarang = {};
-  ['frame', 'lensa_l', 'lensa_r'].forEach(function(tipe) {
-    var sel = $('#' + tipe + '_barang_id');
-    var bid = sel.val();
-    if (!bid) return;
-    var qty = parseInt($('#' + tipe + '_jumlah').val()) || 1;
-    qtyPerBarang[bid] = (qtyPerBarang[bid] || { total: 0, stok: 0, nama: '' });
-    qtyPerBarang[bid].total += qty;
-    qtyPerBarang[bid].stok = parseInt(sel.find(':selected').data('qty')) || 0;
-    qtyPerBarang[bid].nama = sel.find(':selected').text().split('(')[0].trim();
-  });
-  for (var bid in qtyPerBarang) {
-    var info = qtyPerBarang[bid];
-    if (info.total > info.stok) {
-      stockErrors.push('Stok "' + info.nama + '" tidak cukup (tersedia: ' + info.stok + ', dibutuhkan: ' + info.total + ')');
-    }
-  }
-  if (stockErrors.length > 0) {
-    showToast(stockErrors.join('\n'), 'danger');
-    return;
-  }
   var payload = {
     pelanggan_id: $('#pelanggan_id').val() || null,
     sales_id: $('#sales_id').val() || null,

@@ -4,7 +4,15 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
 <%- include('../partials/top', { title, activePage }) %>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-  <div></div>
+  <div class="d-flex gap-2 align-items-center">
+    <label class="form-label small mb-0 fw-bold">Filter:</label>
+    <select class="form-select form-select-sm" id="filterKategori" style="min-width: 200px;">
+      <option value="">Semua Kategori</option>
+      <% kategoriList.forEach(function(k) { %>
+      <option value="<%= k.id %>" <%= (filters && filters.kategori_id == k.id) ? 'selected' : '' %>><%= k.nama %></option>
+      <% }); %>
+    </select>
+  </div>
   <button class="btn btn-primary btn-sm" id="btnAdd"><i class="bi bi-plus"></i> Tambah Barang</button>
 </div>
 
@@ -14,36 +22,6 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
       <tr><th>Nama Barang</th><th>Kategori</th><th>Qty</th><th>Harga Jual</th><th>Barcode</th><th style="width:180px">Aksi</th></tr>
     </thead>
     <tbody>
-      <% data.forEach(function(item) { %>
-      <tr>
-        <td><%= item.nama_barang %></td>
-        <td><span class="badge bg-info bg-opacity-25 text-info"><%= item.kategori_nama || '-' %></span></td>
-        <td class="<%= item.qty <= 0 ? 'text-danger fw-bold' : '' %>"><%= item.qty %></td>
-        <td><%= fmtRp(item.harga_jual) %></td>
-        <td class="font-monospace small"><%= item.barcode_id || '-' %></td>
-        <td>
-          <button class="btn btn-sm btn-outline-secondary me-1 btn-edit"
-            data-id="<%= item.id %>"
-            data-nama="<%= item.nama_barang %>"
-            data-kategori="<%= item.kategori_id || '' %>"
-            data-qty="<%= item.qty %>"
-            data-harga="<%= item.harga_jual %>"
-            data-sph_r="<%= item.sph_r || '' %>" data-cyl_r="<%= item.cyl_r || '' %>" data-axis_r="<%= item.axis_r || '' %>" data-add_r="<%= item.add_r || '' %>"
-            data-sph_l="<%= item.sph_l || '' %>" data-cyl_l="<%= item.cyl_l || '' %>" data-axis_l="<%= item.axis_l || '' %>" data-add_l="<%= item.add_l || '' %>"
-            title="Edit"><i class="bi bi-pencil"></i>
-          </button>
-          <% if (item.barcode_id) { %>
-          <button class="btn btn-sm btn-outline-info me-1 btn-print-barcode"
-            data-barcode="<%= item.barcode_id %>"
-            data-nama="<%= item.nama_barang %>"
-            data-harga="<%= item.harga_jual %>"
-            title="Print Barcode"><i class="bi bi-upc-scan"></i>
-          </button>
-          <% } %>
-          <button class="btn btn-sm btn-outline-danger btn-del" data-id="<%= item.id %>" data-url="/barang/<%= item.id %>"><i class="bi bi-trash"></i></button>
-        </td>
-      </tr>
-      <% }); %>
     </tbody>
   </table>
 </div>
@@ -55,7 +33,10 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
       <div class="modal-header"><h5 class="modal-title">Barang</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
       <div class="modal-body">
         <input type="hidden" id="editId">
-        <div class="mb-3"><label class="form-label small">Nama Barang</label><input type="text" class="form-control" id="nama_barang"></div>
+        <div class="mb-3">
+          <label class="form-label small">Nama Barang</label>
+          <input type="text" class="form-control" id="nama_barang">
+        </div>
         <div class="row">
           <div class="col-md-6 mb-3"><label class="form-label small">Kategori</label>
             <select class="form-select" id="kategori_id">
@@ -65,22 +46,20 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
               <% }); %>
             </select>
           </div>
-          <div class="col-md-3 mb-3"><label class="form-label small">Qty</label><input type="text" class="form-control input-currency" id="qty" min="0" value="0"></div>
+          <div class="col-md-3 mb-3"><label class="form-label small">Qty</label><input type="text" class="form-control" id="qty" placeholder="Kosong=Non-Stok"></div>
           <div class="col-md-3 mb-3"><label class="form-label small">Harga Jual</label><input type="text" class="form-control input-currency" id="harga_jual" min="0" value="0"></div>
         </div>
         <div class="row g-2 mb-2">
           <div class="col-12"><hr class="my-1"><div class="small fw-bold text-muted mb-1">Resep Kanan (R)</div></div>
-          <div class="col-3"><input type="text" class="form-control form-control-sm" id="sph_r" placeholder="SPH"></div>
-          <div class="col-3"><input type="text" class="form-control form-control-sm" id="cyl_r" placeholder="CYL"></div>
-          <div class="col-3"><input type="text" class="form-control form-control-sm" id="axis_r" placeholder="AXIS"></div>
-          <div class="col-3"><input type="text" class="form-control form-control-sm" id="add_r" placeholder="ADD"></div>
+          <div class="col-4"><input type="text" class="form-control form-control-sm" id="sph_r" placeholder="SPH"></div>
+          <div class="col-4"><input type="text" class="form-control form-control-sm" id="cyl_r" placeholder="CYL"></div>
+          <div class="col-4"><input type="text" class="form-control form-control-sm" id="add_r" placeholder="ADD"></div>
         </div>
         <div class="row g-2 mb-3">
           <div class="col-12"><div class="small fw-bold text-muted mb-1">Resep Kiri (L)</div></div>
-          <div class="col-3"><input type="text" class="form-control form-control-sm" id="sph_l" placeholder="SPH"></div>
-          <div class="col-3"><input type="text" class="form-control form-control-sm" id="cyl_l" placeholder="CYL"></div>
-          <div class="col-3"><input type="text" class="form-control form-control-sm" id="axis_l" placeholder="AXIS"></div>
-          <div class="col-3"><input type="text" class="form-control form-control-sm" id="add_l" placeholder="ADD"></div>
+          <div class="col-4"><input type="text" class="form-control form-control-sm" id="sph_l" placeholder="SPH"></div>
+          <div class="col-4"><input type="text" class="form-control form-control-sm" id="cyl_l" placeholder="CYL"></div>
+          <div class="col-4"><input type="text" class="form-control form-control-sm" id="add_l" placeholder="ADD"></div>
         </div>
       </div>
       <div class="modal-footer">
@@ -93,7 +72,54 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
 
 <script>
 $(function() {
-  $('#tblBarang').DataTable({ order: [], language: dtLanguageID });
+  var dt = $('#tblBarang').DataTable({
+    processing: true,
+    serverSide: true,
+    ajax: {
+      url: '/barang/dt',
+      data: function(d) {
+        d.kategori_id = $('#filterKategori').val();
+      }
+    },
+    order: [],
+    language: dtLanguageID,
+    columns: [
+      { data: 'nama_barang', render: function(d, type, row) {
+          var t = d;
+          var sph = row.sph_r || row.sph_l || '';
+          var cyl = row.cyl_r || row.cyl_l || '';
+          var add = row.add_r || row.add_l || '';
+          if (sph || cyl || add) {
+            t += ' <span class="text-muted small">(SPH : ' + sph + ' CYL : ' + cyl + ' ADD : ' + add + ')</span>';
+          }
+          return t;
+      } },
+      { data: 'kategori_nama', render: function(d) { return '<span class="badge bg-info bg-opacity-25 text-info">' + (d||'-') + '</span>'; } },
+      { data: 'qty', render: function(d) { return '<span class="' + (d !== null && d <= 0 ? 'text-danger fw-bold' : '') + '">' + (d !== null ? d : '-') + '</span>'; } },
+      { data: 'harga_jual', render: function(d) { return fmtRp(d); } },
+      { data: 'barcode_id', render: function(d) { return '<span class="font-monospace small">' + (d||'-') + '</span>'; } },
+      { data: 'id', orderable: false, render: function(d, type, row) {
+          var html = '<button class="btn btn-sm btn-outline-secondary me-1 btn-edit" ' +
+            'data-id="' + row.id + '" data-nama="' + escapeHtml(row.nama_barang||'') + '" data-kategori="' + (row.kategori_id||'') + '" ' +
+            'data-qty="' + (row.qty !== null ? row.qty : '') + '" data-harga="' + (row.harga_jual||0) + '" ' +
+            'data-sph_r="' + (row.sph_r||'') + '" data-cyl_r="' + (row.cyl_r||'') + '" data-add_r="' + (row.add_r||'') + '" ' +
+            'data-sph_l="' + (row.sph_l||'') + '" data-cyl_l="' + (row.cyl_l||'') + '" data-add_l="' + (row.add_l||'') + '" ' +
+            'title="Edit"><i class="bi bi-pencil"></i></button>';
+          if (row.barcode_id) {
+            html += '<button class="btn btn-sm btn-outline-info me-1 btn-print-barcode" ' +
+              'data-barcode="' + row.barcode_id + '" data-nama="' + escapeHtml(row.nama_barang||'') + '" data-harga="' + (row.harga_jual||0) + '" ' +
+              'title="Print Barcode"><i class="bi bi-upc-scan"></i></button>';
+          }
+          html += '<button class="btn btn-sm btn-outline-danger btn-del" data-id="' + row.id + '" data-url="/barang/' + row.id + '"><i class="bi bi-trash"></i></button>';
+          return html;
+        }
+      }
+    ]
+  });
+
+  $('#filterKategori').on('change', function() {
+    dt.ajax.reload();
+  });
 
   var formModal = new bootstrap.Modal(document.getElementById('formModal'));
 
@@ -101,7 +127,7 @@ $(function() {
     $('#editId').val('');
     $('#nama_barang').val('');
     $('#kategori_id').val('');
-    $('#qty').val(0).trigger('input');
+    $('#qty').val('');
     $('#harga_jual').val(0).trigger('input');
     $('#sph_r, #cyl_r, #axis_r, #add_r, #sph_l, #cyl_l, #axis_l, #add_l').val('');
     $('.modal-title').text('Tambah Barang');
@@ -113,10 +139,14 @@ $(function() {
     $('#editId').val($b.data('id'));
     $('#nama_barang').val($b.data('nama'));
     $('#kategori_id').val($b.data('kategori'));
-    $('#qty').val(parseInt($b.data('qty')) || 0).trigger('input');
+    $('#qty').val($b.data('qty') !== '' ? parseInt($b.data('qty')) : '');
     $('#harga_jual').val(parseInt($b.data('harga')) || 0).trigger('input');
-    $('#sph_r').val($b.data('sph_r')); $('#cyl_r').val($b.data('cyl_r')); $('#axis_r').val($b.data('axis_r')); $('#add_r').val($b.data('add_r'));
-    $('#sph_l').val($b.data('sph_l')); $('#cyl_l').val($b.data('cyl_l')); $('#axis_l').val($b.data('axis_l')); $('#add_l').val($b.data('add_l'));
+    $('#sph_r').val($b.data('sph_r'));
+    $('#cyl_r').val($b.data('cyl_r'));
+    $('#add_r').val($b.data('add_r'));
+    $('#sph_l').val($b.data('sph_l'));
+    $('#cyl_l').val($b.data('cyl_l'));
+    $('#add_l').val($b.data('add_l'));
     $('.modal-title').text('Edit Barang');
     formModal.show();
   });
@@ -135,10 +165,10 @@ $(function() {
     var payload = {
       nama_barang: $('#nama_barang').val(),
       kategori_id: $('#kategori_id').val() || null,
-      qty: $('#qty').data('raw-value') || $('#qty').val().replace(/[^0-9]/g, ''),
+      qty: $('#qty').val() !== '' ? $('#qty').val() : null,
       harga_jual: $('#harga_jual').data('raw-value') || $('#harga_jual').val().replace(/[^0-9]/g, ''),
-      sph_r: $('#sph_r').val(), cyl_r: $('#cyl_r').val(), axis_r: $('#axis_r').val(), add_r: $('#add_r').val(),
-      sph_l: $('#sph_l').val(), cyl_l: $('#cyl_l').val(), axis_l: $('#axis_l').val(), add_l: $('#add_l').val(),
+      sph_r: $('#sph_r').val(), cyl_r: $('#cyl_r').val(), add_r: $('#add_r').val(),
+      sph_l: $('#sph_l').val(), cyl_l: $('#cyl_l').val(), add_l: $('#add_l').val(),
     };
     $.ajax({ url: id ? '/barang/' + id : '/barang', method: id ? 'PUT' : 'POST',
       contentType: 'application/json', data: JSON.stringify(payload),

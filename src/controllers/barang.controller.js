@@ -4,16 +4,33 @@ const { ok, fail } = require('../utils/response');
 
 exports.index = async function (req, res, next) {
   try {
-    const [data, kategoriList] = await Promise.all([service.getAll(), kategoriService.getAll()]);
-    res.render('barang/index', { title: 'Barang', data, kategoriList, activePage: 'barang' });
+    const filters = { kategori_id: req.query.kategori_id };
+    const kategoriList = await kategoriService.getAll();
+    // Don't fetch all data here, DataTables will fetch via AJAX
+    res.render('barang/index', { title: 'Barang', kategoriList, filters, activePage: 'barang' });
   } catch (err) { next(err); }
 };
 
 exports.search = async function (req, res) {
   try {
-    const data = await service.search(req.query.q || '');
+    const data = await service.search(req.query.q || '', req.query.kategori_nama);
     ok(res, data);
   } catch (err) { fail(res, err); }
+};
+
+exports.datatables = async function (req, res) {
+  try {
+    const result = await service.getDatatablesData(req.query);
+    res.json({
+      draw: parseInt(req.query.draw),
+      recordsTotal: result.recordsTotal,
+      recordsFiltered: result.recordsFiltered,
+      totalQty: result.totalQty,
+      data: result.data
+    });
+  } catch (err) {
+    res.json({ error: err.message });
+  }
 };
 
 exports.store = async function (req, res) {

@@ -12,10 +12,8 @@ exports.index = async function (req, res, next) {
 
 exports.createForm = async function (req, res, next) {
   try {
-    const [supplierList, barangList] = await Promise.all([
-      supplierService.getAll(),
-      barangService.getAll(),
-    ]);
+    const supplierList = await supplierService.getAll();
+    const barangList = []; // empty array for SSR
     res.render('pembelian/form', {
       title: 'Pembelian Baru',
       supplierList, barangList,

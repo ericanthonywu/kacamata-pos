@@ -56,8 +56,8 @@ const barangService = require('./services/barang.service');
 const kategoriService = require('./services/kategori.service');
 app.get('/stock-gudang', auth, async (req, res, next) => {
   try {
-    const [data, kategoriList] = await Promise.all([barangService.getAll(), kategoriService.getAll()]);
-    res.render('stock-gudang/index', { title: 'Stock Gudang', data, kategoriList, activePage: 'stock-gudang' });
+    const kategoriList = await kategoriService.getAll();
+    res.render('stock-gudang/index', { title: 'Stock Gudang', kategoriList, activePage: 'stock-gudang' });
   } catch (err) { next(err); }
 });
 

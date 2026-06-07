@@ -13,11 +13,11 @@ exports.index = async function (req, res, next) {
 
 exports.createForm = async function (req, res, next) {
   try {
-    const [pelanggan, salesList, barangList] = await Promise.all([
+    const [pelanggan, salesList] = await Promise.all([
       pelangganService.getAll(),
       salesService.getActive(),
-      barangService.getAll(),
     ]);
+    const barangList = []; // empty array for SSR
     res.render('penjualan/form', {
       title: 'Penjualan Baru',
       pelanggan, salesList, barangList,

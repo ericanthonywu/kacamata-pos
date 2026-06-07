@@ -3,6 +3,7 @@ const auth = require('../middleware/auth');
 const c = require('../controllers/barang.controller');
 
 router.get('/', auth, c.index);
+router.get('/dt', auth, c.datatables);
 router.get('/search', auth, c.search);
 router.post('/', auth, c.store);
 router.put('/:id', auth, c.update);

@@ -12,6 +12,15 @@ var dtLanguageID = {
   paginate: { first: 'Pertama', last: 'Terakhir', next: 'Berikutnya', previous: 'Sebelumnya' }
 };
 
+function escapeHtml(unsafe) {
+  return (unsafe||'').toString()
+    .replace(/&/g, "&amp;")
+    .replace(/</g, "&lt;")
+    .replace(/>/g, "&gt;")
+    .replace(/"/g, "&quot;")
+    .replace(/'/g, "&#039;");
+}
+
 // Toast notification
 function showToast(message, type) {
   type = type || 'success';

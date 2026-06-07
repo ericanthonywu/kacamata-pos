@@ -34,7 +34,10 @@ exports.create = async function (pembelianData, detailItems) {
       });
       // Increment stock
       if (item.barang_id) {
-        await trx('barang').where('id', item.barang_id).increment('qty', item.jumlah || 1);
+        const brg = await trx('barang').select('qty').where('id', item.barang_id).first();
+        if (brg && brg.qty !== null) {
+          await trx('barang').where('id', item.barang_id).increment('qty', item.jumlah || 1);
+        }
       }
     }
     // Auto-create payment record if lunas
@@ -56,7 +59,10 @@ exports.del = async function (id) {
     const details = await trx('pembelian_detail').where('pembelian_id', id);
     for (const item of details) {
       if (item.barang_id) {
-        await trx('barang').where('id', item.barang_id).decrement('qty', item.jumlah);
+        const brg = await trx('barang').select('qty').where('id', item.barang_id).first();
+        if (brg && brg.qty !== null) {
+          await trx('barang').where('id', item.barang_id).decrement('qty', item.jumlah);
+        }
       }
     }
     await trx('pembelian').where('id', id).del();

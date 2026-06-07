@@ -36,7 +36,10 @@ exports.create = async function (penjualanData, detailItems) {
         harga: item.harga || 0, diskon: item.diskon || 0, jumlah: item.jumlah || 1,
       });
       if (item.barang_id) {
-        await trx('barang').where('id', item.barang_id).decrement('qty', item.jumlah || 1);
+        const brg = await trx('barang').select('qty').where('id', item.barang_id).first();
+        if (brg && brg.qty !== null) {
+          await trx('barang').where('id', item.barang_id).decrement('qty', item.jumlah || 1);
+        }
       }
     }
     // Auto-create first payment record
