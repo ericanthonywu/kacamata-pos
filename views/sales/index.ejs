@@ -25,7 +25,7 @@ function fmtDate(d) { return d ? new Date(d).toLocaleDateString('id-ID') : '-'; 
             data-id="<%= item.id %>" data-nama="<%= item.nama %>"
             data-komisi_frame="<%= item.komisi_frame || 0 %>"
             data-komisi_lensa="<%= item.komisi_lensa || 0 %>"
-            data-tanggal="<%= (item.tanggal_kerja || '').toString().slice(0,10) %>"
+            data-tanggal="<%= item.tanggal_kerja ? new Date(item.tanggal_kerja).toISOString().slice(0,10) : '' %>"
             data-status="<%= item.status %>">
             <i class="bi bi-pencil"></i>
           </button>

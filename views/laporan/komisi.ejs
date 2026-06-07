@@ -75,14 +75,17 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
 <div class="card p-3">
   <table id="tblKomisi" class="table table-hover mb-0" style="width:100%">
     <thead>
-      <tr><th>Sales</th><th>Komisi (%)</th><th>Transaksi Lunas</th><th>Total Penjualan</th><th>Total Komisi</th></tr>
+      <tr><th>Sales</th><th>Komisi Lensa</th><th>Komisi Frame</th><th>Transaksi Lunas</th><th>Total Lensa</th><th>Total Frame</th><th>Total Penjualan</th><th>Total Komisi</th></tr>
     </thead>
     <tbody>
       <% data.forEach(function(row) { %>
       <tr>
         <td class="fw-bold"><%= row.sales_nama %></td>
-        <td><span class="badge bg-info bg-opacity-25 text-info"><%= row.persentase_komisi %>%</span></td>
+        <td><span class="badge bg-info bg-opacity-25 text-info"><%= row.komisi_lensa || 0 %>%</span></td>
+        <td><span class="badge bg-primary bg-opacity-25 text-primary"><%= row.komisi_frame || 0 %>%</span></td>
         <td><%= row.total_transaksi %></td>
+        <td><%= fmtRp(row.total_penjualan_lensa) %></td>
+        <td><%= fmtRp(row.total_penjualan_frame) %></td>
         <td><%= fmtRp(row.total_penjualan) %></td>
         <td class="fw-bold text-success"><%= fmtRp(row.total_komisi) %></td>
       </tr>
@@ -90,7 +93,7 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
     </tbody>
     <tfoot>
       <tr class="table-active">
-        <td colspan="4" class="text-end fw-bold">Grand Total Komisi</td>
+        <td colspan="7" class="text-end fw-bold">Grand Total Komisi</td>
         <td class="fw-bold text-success fs-5"><%= fmtRp(grandTotal) %></td>
       </tr>
     </tfoot>
