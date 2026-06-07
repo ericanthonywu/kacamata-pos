@@ -3,6 +3,10 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
 %>
 <%- include('../partials/top', { title, activePage }) %>
 
+<link href="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/css/select2.min.css" rel="stylesheet">
+<link href="https://cdn.jsdelivr.net/npm/select2-bootstrap-5-theme@1.3.0/dist/select2-bootstrap-5-theme.min.css" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/select2@4.1.0-rc.0/dist/js/select2.min.js"></script>
+
 <div class="card p-3 mb-3">
   <form method="get" action="/laporan/komisi" class="row g-2 align-items-end">
     <div class="col-auto">
@@ -23,7 +27,7 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
         <% } %>
       </select>
     </div>
-    <div class="col-auto">
+    <div class="col-auto" style="min-width: 200px;">
       <label class="form-label small mb-0">Sales</label>
       <select class="form-select form-select-sm" name="sales_id">
         <option value="">Semua Sales</option>
@@ -96,7 +100,10 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
 </div>
 
 <script>
-$(function() { $('#tblKomisi').DataTable({ order: [], language: dtLanguageID, paging: false, info: false }); });
+$(function() {
+  $('#tblKomisi').DataTable({ order: [], language: dtLanguageID, paging: false, info: false });
+  $('select[name="sales_id"]').select2({ theme: 'bootstrap-5', placeholder: 'Semua Sales', allowClear: true });
+});
 </script>
 
 <%- include('../partials/bottom') %>
