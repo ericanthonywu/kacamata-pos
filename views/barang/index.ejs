@@ -63,8 +63,8 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
               <% }); %>
             </select>
           </div>
-          <div class="col-md-3 mb-3"><label class="form-label small">Qty</label><input type="number" class="form-control" id="qty" min="0" value="0"></div>
-          <div class="col-md-3 mb-3"><label class="form-label small">Harga Jual</label><input type="number" class="form-control" id="harga_jual" min="0" value="0"></div>
+          <div class="col-md-3 mb-3"><label class="form-label small">Qty</label><input type="text" class="form-control input-currency" id="qty" min="0" value="0"></div>
+          <div class="col-md-3 mb-3"><label class="form-label small">Harga Jual</label><input type="text" class="form-control input-currency" id="harga_jual" min="0" value="0"></div>
         </div>
       </div>
       <div class="modal-footer">
@@ -85,8 +85,8 @@ $(function() {
     $('#editId').val('');
     $('#nama_barang').val('');
     $('#kategori_id').val('');
-    $('#qty').val(0);
-    $('#harga_jual').val(0);
+    $('#qty').val(0).trigger('input');
+    $('#harga_jual').val(0).trigger('input');
     $('.modal-title').text('Tambah Barang');
     formModal.show();
   });
@@ -96,8 +96,8 @@ $(function() {
     $('#editId').val($b.data('id'));
     $('#nama_barang').val($b.data('nama'));
     $('#kategori_id').val($b.data('kategori'));
-    $('#qty').val($b.data('qty'));
-    $('#harga_jual').val($b.data('harga'));
+    $('#qty').val(parseInt($b.data('qty')) || 0).trigger('input');
+    $('#harga_jual').val(parseInt($b.data('harga')) || 0).trigger('input');
     $('.modal-title').text('Edit Barang');
     formModal.show();
   });
@@ -116,8 +116,8 @@ $(function() {
     var payload = {
       nama_barang: $('#nama_barang').val(),
       kategori_id: $('#kategori_id').val() || null,
-      qty: $('#qty').val(),
-      harga_jual: $('#harga_jual').val(),
+      qty: $('#qty').data('raw-value') || $('#qty').val().replace(/[^0-9]/g, ''),
+      harga_jual: $('#harga_jual').data('raw-value') || $('#harga_jual').val().replace(/[^0-9]/g, ''),
     };
     $.ajax({ url: id ? '/barang/' + id : '/barang', method: id ? 'PUT' : 'POST',
       contentType: 'application/json', data: JSON.stringify(payload),

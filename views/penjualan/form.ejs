@@ -202,9 +202,9 @@ function saveNewPelanggan() {
 
 function onSelectBarang(el, tipe) {
   var selected = $(el).find(':selected');
-  var harga = selected.data('harga') || 0;
-  $('#' + tipe + '_harga').val(harga);
-  $('#' + tipe + '_diskon').val(0);
+  var harga = parseInt(selected.data('harga')) || 0;
+  $('#' + tipe + '_harga').val(harga).trigger('input');
+  $('#' + tipe + '_diskon').val(0).trigger('input');
   $('#' + tipe + '_jumlah').val(1);
   $('#' + tipe + '_fields').toggle(!!$(el).val());
   calcTotal();
@@ -239,8 +239,8 @@ function buildItem(tipe) {
   var bid = $('#' + tipe + '_barang_id').val();
   if (!bid) return null;
   return { tipe: tipe, barang_id: parseInt(bid),
-    harga: parseFloat($('#' + tipe + '_harga').val())||0,
-    diskon: parseFloat($('#' + tipe + '_diskon').val())||0,
+    harga: parseFloat($('#' + tipe + '_harga').data('raw-value') || $('#' + tipe + '_harga').val().replace(/[^0-9]/g,''))||0,
+    diskon: parseFloat($('#' + tipe + '_diskon').data('raw-value') || $('#' + tipe + '_diskon').val().replace(/[^0-9]/g,''))||0,
     jumlah: parseInt($('#' + tipe + '_jumlah').val())||1 };
 }
 

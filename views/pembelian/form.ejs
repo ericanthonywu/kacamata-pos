@@ -89,7 +89,7 @@ function addItem() {
     '<div class="col-md-2"><label class="form-label small">Qty</label>' +
     '<input type="number" class="form-control form-control-sm item-jumlah calc-input" data-idx="' + idx + '" value="1" min="1"></div>' +
     '<div class="col-md-3"><label class="form-label small">Harga Beli</label>' +
-    '<input type="number" class="form-control form-control-sm item-harga calc-input" data-idx="' + idx + '" value="0"></div>' +
+    '<input type="text" class="form-control form-control-sm item-harga calc-input input-currency" data-idx="' + idx + '" value="0"></div>' +
     '<div class="col-md-2"><label class="form-label small">Subtotal</label>' +
     '<div class="form-control-plaintext form-control-sm fw-bold item-subtotal" data-idx="' + idx + '">Rp 0</div></div>' +
     '<div class="col-md-1"><button class="btn btn-sm btn-outline-danger" onclick="removeItem(' + idx + ')"><i class="bi bi-trash"></i></button></div>' +
@@ -108,8 +108,8 @@ function removeItem(idx) {
 
 function onBarangChange(el) {
   var idx = $(el).data('idx');
-  var harga = $(el).find(':selected').data('harga') || 0;
-  $('.item-harga[data-idx=' + idx + ']').val(harga);
+  var harga = parseInt($(el).find(':selected').data('harga')) || 0;
+  $('.item-harga[data-idx=' + idx + ']').val(harga).trigger('input');
   calcTotal();
 }
 
@@ -117,7 +117,7 @@ function calcTotal() {
   var total = 0;
   $('.item-row').each(function() {
     var idx = $(this).data('idx');
-    var h = parseFloat($('.item-harga[data-idx=' + idx + ']').val()) || 0;
+    var h = parseFloat($('.item-harga[data-idx=' + idx + ']').data('raw-value') || $('.item-harga[data-idx=' + idx + ']').val().replace(/[^0-9]/g,'')) || 0;
     var j = parseInt($('.item-jumlah[data-idx=' + idx + ']').val()) || 1;
     var sub = h * j;
     total += sub;
@@ -140,7 +140,7 @@ function savePembelian() {
     items.push({
       barang_id: parseInt(bid),
       jumlah: parseInt($('.item-jumlah[data-idx=' + idx + ']').val()) || 1,
-      harga_beli: parseFloat($('.item-harga[data-idx=' + idx + ']').val()) || 0,
+      harga_beli: parseFloat($('.item-harga[data-idx=' + idx + ']').data('raw-value') || $('.item-harga[data-idx=' + idx + ']').val().replace(/[^0-9]/g,'')) || 0,
     });
   });
 
