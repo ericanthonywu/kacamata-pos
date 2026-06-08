@@ -2,6 +2,7 @@ const repo = require('../repositories/pembelian.repository');
 const barangRepo = require('../repositories/barang.repository');
 
 exports.getAll = function () { return repo.findAll(); };
+exports.getDatatablesData = function (params) { return repo.getDatatablesData(params); };
 
 exports.getById = async function (id) {
   const pembelian = await repo.findById(id);

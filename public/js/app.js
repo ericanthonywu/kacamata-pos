@@ -9,7 +9,13 @@ var dtLanguageID = {
   infoFiltered: '(difilter dari _MAX_ total data)',
   zeroRecords: 'Data tidak ditemukan',
   emptyTable: 'Tidak ada data tersedia',
-  paginate: { first: 'Pertama', last: 'Terakhir', next: 'Berikutnya', previous: 'Sebelumnya' }
+  paginate: { first: 'Pertama', last: 'Terakhir', next: 'Berikutnya', previous: 'Sebelumnya' },
+  buttons: {
+    pageLength: {
+      _: '%d baris',
+      '-1': 'Semua data'
+    }
+  }
 };
 
 function escapeHtml(unsafe) {
@@ -98,43 +104,47 @@ function printNotaData(d) {
     lines.push(padRight(itemNum + '. LENSA(L): ' + (lensaLItem.nama_barang||'-'), 60) + padLeft('Rp ' + Number(lensaLItem.harga * lensaLItem.jumlah).toLocaleString('id-ID'), 20));
     itemNum++;
   }
-  if (d.bpjs > 0) {
-    lines.push(padRight('   BPJS', 60) + padLeft('- Rp ' + Number(d.bpjs).toLocaleString('id-ID'), 20));
-  }
-  
   lines.push(padRight('', 40) + padRight('Jumlah', 20) + ': ' + padLeft('Rp ' + Number(total).toLocaleString('id-ID'), 18));
+  if (d.bpjs > 0) {
+    lines.push(padRight('', 40) + padRight('BPJS', 20) + ': ' + padLeft('- Rp ' + Number(d.bpjs).toLocaleString('id-ID'), 18));
+  }
   lines.push(padRight('', 40) + padRight('Uang Muka', 20) + ': ' + padLeft('Rp ' + Number(dp).toLocaleString('id-ID'), 18));
   lines.push(padRight('', 40) + padRight('Sisa', 20) + ': ' + padLeft('Rp ' + Number(sisa).toLocaleString('id-ID'), 18));
   lines.push('--------------------------------------------------------------------------------');
   
-  if (frameItem) {
-    lines.push('Frame     : ' + (frameItem.nama_barang||'-'));
+  function makeRow(leftText, rightText) {
+    // limit left side to 43 chars so it doesn't overflow to right side
+    return padRight(leftText.substring(0, 43), 45) + rightText;
   }
-  if (lensaRItem) {
-    var rResep = [d.sph_r?'SPH: '+d.sph_r:'', d.cyl_r?'CYL: '+d.cyl_r:'', d.add_r?'ADD: '+d.add_r:''].filter(Boolean).join(' ');
-    lines.push('Lensa (R) : ' + (lensaRItem.nama_barang||'-') + (rResep ? ' ( ' + rResep + ' )' : ''));
-  }
-  if (lensaLItem) {
-    var lResep = [d.sph_l?'SPH: '+d.sph_l:'', d.cyl_l?'CYL: '+d.cyl_l:'', d.add_l?'ADD: '+d.add_l:''].filter(Boolean).join(' ');
-    lines.push('Lensa (L) : ' + (lensaLItem.nama_barang||'-') + (lResep ? ' ( ' + lResep + ' )' : ''));
-  }
+
+  var frameText = 'Frame     : ' + (frameItem ? frameItem.nama_barang||'-' : '-');
+  lines.push(makeRow(frameText, 'No.           : ' + no));
+
+  var rResep = [d.sph_r?'SPH: '+d.sph_r:'', d.cyl_r?'CYL: '+d.cyl_r:'', d.add_r?'ADD: '+d.add_r:''].filter(Boolean).join(' ');
+  var lensaRText = 'Lensa (R) : ' + (lensaRItem ? lensaRItem.nama_barang||'-' : '-') + (rResep ? ' (' + rResep + ')' : '');
+  lines.push(makeRow(lensaRText, 'Sales         : ' + sales));
+
+  var lResep = [d.sph_l?'SPH: '+d.sph_l:'', d.cyl_l?'CYL: '+d.cyl_l:'', d.add_l?'ADD: '+d.add_l:''].filter(Boolean).join(' ');
+  var lensaLText = 'Lensa (L) : ' + (lensaLItem ? lensaLItem.nama_barang||'-' : '-') + (lResep ? ' (' + lResep + ')' : '');
+  lines.push(makeRow(lensaLText, 'Tgl. Selesai  : ' + tglSelesai));
+
   lines.push('');
 
   var rSphStr = d.sph_r ? d.sph_r : '      ';
+  var rCylStr = d.cyl_r ? d.cyl_r : '      ';
   var rAddStr = d.add_r ? d.add_r : '      ';
   var lSphStr = d.sph_l ? d.sph_l : '      ';
+  var lCylStr = d.cyl_l ? d.cyl_l : '      ';
   var lAddStr = d.add_l ? d.add_l : '      ';
 
-  if (d.sph_r || d.add_r || d.sph_l || d.add_l) {
-    lines.push('SPHR: ' + padRight(rSphStr, 15) + '  ADDR: ' + rAddStr);
-    lines.push('SPHL: ' + padRight(lSphStr, 15) + '  ADDL: ' + lAddStr);
+  if (d.sph_r || d.add_r || d.cyl_r || d.sph_l || d.add_l || d.cyl_l) {
+    lines.push('SPHR: ' + padRight(rSphStr, 10) + ' CYLR: ' + padRight(rCylStr, 10) + ' ADDR: ' + rAddStr);
+    lines.push('SPHL: ' + padRight(lSphStr, 10) + ' CYLL: ' + padRight(lCylStr, 10) + ' ADDL: ' + lAddStr);
     lines.push('');
   }
 
-  lines.push(padRight('No.           : ' + no, 45));
-  lines.push(padRight('Sales         : ' + sales, 45));
   var strDisetujui = 'Disetujui,';
-  lines.push(padRight('Tgl. Selesai  : ' + tglSelesai, 80 - strDisetujui.length) + strDisetujui);
+  lines.push(padRight('', 80 - strDisetujui.length) + strDisetujui);
   lines.push('');
   lines.push('');
   var strTtd = '(...........)';

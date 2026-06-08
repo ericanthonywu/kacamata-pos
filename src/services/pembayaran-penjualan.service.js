@@ -2,7 +2,7 @@ const repo = require('../repositories/pembayaran-penjualan.repository');
 const penjualanRepo = require('../repositories/penjualan.repository');
 
 exports.getByPenjualanId = function (penjualanId) { return repo.findByPenjualanId(penjualanId); };
-exports.getUnpaid = function () { return repo.findUnpaidPenjualan(); };
+exports.getUnpaid = function (query) { return repo.findUnpaidPenjualan(query); };
 
 exports.create = async function (data) {
   if (!data.penjualan_id)

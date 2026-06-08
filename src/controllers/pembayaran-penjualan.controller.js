@@ -5,10 +5,11 @@ const { ok, fail } = require('../utils/response');
 // Page 1: List of all unpaid penjualan (DP/Belum Lunas)
 exports.index = async function (req, res, next) {
   try {
-    const unpaid = await service.getUnpaid();
+    const unpaid = await service.getUnpaid(req.query);
     res.render('pembayaran-penjualan/index', {
       title: 'Hutang Penjualan (DP Pelanggan)',
       unpaid,
+      query: req.query,
       activePage: 'hutang-penjualan',
     });
   } catch (err) { next(err); }

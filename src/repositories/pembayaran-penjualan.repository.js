@@ -48,14 +48,18 @@ exports.del = async function (id) {
   });
 };
 
-exports.findUnpaidPenjualan = function () {
-  return db('penjualan')
+exports.findUnpaidPenjualan = function (query = {}) {
+  let q = db('penjualan')
     .select(
       'penjualan.*',
       'pelanggan.nama as pelanggan_nama',
       db.raw('COALESCE((SELECT SUM(jumlah_bayar) FROM pembayaran_penjualan WHERE penjualan_id = penjualan.id), 0) as total_dibayar')
     )
     .leftJoin('pelanggan', 'penjualan.pelanggan_id', 'pelanggan.id')
-    .whereIn('penjualan.status_bayar', ['dp', 'belum_lunas'])
-    .orderBy('penjualan.created_at', 'desc');
+    .whereIn('penjualan.status_bayar', ['dp', 'belum_lunas']);
+
+  if (query.start_date) q = q.where('penjualan.order_date', '>=', query.start_date);
+  if (query.end_date) q = q.where('penjualan.order_date', '<=', query.end_date);
+
+  return q.orderBy('penjualan.created_at', 'desc');
 };

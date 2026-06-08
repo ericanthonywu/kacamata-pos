@@ -5,9 +5,22 @@ const { ok, fail } = require('../utils/response');
 
 exports.index = async function (req, res, next) {
   try {
-    const data = await pembelianService.getAll();
-    res.render('pembelian/index', { title: 'Pembelian', data, activePage: 'pembelian' });
+    res.render('pembelian/index', { title: 'Pembelian', activePage: 'pembelian' });
   } catch (err) { next(err); }
+};
+
+exports.datatables = async function (req, res) {
+  try {
+    const result = await pembelianService.getDatatablesData(req.query);
+    res.json({
+      draw: parseInt(req.query.draw),
+      recordsTotal: result.recordsTotal,
+      recordsFiltered: result.recordsFiltered,
+      data: result.data
+    });
+  } catch (err) {
+    res.json({ error: err.message });
+  }
 };
 
 exports.createForm = async function (req, res, next) {

@@ -45,14 +45,18 @@ exports.del = async function (id) {
   });
 };
 
-exports.findUnpaidPembelian = function () {
-  return db('pembelian')
+exports.findUnpaidPembelian = function (query = {}) {
+  let q = db('pembelian')
     .select(
       'pembelian.*',
       'supplier.nama as supplier_nama',
       db.raw('COALESCE((SELECT SUM(jumlah_bayar) FROM pembayaran_pembelian WHERE pembelian_id = pembelian.id), 0) as total_dibayar')
     )
     .leftJoin('supplier', 'pembelian.supplier_id', 'supplier.id')
-    .where('pembelian.status_bayar', 'belum_lunas')
-    .orderBy('pembelian.created_at', 'desc');
+    .where('pembelian.status_bayar', 'belum_lunas');
+
+  if (query.start_date) q = q.where('pembelian.tanggal_pembelian', '>=', query.start_date);
+  if (query.end_date) q = q.where('pembelian.tanggal_pembelian', '<=', query.end_date);
+
+  return q.orderBy('pembelian.created_at', 'desc');
 };

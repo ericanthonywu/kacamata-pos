@@ -9,6 +9,60 @@ exports.findAll = function () {
     .orderBy('penjualan.created_at', 'desc');
 };
 
+exports.getDatatablesData = async function (params) {
+  const { start, length, search, order, start_date, end_date, status } = params;
+
+  let baseQuery = db('penjualan')
+    .leftJoin('pelanggan', 'penjualan.pelanggan_id', 'pelanggan.id')
+    .leftJoin('sales', 'penjualan.sales_id', 'sales.id')
+    .leftJoin('pengguna', 'penjualan.created_by', 'pengguna.id');
+
+  if (status) {
+    baseQuery = baseQuery.where('penjualan.status_bayar', status);
+  }
+
+  const totalCountRes = await baseQuery.clone().count('penjualan.id as count').first();
+  const recordsTotal = parseInt(totalCountRes.count);
+
+  if (start_date) baseQuery = baseQuery.where('penjualan.order_date', '>=', start_date);
+  if (end_date) baseQuery = baseQuery.where('penjualan.order_date', '<=', end_date);
+
+  if (search && search.value) {
+    baseQuery = baseQuery.where(function() {
+      this.where('penjualan.no_nota', 'ilike', `%${search.value}%`)
+          .orWhere('pelanggan.nama', 'ilike', `%${search.value}%`)
+          .orWhere('sales.nama', 'ilike', `%${search.value}%`);
+    });
+  }
+
+  const filteredCountRes = await baseQuery.clone().count('penjualan.id as count').first();
+  const recordsFiltered = parseInt(filteredCountRes.count);
+
+  const columns = ['order_date', 'no_nota', 'pelanggan_nama', 'total', 'status_bayar', 'sales_nama'];
+  if (order && order.length > 0) {
+    const colIndex = parseInt(order[0].column);
+    const dir = order[0].dir === 'desc' ? 'desc' : 'asc';
+    if (columns[colIndex]) {
+      let orderCol = `penjualan.${columns[colIndex]}`;
+      if (columns[colIndex] === 'pelanggan_nama') orderCol = 'pelanggan.nama';
+      if (columns[colIndex] === 'sales_nama') orderCol = 'sales.nama';
+      baseQuery = baseQuery.orderBy(orderCol, dir);
+    } else {
+      baseQuery = baseQuery.orderBy('penjualan.created_at', 'desc');
+    }
+  } else {
+    baseQuery = baseQuery.orderBy('penjualan.created_at', 'desc');
+  }
+
+  if (length > 0) {
+    baseQuery = baseQuery.limit(length).offset(start);
+  }
+
+  const data = await baseQuery.select('penjualan.*', 'pelanggan.nama as pelanggan_nama', 'sales.nama as sales_nama', 'pengguna.nama as created_by_nama');
+
+  return { recordsTotal, recordsFiltered, data };
+};
+
 exports.findById = function (id) {
   return db('penjualan')
     .select('penjualan.*', 'pelanggan.nama as pelanggan_nama', 'pelanggan.no_telp as pelanggan_telp',

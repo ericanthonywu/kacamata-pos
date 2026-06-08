@@ -2,6 +2,7 @@ const repo = require('../repositories/penjualan.repository');
 const barangRepo = require('../repositories/barang.repository');
 
 exports.getAll = function () { return repo.findAll(); };
+exports.getDatatablesData = function (params) { return repo.getDatatablesData(params); };
 
 exports.getById = async function (id) {
   const penjualan = await repo.findById(id);

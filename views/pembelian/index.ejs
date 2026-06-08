@@ -5,47 +5,21 @@ function fmtDate(d) { return d ? new Date(d).toLocaleDateString('id-ID') : '-'; 
 <%- include('../partials/top', { title, activePage }) %>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
-  <div></div>
+  <div class="d-flex gap-2 align-items-center">
+    <label class="mb-0 fw-bold">Filter:</label>
+    <input type="date" id="filterStartDate" class="form-control form-control-sm" style="width:140px">
+    <span>-</span>
+    <input type="date" id="filterEndDate" class="form-control form-control-sm" style="width:140px">
+    <button class="btn btn-sm btn-secondary" onclick="reloadTable()"><i class="bi bi-search"></i> Terapkan</button>
+    <button class="btn btn-sm btn-outline-danger" onclick="resetFilter()"><i class="bi bi-x-circle"></i> Reset</button>
+  </div>
   <a href="/pembelian/baru" class="btn btn-primary btn-sm"><i class="bi bi-plus"></i> Pembelian Baru</a>
 </div>
 
 <div class="card p-3">
   <table id="tblPembelian" class="table table-hover mb-0" style="width:100%">
     <thead><tr><th>Kode</th><th>Tanggal</th><th>Supplier</th><th>Total Harga</th><th>Status</th><th style="width:180px">Aksi</th></tr></thead>
-    <tbody>
-      <% data.forEach(function(item) { %>
-      <tr>
-        <td class="font-monospace text-info"><%= item.kode_pembelian %></td>
-        <td><%= fmtDate(item.tanggal_pembelian) %></td>
-        <td><%= item.supplier_nama || '-' %></td>
-        <td class="fw-bold"><%= fmtRp(item.total_harga) %></td>
-        <td>
-          <% if (item.status_bayar === 'lunas') { %>
-            <span class="badge bg-success">✅ Lunas</span>
-          <% } else { %>
-            <a href="/pembayaran-pembelian/bayar/<%= item.id %>" class="badge bg-danger text-decoration-none">❌ Belum Lunas</a>
-          <% } %>
-        </td>
-        <td>
-          <button class="btn btn-sm btn-outline-info me-1" onclick="showDetail(<%= item.id %>)"><i class="bi bi-eye"></i></button>
-          <div class="dropdown d-inline-block me-1">
-            <button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" title="Print Barcode">
-              <i class="bi bi-upc-scan"></i>
-            </button>
-            <ul class="dropdown-menu shadow-sm">
-              <li><h6 class="dropdown-header">Pilih Format Label</h6></li>
-              <li><a class="dropdown-item" href="#" onclick="event.preventDefault(); printBarcodes(<%= item.id %>, 'double')"><i class="bi bi-layout-split"></i> Double (Kiri & Kanan)</a></li>
-              <li><a class="dropdown-item" href="#" onclick="event.preventDefault(); printBarcodes(<%= item.id %>, 'single')"><i class="bi bi-layout-sidebar"></i> Single (Kiri saja)</a></li>
-            </ul>
-          </div>
-          <% if (item.status_bayar !== 'lunas') { %>
-          <a href="/pembayaran-pembelian/bayar/<%= item.id %>" class="btn btn-sm btn-outline-success me-1" title="Bayar"><i class="bi bi-wallet2"></i></a>
-          <% } %>
-          <a href="/pembelian-retur/baru?pembelian_id=<%= item.id %>" class="btn btn-sm btn-outline-warning" title="Retur"><i class="bi bi-arrow-return-left"></i></a>
-        </td>
-      </tr>
-      <% }); %>
-    </tbody>
+    <tbody></tbody>
   </table>
 </div>
 
@@ -60,9 +34,134 @@ function fmtDate(d) { return d ? new Date(d).toLocaleDateString('id-ID') : '-'; 
 </div>
 
 <script>
+var table;
 $(function() {
-  $('#tblPembelian').DataTable({ order: [], language: dtLanguageID });
+  function newExportAction(e, dt, button, config) {
+    var self = this;
+    var oldStart = dt.settings()[0]._iDisplayStart;
+    dt.one('preXhr', function (e, s, data) {
+      data.start = 0;
+      data.length = -1;
+      dt.one('preDraw', function (e, settings) {
+        if (button[0].className.indexOf('buttons-excel') >= 0) {
+          $.fn.dataTable.ext.buttons.excelHtml5.available(dt, config) ?
+            $.fn.dataTable.ext.buttons.excelHtml5.action.call(self, e, dt, button, config) : null;
+        } else if (button[0].className.indexOf('buttons-csv') >= 0) {
+          $.fn.dataTable.ext.buttons.csvHtml5.available(dt, config) ?
+            $.fn.dataTable.ext.buttons.csvHtml5.action.call(self, e, dt, button, config) : null;
+        }
+        dt.one('preXhr', function (e, s, data) {
+          settings._iDisplayStart = oldStart;
+          data.start = oldStart;
+        });
+        setTimeout(dt.ajax.reload, 0);
+        return false;
+      });
+    });
+    dt.ajax.reload();
+  }
+
+  table = $('#tblPembelian').DataTable({
+    serverSide: true,
+    processing: true,
+    ajax: {
+      url: '/pembelian/dt',
+      data: function(d) {
+        d.start_date = $('#filterStartDate').val();
+        d.end_date = $('#filterEndDate').val();
+      }
+    },
+    order: [[1, 'desc']],
+    lengthMenu: [[10, 50, 100, -1], [10, 50, 100, "All"]],
+    layout: {
+      topStart: {
+        pageLength: {},
+        buttons: {}
+      },
+      topEnd: 'search',
+      bottomStart: 'info',
+      bottomEnd: 'paging'
+    },
+    buttons: [
+      {
+        extend: 'excelHtml5',
+        text: '<i class="bi bi-file-earmark-excel"></i> Excel',
+        className: 'btn btn-success btn-sm',
+        action: newExportAction,
+        exportOptions: { columns: [0, 1, 2, 3, 4], orthogonal: 'export' }
+      },
+      {
+        extend: 'csvHtml5',
+        text: '<i class="bi bi-filetype-csv"></i> CSV',
+        className: 'btn btn-info btn-sm',
+        action: newExportAction,
+        exportOptions: { columns: [0, 1, 2, 3, 4], orthogonal: 'export' }
+      },
+      {
+        extend: 'print',
+        text: '<i class="bi bi-printer"></i> Print',
+        className: 'btn btn-secondary btn-sm',
+        exportOptions: { columns: [0, 1, 2, 3, 4], orthogonal: 'export' }
+      }
+    ],
+    columns: [
+      { 
+        data: 'kode_pembelian',
+        render: function(data) { return '<span class="font-monospace text-info">' + escapeHtml(data) + '</span>'; }
+      },
+      { 
+        data: 'tanggal_pembelian',
+        render: function(data) { return data ? new Date(data).toLocaleDateString('id-ID') : '-'; }
+      },
+      { 
+        data: 'supplier_nama',
+        render: function(data) { return escapeHtml(data || '-'); }
+      },
+      { 
+        data: 'total_harga',
+        className: 'fw-bold',
+        render: function(data) { return fmtRp(data); }
+      },
+      { 
+        data: 'status_bayar',
+        render: function(data, type, row) {
+          if (type !== 'display') {
+            return data === 'lunas' ? 'Lunas' : 'Belum Lunas';
+          }
+          if (data === 'lunas') return '<span class="badge bg-success">✅ Lunas</span>';
+          return '<a href="/pembayaran-pembelian/bayar/'+row.id+'" class="badge bg-danger text-decoration-none">❌ Belum Lunas</a>';
+        }
+      },
+      { 
+        data: null, 
+        orderable: false,
+        render: function(data, type, row) {
+          var html = '<button class="btn btn-sm btn-outline-info me-1" onclick="showDetail(' + row.id + ')"><i class="bi bi-eye"></i></button>';
+          html += '<div class="dropdown d-inline-block me-1"><button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" title="Print Barcode"><i class="bi bi-upc-scan"></i></button>';
+          html += '<ul class="dropdown-menu shadow-sm"><li><h6 class="dropdown-header">Pilih Format Label</h6></li>';
+          html += '<li><a class="dropdown-item" href="#" onclick="event.preventDefault(); printBarcodes(' + row.id + ', &quot;double&quot;)"><i class="bi bi-layout-split"></i> Double (Kiri & Kanan)</a></li>';
+          html += '<li><a class="dropdown-item" href="#" onclick="event.preventDefault(); printBarcodes(' + row.id + ', &quot;single&quot;)"><i class="bi bi-layout-sidebar"></i> Single (Kiri saja)</a></li></ul></div>';
+          if (row.status_bayar !== 'lunas') {
+            html += '<a href="/pembayaran-pembelian/bayar/' + row.id + '" class="btn btn-sm btn-outline-success me-1" title="Bayar"><i class="bi bi-wallet2"></i></a>';
+          }
+          html += '<a href="/pembelian-retur/baru?pembelian_id=' + row.id + '" class="btn btn-sm btn-outline-warning" title="Retur"><i class="bi bi-arrow-return-left"></i></a>';
+          return html;
+        }
+      }
+    ],
+    language: dtLanguageID
+  });
 });
+
+function reloadTable() {
+  table.ajax.reload();
+}
+
+function resetFilter() {
+  $('#filterStartDate').val('');
+  $('#filterEndDate').val('');
+  table.ajax.reload();
+}
 
 function showDetail(id) {
   $.get('/pembelian/' + id, function(res) {

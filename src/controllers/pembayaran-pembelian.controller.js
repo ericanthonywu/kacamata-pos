@@ -5,10 +5,11 @@ const { ok, fail } = require('../utils/response');
 // Page 1: List of all unpaid pembelian
 exports.index = async function (req, res, next) {
   try {
-    const unpaid = await service.getUnpaid();
+    const unpaid = await service.getUnpaid(req.query);
     res.render('pembayaran-pembelian/index', {
       title: 'Hutang Pembelian',
       unpaid,
+      query: req.query,
       activePage: 'hutang-pembelian',
     });
   } catch (err) { next(err); }

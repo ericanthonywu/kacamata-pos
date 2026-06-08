@@ -7,6 +7,52 @@ exports.findAll = function () {
     .orderBy('pembelian.created_at', 'desc');
 };
 
+exports.getDatatablesData = async function (params) {
+  const { start, length, search, order, start_date, end_date } = params;
+
+  let baseQuery = db('pembelian')
+    .leftJoin('supplier', 'pembelian.supplier_id', 'supplier.id');
+
+  const totalCountRes = await baseQuery.clone().count('pembelian.id as count').first();
+  const recordsTotal = parseInt(totalCountRes.count);
+
+  if (start_date) baseQuery = baseQuery.where('pembelian.tanggal_pembelian', '>=', start_date);
+  if (end_date) baseQuery = baseQuery.where('pembelian.tanggal_pembelian', '<=', end_date);
+
+  if (search && search.value) {
+    baseQuery = baseQuery.where(function() {
+      this.where('pembelian.kode_pembelian', 'ilike', `%${search.value}%`)
+          .orWhere('supplier.nama', 'ilike', `%${search.value}%`);
+    });
+  }
+
+  const filteredCountRes = await baseQuery.clone().count('pembelian.id as count').first();
+  const recordsFiltered = parseInt(filteredCountRes.count);
+
+  const columns = ['kode_pembelian', 'tanggal_pembelian', 'supplier_nama', 'total_harga', 'status_bayar'];
+  if (order && order.length > 0) {
+    const colIndex = parseInt(order[0].column);
+    const dir = order[0].dir === 'desc' ? 'desc' : 'asc';
+    if (columns[colIndex]) {
+      let orderCol = `pembelian.${columns[colIndex]}`;
+      if (columns[colIndex] === 'supplier_nama') orderCol = 'supplier.nama';
+      baseQuery = baseQuery.orderBy(orderCol, dir);
+    } else {
+      baseQuery = baseQuery.orderBy('pembelian.created_at', 'desc');
+    }
+  } else {
+    baseQuery = baseQuery.orderBy('pembelian.created_at', 'desc');
+  }
+
+  if (length > 0) {
+    baseQuery = baseQuery.limit(length).offset(start);
+  }
+
+  const data = await baseQuery.select('pembelian.*', 'supplier.nama as supplier_nama');
+
+  return { recordsTotal, recordsFiltered, data };
+};
+
 exports.findById = function (id) {
   return db('pembelian')
     .select('pembelian.*', 'supplier.nama as supplier_nama')

@@ -2,7 +2,7 @@ const repo = require('../repositories/pembayaran-pembelian.repository');
 const pembelianRepo = require('../repositories/pembelian.repository');
 
 exports.getByPembelianId = function (pembelianId) { return repo.findByPembelianId(pembelianId); };
-exports.getUnpaid = function () { return repo.findUnpaidPembelian(); };
+exports.getUnpaid = function (query) { return repo.findUnpaidPembelian(query); };
 
 exports.create = async function (data) {
   if (!data.pembelian_id)
