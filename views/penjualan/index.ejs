@@ -29,6 +29,8 @@ function fmtDate(d) { return d ? new Date(d).toLocaleDateString('id-ID') : '-'; 
       <th>No. Nota</th>
       <th>Pelanggan</th>
       <th>Total</th>
+      <th>DP</th>
+      <th>Sisa Bayar</th>
       <th>Status</th>
       <th>Sales</th>
       <th style="width:150px">Aksi</th>
@@ -96,20 +98,20 @@ $(function() {
         text: '<i class="bi bi-file-earmark-excel"></i> Excel',
         className: 'btn btn-success btn-sm',
         action: newExportAction,
-        exportOptions: { columns: [0, 1, 2, 3, 4, 5], orthogonal: 'export' }
+        exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7], orthogonal: 'export' }
       },
       {
         extend: 'csvHtml5',
         text: '<i class="bi bi-filetype-csv"></i> CSV',
         className: 'btn btn-info btn-sm',
         action: newExportAction,
-        exportOptions: { columns: [0, 1, 2, 3, 4, 5], orthogonal: 'export' }
+        exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7], orthogonal: 'export' }
       },
       {
         extend: 'print',
         text: '<i class="bi bi-printer"></i> Print',
         className: 'btn btn-secondary btn-sm',
-        exportOptions: { columns: [0, 1, 2, 3, 4, 5], orthogonal: 'export' }
+        exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7], orthogonal: 'export' }
       }
     ],
     columns: [
@@ -129,6 +131,20 @@ $(function() {
         data: 'total',
         className: 'fw-bold',
         render: function(data) { return fmtRp(data); }
+      },
+      {
+        data: 'dp',
+        render: function(data) { return fmtRp(data); }
+      },
+      {
+        data: null,
+        className: 'text-danger fw-bold',
+        render: function(data, type, row) {
+          if (row.status_bayar === 'dp') {
+            return fmtRp(parseFloat(row.total || 0) - parseFloat(row.dp || 0));
+          }
+          return '-';
+        }
       },
       { 
         data: 'status_bayar',

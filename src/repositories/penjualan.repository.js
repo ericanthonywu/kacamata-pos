@@ -38,7 +38,7 @@ exports.getDatatablesData = async function (params) {
   const filteredCountRes = await baseQuery.clone().count('penjualan.id as count').first();
   const recordsFiltered = parseInt(filteredCountRes.count);
 
-  const columns = ['order_date', 'no_nota', 'pelanggan_nama', 'total', 'status_bayar', 'sales_nama'];
+  const columns = ['order_date', 'no_nota', 'pelanggan_nama', 'total', 'dp', null, 'status_bayar', 'sales_nama'];
   if (order && order.length > 0) {
     const colIndex = parseInt(order[0].column);
     const dir = order[0].dir === 'desc' ? 'desc' : 'asc';
