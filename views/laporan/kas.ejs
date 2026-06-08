@@ -22,6 +22,24 @@ function fmtDate(d) { return d ? new Date(d).toLocaleDateString('id-ID') : '-'; 
       <% }); %>
     </select>
   </div>
+  <div class="col-auto">
+    <label class="form-label small">Kategori</label>
+    <select name="kategori_id" class="form-select form-select-sm">
+      <option value="">Semua</option>
+      <% kategoriList.forEach(function(k) { %>
+      <option value="<%= k.id %>" <%= String(filters.kategori_id) === String(k.id) ? 'selected' : '' %>><%= k.nama %></option>
+      <% }); %>
+      <option value="both" <%= filters.kategori_id === 'both' ? 'selected' : '' %>>Frame + Lensa</option>
+    </select>
+  </div>
+  <div class="col-auto">
+    <label class="form-label small">Status</label>
+    <select name="status_bayar" class="form-select form-select-sm">
+      <option value="">Semua</option>
+      <option value="lunas" <%= filters.status_bayar === 'lunas' ? 'selected' : '' %>>Lunas</option>
+      <option value="dp" <%= filters.status_bayar === 'dp' ? 'selected' : '' %>>DP (Belum Lunas)</option>
+    </select>
+  </div>
   <div class="col-auto"><button type="submit" class="btn btn-primary btn-sm">Tampilkan</button></div>
 </form>
 
@@ -30,23 +48,25 @@ function fmtDate(d) { return d ? new Date(d).toLocaleDateString('id-ID') : '-'; 
     <div class="stat-card"><i class="bi bi-receipt stat-icon text-info"></i><div class="stat-value"><%= summary.total_transaksi %></div><div class="stat-label">Transaksi</div></div>
   </div>
   <div class="col">
+    <div class="stat-card"><i class="bi bi-shield-plus stat-icon text-secondary"></i><div class="stat-value"><%= fmtRp(summary.total_bpjs) %></div><div class="stat-label">Total BPJS</div></div>
+  </div>
+  <% if (currentUser.hak_akses === 'admin') { %>
+  <div class="col">
     <div class="stat-card"><i class="bi bi-cash stat-icon text-primary"></i><div class="stat-value"><%= fmtRp(summary.total_subtotal) %></div><div class="stat-label">Subtotal</div></div>
   </div>
   <div class="col">
     <div class="stat-card"><i class="bi bi-wallet2 stat-icon text-warning"></i><div class="stat-value"><%= fmtRp(summary.total_dp_belum_lunas) %></div><div class="stat-label">Total DP (Belum Lunas)</div></div>
   </div>
   <div class="col">
-    <div class="stat-card"><i class="bi bi-shield-plus stat-icon text-secondary"></i><div class="stat-value"><%= fmtRp(summary.total_bpjs) %></div><div class="stat-label">Total BPJS</div></div>
-  </div>
-  <div class="col">
     <div class="stat-card"><i class="bi bi-graph-up stat-icon text-success"></i><div class="stat-value"><%= fmtRp(summary.total_penjualan) %></div><div class="stat-label">Total Penjualan</div></div>
   </div>
+  <% } %>
 </div>
 
 <div class="card p-3">
   <table id="tblKas" class="table table-hover mb-0" style="width:100%">
     <thead>
-      <tr><th>No. Nota</th><th>Tanggal</th><th>Pelanggan</th><th>Sales</th><th>Total</th><th>DP</th><th>BPJS</th><th>Sisa</th></tr>
+      <tr><th>No. Nota</th><th>Tanggal</th><th>Pelanggan</th><th>Sales</th><th>Total</th><th>DP</th><th>BPJS</th><th>Sisa</th><th>Aksi</th></tr>
     </thead>
     <tbody>
       <% transactions.forEach(function(t) { %>
@@ -62,19 +82,65 @@ function fmtDate(d) { return d ? new Date(d).toLocaleDateString('id-ID') : '-'; 
         <td class="fw-bold <%= sisa === 0 ? 'text-success' : 'text-danger' %>">
           <%= fmtRp(sisa) %> <%= sisa === 0 ? '(sudah lunas DP)' : '' %>
         </td>
+        <td>
+          <button class="btn btn-sm btn-outline-info" onclick="showDetail(<%= t.id %>)" title="Detail"><i class="bi bi-eye"></i></button>
+        </td>
       </tr>
       <% }); %>
     </tbody>
   </table>
 </div>
 
+<div class="modal fade" id="detailModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Detail Penjualan</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="detailBody">
+        <div class="text-center"><div class="spinner-border text-primary" role="status"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
+
 <script>
 $(function() {
   $('#tblKas').DataTable({
     order: [],
-    language: dtLanguageID
+    language: dtLanguageID,
+    columnDefs: [ { orderable: false, targets: 8 } ]
   });
 });
+
+function showDetail(id) {
+  var myModal = new bootstrap.Modal(document.getElementById('detailModal'));
+  myModal.show();
+  $('#detailBody').html('<div class="text-center"><div class="spinner-border text-primary" role="status"></div></div>');
+  
+  $.get('/penjualan/' + id, function(res) {
+    if (!res.success) {
+      $('#detailBody').html('<div class="alert alert-danger">Gagal memuat detail.</div>');
+      return;
+    }
+    var d = res.data;
+    var html = '<table class="table table-sm table-bordered"><thead><tr><th>Barang</th><th>Kategori</th><th>Qty</th><th>Harga</th><th>Subtotal</th></tr></thead><tbody>';
+    d.detail.forEach(function(item) {
+      html += '<tr>';
+      html += '<td>' + (item.barang_nama || '-') + '</td>';
+      html += '<td>' + (item.kategori_nama || '-') + '</td>';
+      html += '<td>' + item.qty + '</td>';
+      html += '<td>' + fmtRp(item.harga) + '</td>';
+      html += '<td>' + fmtRp(item.total) + '</td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+    $('#detailBody').html(html);
+  }).fail(function() {
+    $('#detailBody').html('<div class="alert alert-danger">Terjadi kesalahan.</div>');
+  });
+}
 </script>
 
 <%- include('../partials/bottom') %>

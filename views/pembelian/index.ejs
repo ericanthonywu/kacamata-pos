@@ -13,12 +13,14 @@ function fmtDate(d) { return d ? new Date(d).toLocaleDateString('id-ID') : '-'; 
     <button class="btn btn-sm btn-secondary" onclick="reloadTable()"><i class="bi bi-search"></i> Terapkan</button>
     <button class="btn btn-sm btn-outline-danger" onclick="resetFilter()"><i class="bi bi-x-circle"></i> Reset</button>
   </div>
+  <% if (currentUser.hak_akses === 'admin') { %>
   <a href="/pembelian/baru" class="btn btn-primary btn-sm"><i class="bi bi-plus"></i> Pembelian Baru</a>
+  <% } %>
 </div>
 
 <div class="card p-3">
   <table id="tblPembelian" class="table table-hover mb-0" style="width:100%">
-    <thead><tr><th>Kode</th><th>Tanggal</th><th>Supplier</th><th>Total Harga</th><th>Status</th><th style="width:180px">Aksi</th></tr></thead>
+    <thead><tr><th>Kode</th><th>Tanggal</th><th>Supplier</th><% if (currentUser.hak_akses === 'admin') { %><th>Total Harga</th><% } %><th>Status</th><th style="width:180px">Aksi</th></tr></thead>
     <tbody></tbody>
   </table>
 </div>
@@ -34,8 +36,10 @@ function fmtDate(d) { return d ? new Date(d).toLocaleDateString('id-ID') : '-'; 
 </div>
 
 <script>
+window.userRole = '<%= currentUser.hak_akses %>';
 var table;
 $(function() {
+  var expCols = window.userRole === 'admin' ? [0, 1, 2, 3, 4] : [0, 1, 2, 3];
   function newExportAction(e, dt, button, config) {
     var self = this;
     var oldStart = dt.settings()[0]._iDisplayStart;
@@ -88,20 +92,20 @@ $(function() {
         text: '<i class="bi bi-file-earmark-excel"></i> Excel',
         className: 'btn btn-success btn-sm',
         action: newExportAction,
-        exportOptions: { columns: [0, 1, 2, 3, 4], orthogonal: 'export' }
+        exportOptions: { columns: expCols, orthogonal: 'export' }
       },
       {
         extend: 'csvHtml5',
         text: '<i class="bi bi-filetype-csv"></i> CSV',
         className: 'btn btn-info btn-sm',
         action: newExportAction,
-        exportOptions: { columns: [0, 1, 2, 3, 4], orthogonal: 'export' }
+        exportOptions: { columns: expCols, orthogonal: 'export' }
       },
       {
         extend: 'print',
         text: '<i class="bi bi-printer"></i> Print',
         className: 'btn btn-secondary btn-sm',
-        exportOptions: { columns: [0, 1, 2, 3, 4], orthogonal: 'export' }
+        exportOptions: { columns: expCols, orthogonal: 'export' }
       }
     ],
     columns: [
@@ -117,11 +121,13 @@ $(function() {
         data: 'supplier_nama',
         render: function(data) { return escapeHtml(data || '-'); }
       },
+      <% if (currentUser.hak_akses === 'admin') { %>
       { 
         data: 'total_harga',
         className: 'fw-bold',
         render: function(data) { return fmtRp(data); }
       },
+      <% } %>
       { 
         data: 'status_bayar',
         render: function(data, type, row) {
@@ -136,15 +142,21 @@ $(function() {
         data: null, 
         orderable: false,
         render: function(data, type, row) {
-          var html = '<button class="btn btn-sm btn-outline-info me-1" onclick="showDetail(' + row.id + ')"><i class="bi bi-eye"></i></button>';
-          html += '<div class="dropdown d-inline-block me-1"><button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" title="Print Barcode"><i class="bi bi-upc-scan"></i></button>';
+          var html = '<div class="d-flex flex-wrap gap-1">';
+          if (window.userRole === 'admin') {
+            html += '<button class="btn btn-sm btn-outline-info" onclick="showDetail(' + row.id + ')"><i class="bi bi-eye"></i></button>';
+          }
+          html += '<div class="dropdown d-inline-block"><button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" title="Print Barcode"><i class="bi bi-upc-scan"></i></button>';
           html += '<ul class="dropdown-menu shadow-sm"><li><h6 class="dropdown-header">Pilih Format Label</h6></li>';
           html += '<li><a class="dropdown-item" href="#" onclick="event.preventDefault(); printBarcodes(' + row.id + ', &quot;double&quot;)"><i class="bi bi-layout-split"></i> Double (Kiri & Kanan)</a></li>';
           html += '<li><a class="dropdown-item" href="#" onclick="event.preventDefault(); printBarcodes(' + row.id + ', &quot;single&quot;)"><i class="bi bi-layout-sidebar"></i> Single (Kiri saja)</a></li></ul></div>';
-          if (row.status_bayar !== 'lunas') {
-            html += '<a href="/pembayaran-pembelian/bayar/' + row.id + '" class="btn btn-sm btn-outline-success me-1" title="Bayar"><i class="bi bi-wallet2"></i></a>';
+          if (window.userRole === 'admin') {
+            if (row.status_bayar !== 'lunas') {
+              html += '<a href="/pembayaran-pembelian/bayar/' + row.id + '" class="btn btn-sm btn-outline-success" title="Bayar"><i class="bi bi-wallet2"></i></a>';
+            }
+            html += '<a href="/pembelian-retur/baru?pembelian_id=' + row.id + '" class="btn btn-sm btn-outline-warning" title="Retur"><i class="bi bi-arrow-return-left"></i></a>';
           }
-          html += '<a href="/pembelian-retur/baru?pembelian_id=' + row.id + '" class="btn btn-sm btn-outline-warning" title="Retur"><i class="bi bi-arrow-return-left"></i></a>';
+          html += '</div>';
           return html;
         }
       }

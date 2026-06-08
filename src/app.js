@@ -61,19 +61,21 @@ app.get('/stock-gudang', auth, async (req, res, next) => {
   } catch (err) { next(err); }
 });
 
-app.use('/kategori', require('./routes/kategori.routes'));
-app.use('/barang', require('./routes/barang.routes'));
-app.use('/supplier', require('./routes/supplier.routes'));
-app.use('/pelanggan', require('./routes/pelanggan.routes'));
-app.use('/sales', require('./routes/sales.routes'));
-app.use('/pengguna', require('./routes/pengguna.routes'));
-app.use('/penjualan', require('./routes/penjualan.routes'));
-app.use('/pembelian', require('./routes/pembelian.routes'));
-app.use('/pembelian-retur', require('./routes/pembelian-retur.routes'));
-app.use('/penjualan-retur', require('./routes/penjualan-retur.routes'));
-app.use('/pembayaran-pembelian', require('./routes/pembayaran-pembelian.routes'));
-app.use('/pembayaran-penjualan', require('./routes/pembayaran-penjualan.routes'));
-app.use('/laporan', require('./routes/laporan.routes'));
+const { requireAdmin } = require('./middleware/rbac');
+
+app.use('/kategori', requireAdmin, require('./routes/kategori.routes'));
+app.use('/barang', require('./routes/barang.routes')); // Kasir has partial access, handle in barang.routes.js
+app.use('/supplier', requireAdmin, require('./routes/supplier.routes'));
+app.use('/pelanggan', require('./routes/pelanggan.routes')); // Kasir has partial access, handle in pelanggan.routes.js
+app.use('/sales', requireAdmin, require('./routes/sales.routes'));
+app.use('/pengguna', requireAdmin, require('./routes/pengguna.routes'));
+app.use('/penjualan', require('./routes/penjualan.routes')); // Kasir has full access
+app.use('/pembelian', require('./routes/pembelian.routes')); // Kasir has partial access
+app.use('/pembelian-retur', requireAdmin, require('./routes/pembelian-retur.routes'));
+app.use('/penjualan-retur', requireAdmin, require('./routes/penjualan-retur.routes'));
+app.use('/pembayaran-pembelian', requireAdmin, require('./routes/pembayaran-pembelian.routes'));
+app.use('/pembayaran-penjualan', requireAdmin, require('./routes/pembayaran-penjualan.routes'));
+app.use('/laporan', require('./routes/laporan.routes')); // Kasir can access /laporan/kas
 
 // Error handler
 app.use(errorHandler);

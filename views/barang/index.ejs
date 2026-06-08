@@ -13,7 +13,9 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
       <% }); %>
     </select>
   </div>
+  <% if (currentUser.hak_akses === 'admin') { %>
   <button class="btn btn-primary btn-sm" id="btnAdd"><i class="bi bi-plus"></i> Tambah Barang</button>
+  <% } %>
 </div>
 
 <div class="card p-3">
@@ -71,6 +73,7 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
 </div>
 
 <script>
+window.userRole = '<%= currentUser.hak_akses %>';
 $(function() {
   var dt = $('#tblBarang').DataTable({
     processing: true,
@@ -99,18 +102,22 @@ $(function() {
       { data: 'harga_jual', render: function(d) { return fmtRp(d); } },
       { data: 'barcode_id', render: function(d) { return '<span class="font-monospace small">' + (d||'-') + '</span>'; } },
       { data: 'id', orderable: false, render: function(d, type, row) {
-          var html = '<button class="btn btn-sm btn-outline-secondary me-1 btn-edit" ' +
-            'data-id="' + row.id + '" data-nama="' + escapeHtml(row.nama_barang||'') + '" data-kategori="' + (row.kategori_id||'') + '" ' +
-            'data-qty="' + (row.qty !== null ? row.qty : '') + '" data-harga="' + (row.harga_jual||0) + '" ' +
-            'data-sph_r="' + (row.sph_r||'') + '" data-cyl_r="' + (row.cyl_r||'') + '" data-add_r="' + (row.add_r||'') + '" ' +
-            'data-sph_l="' + (row.sph_l||'') + '" data-cyl_l="' + (row.cyl_l||'') + '" data-add_l="' + (row.add_l||'') + '" ' +
-            'title="Edit"><i class="bi bi-pencil"></i></button>';
+          var html = '<div class="d-flex flex-wrap gap-1">';
           if (row.barcode_id) {
-            html += '<button class="btn btn-sm btn-outline-info me-1 btn-print-barcode" ' +
+            html += '<button class="btn btn-sm btn-outline-info btn-print-barcode" ' +
               'data-barcode="' + row.barcode_id + '" data-nama="' + escapeHtml(row.nama_barang||'') + '" data-harga="' + (row.harga_jual||0) + '" ' +
               'title="Print Barcode"><i class="bi bi-upc-scan"></i></button>';
           }
-          html += '<button class="btn btn-sm btn-outline-danger btn-del" data-id="' + row.id + '" data-url="/barang/' + row.id + '"><i class="bi bi-trash"></i></button>';
+          if (window.userRole === 'admin') {
+            html += '<button class="btn btn-sm btn-outline-secondary btn-edit" ' +
+              'data-id="' + row.id + '" data-nama="' + escapeHtml(row.nama_barang||'') + '" data-kategori="' + (row.kategori_id||'') + '" ' +
+              'data-qty="' + (row.qty !== null ? row.qty : '') + '" data-harga="' + (row.harga_jual||0) + '" ' +
+              'data-sph_r="' + (row.sph_r||'') + '" data-cyl_r="' + (row.cyl_r||'') + '" data-add_r="' + (row.add_r||'') + '" ' +
+              'data-sph_l="' + (row.sph_l||'') + '" data-cyl_l="' + (row.cyl_l||'') + '" data-add_l="' + (row.add_l||'') + '" ' +
+              'title="Edit"><i class="bi bi-pencil"></i></button>';
+            html += '<button class="btn btn-sm btn-outline-danger btn-del" data-id="' + row.id + '" data-url="/barang/' + row.id + '"><i class="bi bi-trash"></i></button>';
+          }
+          html += '</div>';
           return html;
         }
       }

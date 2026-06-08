@@ -18,11 +18,14 @@
     <a href="/laporan/kas" class="sidebar-link <%= activePage === 'laporan-kas' ? 'active' : '' %>">
       <i class="bi bi-graph-up"></i> Laporan Kas
     </a>
+    <% if (currentUser.hak_akses === 'admin') { %>
     <a href="/laporan/komisi" class="sidebar-link <%= activePage === 'laporan-komisi' ? 'active' : '' %>">
       <i class="bi bi-award"></i> Laporan Komisi
     </a>
+    <% } %>
   </div>
 
+  <% if (currentUser.hak_akses === 'admin') { %>
   <div class="sidebar-section">
     <div class="sidebar-label">Retur</div>
     <a href="/penjualan-retur" class="sidebar-link <%= activePage === 'penjualan-retur' ? 'active' : '' %>">
@@ -42,24 +45,30 @@
       <i class="bi bi-cash-coin"></i> Hutang Penjualan
     </a>
   </div>
+  <% } %>
 
   <div class="sidebar-section">
     <div class="sidebar-label">Master Data</div>
+    <% if (currentUser.hak_akses === 'admin') { %>
     <a href="/kategori" class="sidebar-link <%= activePage === 'kategori' ? 'active' : '' %>">
       <i class="bi bi-folder"></i> Kategori
     </a>
+    <% } %>
     <a href="/barang" class="sidebar-link <%= activePage === 'barang' ? 'active' : '' %>">
       <i class="bi bi-box-seam"></i> Barang
     </a>
     <a href="/stock-gudang" class="sidebar-link <%= activePage === 'stock-gudang' ? 'active' : '' %>">
       <i class="bi bi-house-gear"></i> Stock Gudang
     </a>
+    <% if (currentUser.hak_akses === 'admin') { %>
     <a href="/supplier" class="sidebar-link <%= activePage === 'supplier' ? 'active' : '' %>">
       <i class="bi bi-truck"></i> Supplier
     </a>
+    <% } %>
     <a href="/pelanggan" class="sidebar-link <%= activePage === 'pelanggan' ? 'active' : '' %>">
       <i class="bi bi-people"></i> Pelanggan
     </a>
+    <% if (currentUser.hak_akses === 'admin') { %>
     <a href="/sales" class="sidebar-link <%= activePage === 'sales' ? 'active' : '' %>">
       <i class="bi bi-person-badge"></i> Sales
     </a>
@@ -71,6 +80,7 @@
       <i class="bi bi-gear"></i> Pengguna
     </a>
   </div>
+  <% } %>
 
   <div class="sidebar-footer">
     <div class="sidebar-user">
