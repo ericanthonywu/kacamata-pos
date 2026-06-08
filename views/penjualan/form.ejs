@@ -213,7 +213,7 @@ $(function() {
       var b = e.params.data.item;
       
       // Handle Price & Qty visibility
-      $('#' + type + '_harga').val(b.harga_jual || 0).trigger('input');
+      $('#' + type + '_harga').val(parseInt(b.harga_jual) || 0).trigger('input');
       $('#' + type + '_fields').show();
       
       // Handle Prescription Autofill

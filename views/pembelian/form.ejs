@@ -118,7 +118,7 @@ function addItem() {
     }
   }).on('select2:select', function(e) {
     var b = e.params.data.item;
-    $('.item-harga[data-idx=' + idx + ']').val(b.harga_jual || 0).trigger('input');
+    $('.item-harga[data-idx=' + idx + ']').val(parseInt(b.harga_jual) || 0).trigger('input');
     calcTotal();
   }).on('select2:unselect', function(e) {
     $('.item-harga[data-idx=' + idx + ']').val(0).trigger('input');
