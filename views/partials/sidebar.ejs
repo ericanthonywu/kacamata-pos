@@ -4,13 +4,17 @@
     <span>Optik Sentral</span>
   </div>
 
-  <div class="sidebar-section">
+  <div class="sidebar-menu-container">
+    <div class="sidebar-section">
     <div class="sidebar-label">Menu Utama</div>
     <a href="/" class="sidebar-link <%= activePage === 'dashboard' ? 'active' : '' %>">
       <i class="bi bi-grid-1x2"></i> Dashboard
     </a>
     <a href="/penjualan" class="sidebar-link <%= activePage === 'penjualan' ? 'active' : '' %>">
-      <i class="bi bi-receipt"></i> Penjualan
+      <i class="bi bi-receipt"></i> Data Penjualan
+    </a>
+    <a href="/penjualan/baru" class="sidebar-link <%= activePage === 'penjualan-baru' ? 'active' : '' %>">
+      <i class="bi bi-plus-square"></i> Tambah Penjualan
     </a>
     <a href="/pembelian" class="sidebar-link <%= activePage === 'pembelian' ? 'active' : '' %>">
       <i class="bi bi-cart-plus"></i> Pembelian
@@ -72,8 +76,10 @@
     <a href="/sales" class="sidebar-link <%= activePage === 'sales' ? 'active' : '' %>">
       <i class="bi bi-person-badge"></i> Sales
     </a>
+    <% } %>
   </div>
 
+  <% if (currentUser.hak_akses === 'admin') { %>
   <div class="sidebar-section">
     <div class="sidebar-label">Pengaturan</div>
     <a href="/pengguna" class="sidebar-link <%= activePage === 'pengguna' ? 'active' : '' %>">
@@ -81,6 +87,7 @@
     </a>
   </div>
   <% } %>
+  </div>
 
   <div class="sidebar-footer">
     <div class="sidebar-user">

@@ -58,7 +58,37 @@ body {
   display: flex;
   flex-direction: column;
   z-index: 100;
+}
+
+.sidebar-menu-container {
+  flex: 1;
   overflow-y: auto;
+  
+  /* CSS Scroll Shadows */
+  background:
+    linear-gradient(#13151d 30%, rgba(19, 21, 29, 0)),
+    linear-gradient(rgba(19, 21, 29, 0), #13151d 70%) 0 100%,
+    radial-gradient(farthest-side at 50% 0, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0)),
+    radial-gradient(farthest-side at 50% 100%, rgba(0, 0, 0, 0.4), rgba(0, 0, 0, 0)) 0 100%;
+  background-repeat: no-repeat;
+  background-color: #13151d;
+  background-size: 100% 40px, 100% 40px, 100% 14px, 100% 14px;
+  background-attachment: local, local, scroll, scroll;
+}
+
+/* Custom Scrollbar for the sidebar */
+.sidebar-menu-container::-webkit-scrollbar {
+  width: 5px;
+}
+.sidebar-menu-container::-webkit-scrollbar-track {
+  background: transparent;
+}
+.sidebar-menu-container::-webkit-scrollbar-thumb {
+  background: rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
+}
+.sidebar-menu-container::-webkit-scrollbar-thumb:hover {
+  background: rgba(255, 255, 255, 0.3);
 }
 
 .sidebar-brand {
