@@ -3,6 +3,7 @@ const TABLE = 'pelanggan';
 
 exports.findAll = function () { return db(TABLE).orderBy('nama', 'asc'); };
 exports.findById = function (id) { return db(TABLE).where('id', id).first(); };
+exports.findByName = function (nama) { return db(TABLE).where('nama', 'ilike', nama).first(); };
 exports.search = function (q) {
   return db(TABLE)
     .where('nama', 'ilike', `%${q}%`)

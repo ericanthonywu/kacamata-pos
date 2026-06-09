@@ -257,13 +257,19 @@ function saveNewPelanggan() {
       if (res.success && res.data) {
         var p = res.data;
         var text = p.nama + (p.no_telp ? ' (' + p.no_telp + ')' : '');
-        var newOption = new Option(text, p.id, true, true);
-        $('#pelanggan_id').append(newOption).trigger('change');
+        
+        if ($('#pelanggan_id').find("option[value='" + p.id + "']").length) {
+          $('#pelanggan_id').val(p.id).trigger('change');
+        } else {
+          var newOption = new Option(text, p.id, true, true);
+          $('#pelanggan_id').append(newOption).trigger('change');
+        }
+        
         $('#pelangganModal').modal('hide');
         $('#new_pelanggan_nama').val('');
         $('#new_pelanggan_telp').val('');
         $('#new_pelanggan_alamat').val('');
-        showToast('Pelanggan berhasil ditambahkan', 'success');
+        showToast('Pelanggan berhasil dipilih', 'success');
       }
     },
     error: function(xhr) { showToast(xhr.responseJSON?.message || 'Gagal menambahkan pelanggan', 'danger'); }

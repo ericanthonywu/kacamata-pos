@@ -75,8 +75,16 @@ exports.findById = function (id) {
 
 exports.findDetailsByPenjualanId = function (penjualanId) {
   return db('penjualan_detail')
-    .select('penjualan_detail.*', 'barang.nama_barang', 'barang.barcode_id')
+    .select(
+      'penjualan_detail.*', 
+      'barang.nama_barang', 
+      'barang.barcode_id', 
+      'barang.sph_r as b_sph_r', 'barang.cyl_r as b_cyl_r', 'barang.add_r as b_add_r',
+      'barang.sph_l as b_sph_l', 'barang.cyl_l as b_cyl_l', 'barang.add_l as b_add_l',
+      'kategori.nama as kategori_nama'
+    )
     .leftJoin('barang', 'penjualan_detail.barang_id', 'barang.id')
+    .leftJoin('kategori', 'barang.kategori_id', 'kategori.id')
     .where('penjualan_detail.penjualan_id', penjualanId)
     .orderBy('penjualan_detail.tipe', 'asc');
 };

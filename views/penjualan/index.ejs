@@ -167,7 +167,8 @@ $(function() {
         data: null, 
         orderable: false,
         render: function(data, type, row) {
-          var html = '<button class="btn btn-sm btn-outline-info me-1" onclick="printNota(' + row.id + ')"><i class="bi bi-printer"></i></button>';
+          var html = '<button class="btn btn-sm btn-outline-info me-1" onclick="showDetail(' + row.id + ')" title="Detail"><i class="bi bi-eye"></i></button>';
+          html += '<button class="btn btn-sm btn-outline-secondary me-1" onclick="printNota(' + row.id + ')" title="Print Nota"><i class="bi bi-printer"></i></button>';
           if (row.status_bayar !== 'lunas') {
             html += '<a href="/pembayaran-penjualan/bayar/' + row.id + '" class="btn btn-sm btn-outline-success me-1" title="Bayar"><i class="bi bi-wallet2"></i></a>';
           }
@@ -197,9 +198,87 @@ function printNota(id) {
   });
 }
 
+function showDetail(id) {
+  var myModal = new bootstrap.Modal(document.getElementById('detailModal'));
+  myModal.show();
+  $('#detailBody').html('<div class="text-center"><div class="spinner-border text-primary" role="status"></div></div>');
+  
+  $.get('/penjualan/' + id, function(res) {
+    if (!res.success) {
+      $('#detailBody').html('<div class="alert alert-danger">Gagal memuat detail.</div>');
+      return;
+    }
+    var d = res.data;
+    
+    // Rincian Barang
+    var html = '<h6 class="fw-bold mb-3">Detail Barang</h6>';
+    html += '<table class="table table-sm table-bordered"><thead><tr class="bg-light"><th>Barang (Kategori)</th><th>Qty</th><th>Harga</th><th>Subtotal</th></tr></thead><tbody>';
+    d.detail.forEach(function(item) {
+      var itemName = item.nama_barang || item.barang_nama || '-';
+      var sph = item.b_sph_r || item.b_sph_l || '';
+      var cyl = item.b_cyl_r || item.b_cyl_l || '';
+      var add = item.b_add_r || item.b_add_l || '';
+      if (sph || cyl || add) {
+        itemName += ' <span class="text-muted small">(SPH : ' + sph + ' CYL : ' + cyl + ' ADD : ' + add + ')</span>';
+      }
+      var categoryName = item.kategori_nama ? ' <span class="badge bg-info bg-opacity-25 text-info">' + item.kategori_nama + '</span>' : '';
+      
+      html += '<tr>';
+      html += '<td>' + itemName + categoryName + '</td>';
+      html += '<td>' + (item.jumlah || 0) + '</td>';
+      html += '<td>' + fmtRp(item.harga) + '</td>';
+      html += '<td>' + fmtRp((item.harga || 0) * (item.jumlah || 0)) + '</td>';
+      html += '</tr>';
+    });
+    html += '</tbody></table>';
+
+    // Rincian Resep
+    var hasResepR = d.sph_r || d.cyl_r || d.axis_r || d.add_r;
+    var hasResepL = d.sph_l || d.cyl_l || d.axis_l || d.add_l;
+    
+    if (hasResepR || hasResepL) {
+      html += '<h6 class="fw-bold mt-4 mb-3">Resep Kacamata</h6>';
+      html += '<table class="table table-sm table-bordered text-center">';
+      html += '<thead class="bg-light"><tr><th>Mata</th><th>SPH</th><th>CYL</th><th>AXIS</th><th>ADD</th></tr></thead><tbody>';
+      if (hasResepR) {
+        html += '<tr><td><strong>Kanan (R)</strong></td>';
+        html += '<td>' + (d.sph_r || '-') + '</td>';
+        html += '<td>' + (d.cyl_r || '-') + '</td>';
+        html += '<td>' + (d.axis_r || '-') + '</td>';
+        html += '<td>' + (d.add_r || '-') + '</td></tr>';
+      }
+      if (hasResepL) {
+        html += '<tr><td><strong>Kiri (L)</strong></td>';
+        html += '<td>' + (d.sph_l || '-') + '</td>';
+        html += '<td>' + (d.cyl_l || '-') + '</td>';
+        html += '<td>' + (d.axis_l || '-') + '</td>';
+        html += '<td>' + (d.add_l || '-') + '</td></tr>';
+      }
+      html += '</tbody></table>';
+    }
+
+    $('#detailBody').html(html);
+  }).fail(function() {
+    $('#detailBody').html('<div class="alert alert-danger">Terjadi kesalahan.</div>');
+  });
+}
+
 function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
 
-
 </script>
+
+<div class="modal fade" id="detailModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Detail Penjualan</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body" id="detailBody">
+        <div class="text-center"><div class="spinner-border text-primary" role="status"></div></div>
+      </div>
+    </div>
+  </div>
+</div>
 
 <%- include('../partials/bottom') %>
