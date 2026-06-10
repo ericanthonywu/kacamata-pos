@@ -1,36 +1,52 @@
 <%- include('../partials/top', { title, activePage }) %>
 
-<div class="row g-2 align-items-center mb-3">
-  <div class="col-auto"><label class="form-label small fw-bold mb-0">Filter Kategori:</label></div>
-  <div class="col-md-3">
-    <select class="form-select form-select-sm" id="filterKategori">
-      <option value="">Semua Kategori</option>
-      <% kategoriList.forEach(function(k) { %>
-      <option value="<%= k.id %>"><%= k.nama %></option>
-      <% }); %>
-    </select>
+  <div class="row g-2 align-items-center mb-3">
+    <div class="col-auto"><label class="form-label small fw-bold mb-0">Filter Kategori:</label></div>
+    <div class="col-md-3">
+      <select class="form-select form-select-sm" id="filterKategori">
+        <option value="">Semua Kategori</option>
+        <% kategoriList.forEach(function(k) { %>
+          <option value="<%= k.id %>">
+            <%= k.nama %>
+          </option>
+          <% }); %>
+      </select>
+    </div>
   </div>
-</div>
 
-<div class="row g-3 mb-4">
-  <div class="col-md-6 col-6">
-    <div class="stat-card"><i class="bi bi-box-seam stat-icon text-info"></i><div class="stat-value" id="valJenis">0</div><div class="stat-label">Jenis Barang</div></div>
+  <div class="row g-3 mb-4">
+    <div class="col-md-6 col-6">
+      <div class="stat-card"><i class="bi bi-box-seam stat-icon text-info"></i>
+        <div class="stat-value" id="valJenis">0</div>
+        <div class="stat-label">Jenis Barang</div>
+      </div>
+    </div>
+    <div class="col-md-6 col-6">
+      <div class="stat-card"><i class="bi bi-layers stat-icon text-success"></i>
+        <div class="stat-value" id="valStock">0</div>
+        <div class="stat-label">Total Stock</div>
+      </div>
+    </div>
   </div>
-  <div class="col-md-6 col-6">
-    <div class="stat-card"><i class="bi bi-layers stat-icon text-success"></i><div class="stat-value" id="valStock">0</div><div class="stat-label">Total Stock</div></div>
+
+  <div class="card p-3">
+    <table id="tblStock" class="table table-hover mb-0" style="width:100%">
+      <thead>
+        <tr>
+          <th>Nama Barang</th>
+          <th>Kategori</th>
+          <th>Barcode</th>
+          <th>Qty</th>
+          <th>Status</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- Data akan diload via AJAX -->
+      </tbody>
+    </table>
   </div>
-</div>
 
-<div class="card p-3">
-  <table id="tblStock" class="table table-hover mb-0" style="width:100%">
-    <thead><tr><th>Nama Barang</th><th>Kategori</th><th>Barcode</th><th>Qty</th><th>Status</th></tr></thead>
-    <tbody>
-      <!-- Data akan diload via AJAX -->
-    </tbody>
-  </table>
-</div>
-
-<script>
+  <script>
 $(function() { 
   var table = $('#tblStock').DataTable({ 
     processing: true,
@@ -85,6 +101,6 @@ $(function() {
     table.ajax.reload();
   });
 });
-</script>
+  </script>
 
-<%- include('../partials/bottom') %>
+  <%- include('../partials/bottom') %>

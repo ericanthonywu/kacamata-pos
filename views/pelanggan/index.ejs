@@ -1,50 +1,69 @@
 <%- include('../partials/top', { title, activePage }) %>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <div></div>
-  <button class="btn btn-primary btn-sm" id="btnAdd"><i class="bi bi-plus"></i> Tambah Pelanggan</button>
-</div>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div></div>
+    <button class="btn btn-primary btn-sm" id="btnAdd"><i class="bi bi-plus"></i> Tambah Pelanggan</button>
+  </div>
 
-<div class="card p-3">
-  <table id="tblPelanggan" class="table table-hover mb-0" style="width:100%">
-    <thead><tr><th style="width:50px">No</th><th>Nama</th><th>No. Telp</th><th style="width:120px">Aksi</th></tr></thead>
-    <tbody>
-      <% data.forEach(function(item, i) { %>
-      <tr>
-        <td><%= i + 1 %></td>
-        <td><%= item.nama %></td>
-        <td><%= item.no_telp || '-' %></td>
-        <td>
-          <button class="btn btn-sm btn-outline-secondary me-1 btn-edit"
-            data-id="<%= item.id %>" data-nama="<%= item.nama %>" data-telp="<%= item.no_telp || '' %>">
-            <i class="bi bi-pencil"></i>
-          </button>
-          <button class="btn btn-sm btn-outline-danger btn-del" data-id="<%= item.id %>" data-url="/pelanggan/<%= item.id %>"><i class="bi bi-trash"></i></button>
-        </td>
-      </tr>
-      <% }); %>
-    </tbody>
-  </table>
-</div>
+  <div class="card p-3">
+    <table id="tblPelanggan" class="table table-hover mb-0" style="width:100%">
+      <thead>
+        <tr>
+          <th style="width:50px">No</th>
+          <th>Nama</th>
+          <th>No. Telp</th>
+          <th style="width:120px">Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% data.forEach(function(item, i) { %>
+          <tr>
+            <td>
+              <%= i + 1 %>
+            </td>
+            <td>
+              <%= item.nama %>
+            </td>
+            <td>
+              <%= item.no_telp || '-' %>
+            </td>
+            <td>
+              <button class="btn btn-sm btn-outline-secondary me-1 btn-edit" data-id="<%= item.id %>"
+                data-nama="<%= item.nama %>" data-telp="<%= item.no_telp || '' %>">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button class="btn btn-sm btn-outline-danger btn-del" data-id="<%= item.id %>"
+                data-url="/pelanggan/<%= item.id %>"><i class="bi bi-trash"></i></button>
+            </td>
+          </tr>
+          <% }); %>
+      </tbody>
+    </table>
+  </div>
 
-<div class="modal fade" id="formModal" tabindex="-1">
-  <div class="modal-dialog modal-sm modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header"><h5 class="modal-title">Pelanggan</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-      <div class="modal-body">
-        <input type="hidden" id="editId">
-        <div class="mb-3"><label class="form-label small">Nama</label><input type="text" class="form-control" id="nama" placeholder="Nama pelanggan"></div>
-        <div class="mb-3"><label class="form-label small">No. Telepon</label><input type="text" class="form-control" id="no_telp" placeholder="08xxx"></div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
-        <button class="btn btn-primary btn-sm" id="btnSave">Simpan</button>
+  <div class="modal fade" id="formModal" tabindex="-1">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Pelanggan</h5><button type="button" class="btn-close"
+            data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <input type="hidden" id="editId">
+          <div class="mb-3"><label class="form-label small">Nama</label><input type="text" class="form-control"
+              id="nama" placeholder="Nama pelanggan"></div>
+          <div class="mb-3"><label class="form-label small">No. Telepon</label><input type="text" class="form-control"
+              id="no_telp" placeholder="08xxx"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+          <button class="btn btn-primary btn-sm" id="btnSave">Simpan</button>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-<script>
+  <script>
 $(function() {
   $('#tblPelanggan').DataTable({ order: [], language: dtLanguageID });
 
@@ -80,6 +99,6 @@ $(function() {
     });
   });
 });
-</script>
+  </script>
 
-<%- include('../partials/bottom') %>
+  <%- include('../partials/bottom') %>

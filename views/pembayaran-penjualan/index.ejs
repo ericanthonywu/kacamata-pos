@@ -1,102 +1,130 @@
-<%
-function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
-function fmtDate(d) { return d ? new Date(d).toLocaleDateString('id-ID') : '-'; }
-%>
-<%- include('../partials/top', { title, activePage }) %>
+<% function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); } function fmtDate(d) { return d ? new
+  Date(d).toLocaleDateString('id-ID') : '-' ; } %>
+  <%- include('../partials/top', { title, activePage }) %>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <form method="GET" class="d-flex gap-2 align-items-center">
-    <label class="mb-0 fw-bold">Filter:</label>
-    <input type="date" name="start_date" value="<%= query.start_date || '' %>" class="form-control form-control-sm" style="width:140px">
-    <span>-</span>
-    <input type="date" name="end_date" value="<%= query.end_date || '' %>" class="form-control form-control-sm" style="width:140px">
-    <button type="submit" class="btn btn-sm btn-secondary"><i class="bi bi-search"></i> Terapkan</button>
-    <a href="/pembayaran-penjualan" class="btn btn-sm btn-outline-danger"><i class="bi bi-x-circle"></i> Reset</a>
-  </form>
-</div>
-
-<div class="row g-3 mb-3">
-  <div class="col-md-4">
-    <div class="stat-card">
-      <i class="bi bi-clock-history stat-icon text-warning"></i>
-      <div class="stat-value"><%= unpaid.length %></div>
-      <div class="stat-label">Penjualan DP / Belum Lunas</div>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <form method="GET" class="d-flex gap-2 align-items-center">
+        <label class="mb-0 fw-bold">Filter:</label>
+        <input type="date" name="start_date" value="<%= query.start_date || '' %>" class="form-control form-control-sm"
+          style="width:140px">
+        <span>-</span>
+        <input type="date" name="end_date" value="<%= query.end_date || '' %>" class="form-control form-control-sm"
+          style="width:140px">
+        <button type="submit" class="btn btn-sm btn-secondary"><i class="bi bi-search"></i> Terapkan</button>
+        <a href="/pembayaran-penjualan" class="btn btn-sm btn-outline-danger"><i class="bi bi-x-circle"></i> Reset</a>
+      </form>
     </div>
-  </div>
-  <div class="col-md-4">
-    <div class="stat-card">
-      <i class="bi bi-cash-stack stat-icon text-danger"></i>
-      <div class="stat-value"><%= fmtRp(unpaid.reduce(function(s,p){ return s + (parseFloat(p.total) - parseFloat(p.total_dibayar)); }, 0)) %></div>
-      <div class="stat-label">Total Sisa Piutang</div>
+
+    <div class="row g-3 mb-3">
+      <div class="col-md-4">
+        <div class="stat-card">
+          <i class="bi bi-clock-history stat-icon text-warning"></i>
+          <div class="stat-value">
+            <%= unpaid.length %>
+          </div>
+          <div class="stat-label">Penjualan DP / Belum Lunas</div>
+        </div>
+      </div>
+      <div class="col-md-4">
+        <div class="stat-card">
+          <i class="bi bi-cash-stack stat-icon text-danger"></i>
+          <div class="stat-value">
+            <%= fmtRp(unpaid.reduce(function(s,p){ return s + (parseFloat(p.total) - parseFloat(p.total_dibayar)); },
+              0)) %>
+          </div>
+          <div class="stat-label">Total Sisa Piutang</div>
+        </div>
+      </div>
     </div>
-  </div>
-</div>
 
-<div class="card p-3">
-  <% if (unpaid.length === 0) { %>
-    <div class="text-center text-muted py-5">
-      <i class="bi bi-check-circle text-success" style="font-size:3rem"></i>
-      <h5 class="mt-3">Tidak ada piutang pelanggan</h5>
+    <div class="card p-3">
+      <% if (unpaid.length===0) { %>
+        <div class="text-center text-muted py-5">
+          <i class="bi bi-check-circle text-success" style="font-size:3rem"></i>
+          <h5 class="mt-3">Tidak ada piutang pelanggan</h5>
+        </div>
+        <% } else { %>
+          <table id="tblHutangJual" class="table table-hover mb-0" style="width:100%">
+            <thead>
+              <tr>
+                <th>Nota</th>
+                <th>Tanggal</th>
+                <th>Pelanggan</th>
+                <th>Total</th>
+                <th>Dibayar</th>
+                <th>Sisa</th>
+                <th style="width:100px">Aksi</th>
+              </tr>
+            </thead>
+            <tbody>
+              <% unpaid.forEach(function(p) { var sisa=p.total - p.total_dibayar; %>
+                <tr>
+                  <td class="font-monospace small text-info">
+                    <%= p.no_nota %>
+                  </td>
+                  <td>
+                    <%= fmtDate(p.order_date) %>
+                  </td>
+                  <td>
+                    <%= p.pelanggan_nama || 'Walk-in' %>
+                  </td>
+                  <td>
+                    <%= fmtRp(p.total) %>
+                  </td>
+                  <td class="text-success">
+                    <%= fmtRp(p.total_dibayar) %>
+                  </td>
+                  <td class="text-danger fw-bold">
+                    <%= fmtRp(sisa) %>
+                  </td>
+                  <td>
+                    <a href="/pembayaran-penjualan/bayar/<%= p.id %>" class="btn btn-sm btn-success"><i
+                        class="bi bi-wallet2"></i> Bayar</a>
+                  </td>
+                </tr>
+                <% }); %>
+            </tbody>
+          </table>
+          <% } %>
     </div>
-  <% } else { %>
-  <table id="tblHutangJual" class="table table-hover mb-0" style="width:100%">
-    <thead><tr><th>Nota</th><th>Tanggal</th><th>Pelanggan</th><th>Total</th><th>Dibayar</th><th>Sisa</th><th style="width:100px">Aksi</th></tr></thead>
-    <tbody>
-      <% unpaid.forEach(function(p) { var sisa = p.total - p.total_dibayar; %>
-      <tr>
-        <td class="font-monospace small text-info"><%= p.no_nota %></td>
-        <td><%= fmtDate(p.order_date) %></td>
-        <td><%= p.pelanggan_nama || 'Walk-in' %></td>
-        <td><%= fmtRp(p.total) %></td>
-        <td class="text-success"><%= fmtRp(p.total_dibayar) %></td>
-        <td class="text-danger fw-bold"><%= fmtRp(sisa) %></td>
-        <td>
-          <a href="/pembayaran-penjualan/bayar/<%= p.id %>" class="btn btn-sm btn-success"><i class="bi bi-wallet2"></i> Bayar</a>
-        </td>
-      </tr>
-      <% }); %>
-    </tbody>
-  </table>
-  <% } %>
-</div>
 
-<script>
-$(function() {
-  $('#tblHutangJual').DataTable({
-    order: [[1, 'desc']],
-    language: dtLanguageID,
-    lengthMenu: [[10, 50, 100, -1], [10, 50, 100, "All"]],
-    layout: {
-      topStart: {
-        pageLength: {},
-        buttons: {}
-      },
-      topEnd: 'search',
-      bottomStart: 'info',
-      bottomEnd: 'paging'
-    },
-    buttons: [
-      {
-        extend: 'excelHtml5',
-        text: '<i class="bi bi-file-earmark-excel"></i> Excel',
-        className: 'btn btn-success btn-sm',
-        exportOptions: { columns: [0, 1, 2, 3, 4, 5], orthogonal: 'export' }
-      },
-      {
-        extend: 'csvHtml5',
-        text: '<i class="bi bi-filetype-csv"></i> CSV',
-        className: 'btn btn-info btn-sm',
-        exportOptions: { columns: [0, 1, 2, 3, 4, 5], orthogonal: 'export' }
-      },
-      {
-        extend: 'print',
-        text: '<i class="bi bi-printer"></i> Print',
-        className: 'btn btn-secondary btn-sm',
-        exportOptions: { columns: [0, 1, 2, 3, 4, 5], orthogonal: 'export' }
-      }
-    ]
-  });
-});
-</script>
+    <script>
+      $(function () {
+        $('#tblHutangJual').DataTable({
+          order: [[1, 'desc']],
+          language: dtLanguageID,
+          lengthMenu: [[10, 50, 100, -1], [10, 50, 100, "All"]],
+          layout: {
+            topStart: {
+              pageLength: {},
+              buttons: {}
+            },
+            topEnd: 'search',
+            bottomStart: 'info',
+            bottomEnd: 'paging'
+          },
+          buttons: [
+            {
+              extend: 'excelHtml5',
+              text: '<i class="bi bi-file-earmark-excel"></i> Excel',
+              className: 'btn btn-success btn-sm',
+              exportOptions: { columns: [0, 1, 2, 3, 4, 5], orthogonal: 'export' }
+            },
+            {
+              extend: 'csvHtml5',
+              text: '<i class="bi bi-filetype-csv"></i> CSV',
+              className: 'btn btn-info btn-sm',
+              exportOptions: { columns: [0, 1, 2, 3, 4, 5], orthogonal: 'export' }
+            },
+            {
+              extend: 'print',
+              text: '<i class="bi bi-printer"></i> Print',
+              className: 'btn btn-secondary btn-sm',
+              exportOptions: { columns: [0, 1, 2, 3, 4, 5], orthogonal: 'export' }
+            }
+          ]
+        });
+      });
+    </script>
 
-<%- include('../partials/bottom') %>
+    <%- include('../partials/bottom') %>

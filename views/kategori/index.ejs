@@ -1,51 +1,63 @@
 <%- include('../partials/top', { title, activePage }) %>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <div></div>
-  <button class="btn btn-primary btn-sm" id="btnAdd"><i class="bi bi-plus"></i> Tambah Kategori</button>
-</div>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div></div>
+    <button class="btn btn-primary btn-sm" id="btnAdd"><i class="bi bi-plus"></i> Tambah Kategori</button>
+  </div>
 
-<div class="card p-3">
-  <table id="tblKategori" class="table table-hover mb-0" style="width:100%">
-    <thead>
-      <tr><th style="width:50px">No</th><th>Nama Kategori</th><th style="width:120px">Aksi</th></tr>
-    </thead>
-    <tbody>
-      <% data.forEach(function(item, i) { %>
-      <tr>
-        <td><%= i + 1 %></td>
-        <td><%= item.nama %></td>
-        <td>
-          <button class="btn btn-sm btn-outline-secondary me-1 btn-edit" data-id="<%= item.id %>" data-nama="<%= item.nama %>"><i class="bi bi-pencil"></i></button>
-          <button class="btn btn-sm btn-outline-danger btn-del" data-id="<%= item.id %>" data-url="/kategori/<%= item.id %>"><i class="bi bi-trash"></i></button>
-        </td>
-      </tr>
-      <% }); %>
-    </tbody>
-  </table>
-</div>
+  <div class="card p-3">
+    <table id="tblKategori" class="table table-hover mb-0" style="width:100%">
+      <thead>
+        <tr>
+          <th style="width:50px">No</th>
+          <th>Nama Kategori</th>
+          <th style="width:120px">Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% data.forEach(function(item, i) { %>
+          <tr>
+            <td>
+              <%= i + 1 %>
+            </td>
+            <td>
+              <%= item.nama %>
+            </td>
+            <td>
+              <button class="btn btn-sm btn-outline-secondary me-1 btn-edit" data-id="<%= item.id %>"
+                data-nama="<%= item.nama %>"><i class="bi bi-pencil"></i></button>
+              <button class="btn btn-sm btn-outline-danger btn-del" data-id="<%= item.id %>"
+                data-url="/kategori/<%= item.id %>"><i class="bi bi-trash"></i></button>
+            </td>
+          </tr>
+          <% }); %>
+      </tbody>
+    </table>
+  </div>
 
-<!-- Form Modal -->
-<div class="modal fade" id="formModal" tabindex="-1">
-  <div class="modal-dialog modal-sm modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header"><h5 class="modal-title">Kategori</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-      <div class="modal-body">
-        <input type="hidden" id="editId">
-        <div class="mb-3">
-          <label class="form-label small">Nama Kategori</label>
-          <input type="text" class="form-control" id="nama" placeholder="Masukkan nama">
+  <!-- Form Modal -->
+  <div class="modal fade" id="formModal" tabindex="-1">
+    <div class="modal-dialog modal-sm modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Kategori</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
-        <button class="btn btn-primary btn-sm" id="btnSave">Simpan</button>
+        <div class="modal-body">
+          <input type="hidden" id="editId">
+          <div class="mb-3">
+            <label class="form-label small">Nama Kategori</label>
+            <input type="text" class="form-control" id="nama" placeholder="Masukkan nama">
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+          <button class="btn btn-primary btn-sm" id="btnSave">Simpan</button>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-<script>
+  <script>
 $(function() {
   $('#tblKategori').DataTable({ order: [], language: dtLanguageID });
 
@@ -79,6 +91,6 @@ $(function() {
     });
   });
 });
-</script>
+  </script>
 
-<%- include('../partials/bottom') %>
+  <%- include('../partials/bottom') %>

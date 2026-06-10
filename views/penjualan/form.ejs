@@ -1,351 +1,381 @@
-<%
-function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
-%>
-<%- include('../partials/top', { title, activePage }) %>
-<%- include('../partials/select2') %>
+<% function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); } %>
+  <%- include('../partials/top', { title, activePage }) %>
+    <%- include('../partials/select2') %>
 
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <div></div>
-  <a href="/penjualan" class="btn btn-secondary btn-sm"><i class="bi bi-arrow-left"></i> Kembali</a>
-</div>
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <div></div>
+        <a href="/penjualan" class="btn btn-secondary btn-sm"><i class="bi bi-arrow-left"></i> Kembali</a>
+      </div>
 
-<div class="row g-3">
-  <!-- LEFT: Info Transaksi -->
-  <div class="col-md-4">
-    <div class="card p-3">
-      <h6 class="mb-3">Info Transaksi</h6>
-      <div class="mb-3">
-        <div class="d-flex justify-content-between align-items-center mb-1">
-          <label class="form-label small mb-0">Pelanggan <span class="text-danger">*</span></label>
-          <button type="button" class="btn btn-sm btn-outline-primary" style="font-size: 0.7rem; padding: 0.1rem 0.4rem;" data-bs-toggle="modal" data-bs-target="#pelangganModal"><i class="bi bi-plus"></i> Tambah</button>
+      <div class="row g-3">
+        <!-- LEFT: Info Transaksi -->
+        <div class="col-md-4">
+          <div class="card p-3">
+            <h6 class="mb-3">Info Transaksi</h6>
+            <div class="mb-3">
+              <div class="d-flex justify-content-between align-items-center mb-1">
+                <label class="form-label small mb-0">Pelanggan <span class="text-danger">*</span></label>
+                <button type="button" class="btn btn-sm btn-outline-primary"
+                  style="font-size: 0.7rem; padding: 0.1rem 0.4rem;" data-bs-toggle="modal"
+                  data-bs-target="#pelangganModal"><i class="bi bi-plus"></i> Tambah</button>
+              </div>
+              <select class="form-select" id="pelanggan_id">
+                <option value="">-- Pilih --</option>
+                <% pelanggan.forEach(function(p) { %>
+                  <option value="<%= p.id %>">
+                    <%= p.nama %>
+                      <%= p.no_telp ? ' (' + p.no_telp + ')' : '' %>
+                  </option>
+                  <% }); %>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small">Sales <span class="text-danger">*</span></label>
+              <select class="form-select" id="sales_id">
+                <option value="">-- Pilih --</option>
+                <% salesList.forEach(function(s) { %>
+                  <option value="<%= s.id %>">
+                    <%= s.nama %>
+                  </option>
+                  <% }); %>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small">Tanggal Order</label>
+              <input type="date" class="form-control" id="order_date"
+                value="<%= new Date().toISOString().slice(0,10) %>">
+            </div>
+            <div class="mb-3">
+              <label class="form-label small">Tanggal Selesai</label>
+              <input type="date" class="form-control" id="tanggal_selesai">
+            </div>
+          </div>
         </div>
-        <select class="form-select" id="pelanggan_id">
-          <option value="">-- Pilih --</option>
-          <% pelanggan.forEach(function(p) { %>
-          <option value="<%= p.id %>"><%= p.nama %><%= p.no_telp ? ' (' + p.no_telp + ')' : '' %></option>
-          <% }); %>
-        </select>
-      </div>
-      <div class="mb-3">
-        <label class="form-label small">Sales <span class="text-danger">*</span></label>
-        <select class="form-select" id="sales_id">
-          <option value="">-- Pilih --</option>
-          <% salesList.forEach(function(s) { %>
-          <option value="<%= s.id %>"><%= s.nama %></option>
-          <% }); %>
-        </select>
-      </div>
-      <div class="mb-3">
-        <label class="form-label small">Tanggal Order</label>
-        <input type="date" class="form-control" id="order_date" value="<%= new Date().toISOString().slice(0,10) %>">
-      </div>
-      <div class="mb-3">
-        <label class="form-label small">Tanggal Selesai</label>
-        <input type="date" class="form-control" id="tanggal_selesai">
-      </div>
-    </div>
-  </div>
 
-  <!-- RIGHT: Items -->
-  <div class="col-md-8">
-    <!-- Frame -->
-    <div class="card p-3 mb-3">
-      <h6>👓 Frame</h6>
-      <select class="form-select mb-2" id="frame_barang_id">
-        <option value="">-- Pilih Frame --</option>
-      </select>
-      <div class="row g-2" id="frame_fields" style="display:none">
-        <div class="col-6"><label class="form-label small">Harga</label><input type="text" class="form-control form-control-sm calc-input input-currency" id="frame_harga" value="0"></div>
-        <div class="col-6"><label class="form-label small">Qty</label><input type="number" class="form-control form-control-sm calc-input" id="frame_jumlah" value="1" min="1"></div>
-      </div>
-    </div>
+        <!-- RIGHT: Items -->
+        <div class="col-md-8">
+          <!-- Frame -->
+          <div class="card p-3 mb-3">
+            <h6>👓 Frame</h6>
+            <select class="form-select mb-2" id="frame_barang_id">
+              <option value="">-- Pilih Frame --</option>
+            </select>
+            <div class="row g-2" id="frame_fields" style="display:none">
+              <div class="col-6"><label class="form-label small">Harga</label><input type="text"
+                  class="form-control form-control-sm calc-input input-currency" id="frame_harga" value="0"></div>
+              <div class="col-6"><label class="form-label small">Qty</label><input type="number"
+                  class="form-control form-control-sm calc-input" id="frame_jumlah" value="1" min="1"></div>
+            </div>
+          </div>
 
-    <!-- Lensa R -->
-    <div class="card p-3 mb-3">
-      <h6>👁️ Lensa (R)</h6>
-      <select class="form-select mb-2" id="lensa_r_barang_id">
-        <option value="">-- Pilih Lensa Kanan --</option>
-      </select>
-      <div class="row g-2" id="lensa_r_fields" style="display:none">
-        <div class="col-6"><label class="form-label small">Harga</label><input type="text" class="form-control form-control-sm calc-input input-currency" id="lensa_r_harga" value="0"></div>
-        <div class="col-6"><label class="form-label small">Qty</label><input type="number" class="form-control form-control-sm calc-input" id="lensa_r_jumlah" value="1" min="1"></div>
-      </div>
-    </div>
+          <!-- Lensa R -->
+          <div class="card p-3 mb-3">
+            <h6>👁️ Lensa (R)</h6>
+            <select class="form-select mb-2" id="lensa_r_barang_id">
+              <option value="">-- Pilih Lensa Kanan --</option>
+            </select>
+            <div class="row g-2" id="lensa_r_fields" style="display:none">
+              <div class="col-6"><label class="form-label small">Harga</label><input type="text"
+                  class="form-control form-control-sm calc-input input-currency" id="lensa_r_harga" value="0"></div>
+              <div class="col-6"><label class="form-label small">Qty</label><input type="number"
+                  class="form-control form-control-sm calc-input" id="lensa_r_jumlah" value="1" min="1"></div>
+            </div>
+          </div>
 
-    <!-- Lensa L -->
-    <div class="card p-3 mb-3">
-      <h6>👁️ Lensa (L)</h6>
-      <select class="form-select mb-2" id="lensa_l_barang_id">
-        <option value="">-- Pilih Lensa Kiri --</option>
-      </select>
-      <div class="row g-2" id="lensa_l_fields" style="display:none">
-        <div class="col-6"><label class="form-label small">Harga</label><input type="text" class="form-control form-control-sm calc-input input-currency" id="lensa_l_harga" value="0"></div>
-        <div class="col-6"><label class="form-label small">Qty</label><input type="number" class="form-control form-control-sm calc-input" id="lensa_l_jumlah" value="1" min="1"></div>
-      </div>
-    </div>
+          <!-- Lensa L -->
+          <div class="card p-3 mb-3">
+            <h6>👁️ Lensa (L)</h6>
+            <select class="form-select mb-2" id="lensa_l_barang_id">
+              <option value="">-- Pilih Lensa Kiri --</option>
+            </select>
+            <div class="row g-2" id="lensa_l_fields" style="display:none">
+              <div class="col-6"><label class="form-label small">Harga</label><input type="text"
+                  class="form-control form-control-sm calc-input input-currency" id="lensa_l_harga" value="0"></div>
+              <div class="col-6"><label class="form-label small">Qty</label><input type="number"
+                  class="form-control form-control-sm calc-input" id="lensa_l_jumlah" value="1" min="1"></div>
+            </div>
+          </div>
 
-    <!-- Resep -->
-    <div class="card p-3 mb-3">
-      <h6>📝 Resep Kacamata (Opsional)</h6>
-      <div class="row g-2 mb-2">
-        <div class="col-12"><div class="small fw-bold text-muted mb-1">Kanan (R)</div></div>
-        <div class="col-3"><input type="text" class="form-control form-control-sm" id="sph_r" placeholder="SPH"></div>
-        <div class="col-3"><input type="text" class="form-control form-control-sm" id="cyl_r" placeholder="CYL"></div>
-        <div class="col-3"><input type="text" class="form-control form-control-sm" id="axis_r" placeholder="AXIS"></div>
-        <div class="col-3"><input type="text" class="form-control form-control-sm" id="add_r" placeholder="ADD"></div>
-      </div>
-      <div class="row g-2 mb-3">
-        <div class="col-12"><div class="small fw-bold text-muted mb-1">Kiri (L)</div></div>
-        <div class="col-3"><input type="text" class="form-control form-control-sm" id="sph_l" placeholder="SPH"></div>
-        <div class="col-3"><input type="text" class="form-control form-control-sm" id="cyl_l" placeholder="CYL"></div>
-        <div class="col-3"><input type="text" class="form-control form-control-sm" id="axis_l" placeholder="AXIS"></div>
-        <div class="col-3"><input type="text" class="form-control form-control-sm" id="add_l" placeholder="ADD"></div>
-      </div>
-    </div>
+          <!-- Resep -->
+          <div class="card p-3 mb-3">
+            <h6>📝 Resep Kacamata (Opsional)</h6>
+            <div class="row g-2 mb-2">
+              <div class="col-12">
+                <div class="small fw-bold text-muted mb-1">Kanan (R)</div>
+              </div>
+              <div class="col-3"><input type="text" class="form-control form-control-sm" id="sph_r" placeholder="SPH">
+              </div>
+              <div class="col-3"><input type="text" class="form-control form-control-sm" id="cyl_r" placeholder="CYL">
+              </div>
+              <div class="col-3"><input type="text" class="form-control form-control-sm" id="axis_r" placeholder="AXIS">
+              </div>
+              <div class="col-3"><input type="text" class="form-control form-control-sm" id="add_r" placeholder="ADD">
+              </div>
+            </div>
+            <div class="row g-2 mb-3">
+              <div class="col-12">
+                <div class="small fw-bold text-muted mb-1">Kiri (L)</div>
+              </div>
+              <div class="col-3"><input type="text" class="form-control form-control-sm" id="sph_l" placeholder="SPH">
+              </div>
+              <div class="col-3"><input type="text" class="form-control form-control-sm" id="cyl_l" placeholder="CYL">
+              </div>
+              <div class="col-3"><input type="text" class="form-control form-control-sm" id="axis_l" placeholder="AXIS">
+              </div>
+              <div class="col-3"><input type="text" class="form-control form-control-sm" id="add_l" placeholder="ADD">
+              </div>
+            </div>
+          </div>
 
-    <!-- Summary -->
-    <div class="card p-3">
-      <div class="row g-2 align-items-center mb-2">
-        <div class="col-6"><strong>Subtotal</strong></div>
-        <div class="col-6 text-end fw-bold" id="subtotalDisplay">Rp 0</div>
-      </div>
-      <div class="row g-2 align-items-center mb-2">
-        <div class="col-6"><label class="form-label small mb-0">BPJS</label></div>
-        <div class="col-6"><input type="text" class="form-control form-control-sm calc-input input-currency" id="bpjs" value="0" min="0"></div>
-      </div>
-      <hr>
-      <div class="row g-2 align-items-center mb-2">
-        <div class="col-6"><label class="form-label small mb-0">Pembayaran</label></div>
-        <div class="col-6">
-          <select class="form-select form-select-sm" id="status_bayar" onchange="toggleDP()">
-            <option value="lunas">Lunas (Bayar Penuh)</option>
-            <option value="dp">DP (Uang Muka)</option>
-          </select>
+          <!-- Summary -->
+          <div class="card p-3">
+            <div class="row g-2 align-items-center mb-2">
+              <div class="col-6"><strong>Subtotal</strong></div>
+              <div class="col-6 text-end fw-bold" id="subtotalDisplay">Rp 0</div>
+            </div>
+            <div class="row g-2 align-items-center mb-2">
+              <div class="col-6"><label class="form-label small mb-0">BPJS</label></div>
+              <div class="col-6"><input type="text" class="form-control form-control-sm calc-input input-currency"
+                  id="bpjs" value="0" min="0"></div>
+            </div>
+            <hr>
+            <div class="row g-2 align-items-center mb-2">
+              <div class="col-6"><label class="form-label small mb-0">Pembayaran</label></div>
+              <div class="col-6">
+                <select class="form-select form-select-sm" id="status_bayar" onchange="toggleDP()">
+                  <option value="lunas">Lunas (Bayar Penuh)</option>
+                  <option value="dp">DP (Uang Muka)</option>
+                </select>
+              </div>
+            </div>
+            <div class="row g-2 align-items-center mb-2" id="dpRow" style="display:none">
+              <div class="col-6"><label class="form-label small mb-0">Jumlah DP</label></div>
+              <div class="col-6"><input type="text" class="form-control form-control-sm input-currency" id="dp_amount"
+                  value="0" min="0"></div>
+            </div>
+            <hr>
+            <div class="row g-2 align-items-center">
+              <div class="col-6"><strong class="fs-5">TOTAL</strong></div>
+              <div class="col-6 text-end fw-bold fs-5 text-success" id="totalDisplay">Rp 0</div>
+            </div>
+            <div class="d-flex gap-2 mt-3">
+              <button class="btn btn-primary flex-fill" onclick="savePenjualan(true)"><i class="bi bi-printer"></i>
+                Simpan & Print</button>
+              <button class="btn btn-success flex-fill" onclick="savePenjualan(false)">Simpan</button>
+            </div>
+          </div>
         </div>
       </div>
-      <div class="row g-2 align-items-center mb-2" id="dpRow" style="display:none">
-        <div class="col-6"><label class="form-label small mb-0">Jumlah DP</label></div>
-        <div class="col-6"><input type="text" class="form-control form-control-sm input-currency" id="dp_amount" value="0" min="0"></div>
-      </div>
-      <hr>
-      <div class="row g-2 align-items-center">
-        <div class="col-6"><strong class="fs-5">TOTAL</strong></div>
-        <div class="col-6 text-end fw-bold fs-5 text-success" id="totalDisplay">Rp 0</div>
-      </div>
-      <div class="d-flex gap-2 mt-3">
-        <button class="btn btn-primary flex-fill" onclick="savePenjualan(true)"><i class="bi bi-printer"></i> Simpan & Print</button>
-        <button class="btn btn-success flex-fill" onclick="savePenjualan(false)">Simpan</button>
-      </div>
-    </div>
-  </div>
-</div>
 
-<!-- Modal Tambah Pelanggan -->
-<div class="modal fade" id="pelangganModal" tabindex="-1">
-  <div class="modal-dialog modal-sm modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h6 class="modal-title">Tambah Pelanggan</h6>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      <!-- Modal Tambah Pelanggan -->
+      <div class="modal fade" id="pelangganModal" tabindex="-1">
+        <div class="modal-dialog modal-sm modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h6 class="modal-title">Tambah Pelanggan</h6>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-2">
+                <label class="form-label small">Nama <span class="text-danger">*</span></label>
+                <input type="text" class="form-control form-control-sm" id="new_pelanggan_nama" required>
+              </div>
+              <div class="mb-2">
+                <label class="form-label small">No Telp</label>
+                <input type="text" class="form-control form-control-sm" id="new_pelanggan_telp">
+              </div>
+              <div class="mb-3">
+                <label class="form-label small">Alamat</label>
+                <textarea class="form-control form-control-sm" id="new_pelanggan_alamat" rows="2"></textarea>
+              </div>
+              <button type="button" class="btn btn-primary btn-sm w-100" onclick="saveNewPelanggan()">Simpan</button>
+            </div>
+          </div>
+        </div>
       </div>
-      <div class="modal-body">
-        <div class="mb-2">
-          <label class="form-label small">Nama <span class="text-danger">*</span></label>
-          <input type="text" class="form-control form-control-sm" id="new_pelanggan_nama" required>
-        </div>
-        <div class="mb-2">
-          <label class="form-label small">No Telp</label>
-          <input type="text" class="form-control form-control-sm" id="new_pelanggan_telp">
-        </div>
-        <div class="mb-3">
-          <label class="form-label small">Alamat</label>
-          <textarea class="form-control form-control-sm" id="new_pelanggan_alamat" rows="2"></textarea>
-        </div>
-        <button type="button" class="btn btn-primary btn-sm w-100" onclick="saveNewPelanggan()">Simpan</button>
-      </div>
-    </div>
-  </div>
-</div>
 
-<script>
-$(function() {
-  $('#pelanggan_id').select2({ theme: 'bootstrap-5', placeholder: '-- Pilih --', allowClear: true });
-  $('#sales_id').select2({ theme: 'bootstrap-5', placeholder: '-- Pilih --', allowClear: true });
-  
-  function initSelect2Barang(selector, type, kategori) {
-    $(selector).select2({
-      theme: 'bootstrap-5',
-      placeholder: '-- Pilih --',
-      allowClear: true,
-      ajax: {
-        url: '/barang/search',
-        dataType: 'json',
-        delay: 250,
-        data: function (params) {
-          return {
-            q: params.term,
-            kategori_nama: kategori
-          };
-        },
-        processResults: function (data) {
-          return {
-            results: $.map(data.data, function (item) {
-              var text = item.nama_barang;
-              var sph = item.sph_r || item.sph_l || '';
-              var cyl = item.cyl_r || item.cyl_l || '';
-              var add = item.add_r || item.add_l || '';
-              if (sph || cyl || add) {
-                text += ' (SPH : ' + sph + ' CYL : ' + cyl + ' ADD : ' + add + ')';
+      <script>
+        $(function () {
+          $('#pelanggan_id').select2({ theme: 'bootstrap-5', placeholder: '-- Pilih --', allowClear: true });
+          $('#sales_id').select2({ theme: 'bootstrap-5', placeholder: '-- Pilih --', allowClear: true });
+
+          function initSelect2Barang(selector, type, kategori) {
+            $(selector).select2({
+              theme: 'bootstrap-5',
+              placeholder: '-- Pilih --',
+              allowClear: true,
+              ajax: {
+                url: '/barang/search',
+                dataType: 'json',
+                delay: 250,
+                data: function (params) {
+                  return {
+                    q: params.term,
+                    kategori_nama: kategori
+                  };
+                },
+                processResults: function (data) {
+                  return {
+                    results: $.map(data.data, function (item) {
+                      var text = item.nama_barang;
+                      var sph = item.sph_r || item.sph_l || '';
+                      var cyl = item.cyl_r || item.cyl_l || '';
+                      var add = item.add_r || item.add_l || '';
+                      if (sph || cyl || add) {
+                        text += ' (SPH : ' + sph + ' CYL : ' + cyl + ' ADD : ' + add + ')';
+                      }
+                      text += ' (Stok: ' + (item.qty !== null ? item.qty : '-') + ')';
+                      return {
+                        id: item.id,
+                        text: text,
+                        item: item
+                      }
+                    })
+                  };
+                },
+                cache: true
               }
-              text += ' (Stok: ' + (item.qty !== null ? item.qty : '-') + ')';
-              return {
-                id: item.id,
-                text: text,
-                item: item
+            }).on('select2:select', function (e) {
+              var b = e.params.data.item;
+
+              // Handle Price & Qty visibility
+              $('#' + type + '_harga').val(parseInt(b.harga_jual) || 0).trigger('input');
+              $('#' + type + '_fields').show();
+
+              // Handle Prescription Autofill
+              if (type === 'lensa_r') {
+                $('#sph_r').val(b.sph_r !== null ? b.sph_r : '');
+                $('#cyl_r').val(b.cyl_r !== null ? b.cyl_r : '');
+                $('#axis_r').val(b.axis_r !== null ? b.axis_r : '');
+                $('#add_r').val(b.add_r !== null ? b.add_r : '');
               }
-            })
-          };
-        },
-        cache: true
-      }
-    }).on('select2:select', function(e) {
-      var b = e.params.data.item;
-      
-      // Handle Price & Qty visibility
-      $('#' + type + '_harga').val(parseInt(b.harga_jual) || 0).trigger('input');
-      $('#' + type + '_fields').show();
-      
-      // Handle Prescription Autofill
-      if (type === 'lensa_r') {
-        $('#sph_r').val(b.sph_r !== null ? b.sph_r : '');
-        $('#cyl_r').val(b.cyl_r !== null ? b.cyl_r : '');
-        $('#axis_r').val(b.axis_r !== null ? b.axis_r : '');
-        $('#add_r').val(b.add_r !== null ? b.add_r : '');
-      }
-      if (type === 'lensa_l') {
-        $('#sph_l').val(b.sph_l !== null ? b.sph_l : '');
-        $('#cyl_l').val(b.cyl_l !== null ? b.cyl_l : '');
-        $('#axis_l').val(b.axis_l !== null ? b.axis_l : '');
-        $('#add_l').val(b.add_l !== null ? b.add_l : '');
-      }
-      
-      calculate();
-    }).on('select2:unselect', function(e) {
-      $('#' + type + '_fields').hide();
-      calculate();
-    });
-  }
+              if (type === 'lensa_l') {
+                $('#sph_l').val(b.sph_l !== null ? b.sph_l : '');
+                $('#cyl_l').val(b.cyl_l !== null ? b.cyl_l : '');
+                $('#axis_l').val(b.axis_l !== null ? b.axis_l : '');
+                $('#add_l').val(b.add_l !== null ? b.add_l : '');
+              }
 
-  initSelect2Barang('#frame_barang_id', 'frame', 'frame');
-  initSelect2Barang('#lensa_l_barang_id', 'lensa_l', 'lensa');
-  initSelect2Barang('#lensa_r_barang_id', 'lensa_r', 'lensa');
-});
+              calculate();
+            }).on('select2:unselect', function (e) {
+              $('#' + type + '_fields').hide();
+              calculate();
+            });
+          }
 
-function saveNewPelanggan() {
-  var nama = $('#new_pelanggan_nama').val();
-  var telp = $('#new_pelanggan_telp').val();
-  var alamat = $('#new_pelanggan_alamat').val();
-  if (!nama) { showToast('Nama pelanggan wajib diisi', 'danger'); return; }
+          initSelect2Barang('#frame_barang_id', 'frame', 'frame');
+          initSelect2Barang('#lensa_l_barang_id', 'lensa_l', 'lensa');
+          initSelect2Barang('#lensa_r_barang_id', 'lensa_r', 'lensa');
+        });
 
-  $.ajax({
-    url: '/pelanggan',
-    method: 'POST',
-    contentType: 'application/json',
-    data: JSON.stringify({ nama: nama, no_telp: telp, alamat: alamat }),
-    success: function(res) {
-      if (res.success && res.data) {
-        var p = res.data;
-        var text = p.nama + (p.no_telp ? ' (' + p.no_telp + ')' : '');
-        
-        if ($('#pelanggan_id').find("option[value='" + p.id + "']").length) {
-          $('#pelanggan_id').val(p.id).trigger('change');
-        } else {
-          var newOption = new Option(text, p.id, true, true);
-          $('#pelanggan_id').append(newOption).trigger('change');
+        function saveNewPelanggan() {
+          var nama = $('#new_pelanggan_nama').val();
+          var telp = $('#new_pelanggan_telp').val();
+          var alamat = $('#new_pelanggan_alamat').val();
+          if (!nama) { showToast('Nama pelanggan wajib diisi', 'danger'); return; }
+
+          $.ajax({
+            url: '/pelanggan',
+            method: 'POST',
+            contentType: 'application/json',
+            data: JSON.stringify({ nama: nama, no_telp: telp, alamat: alamat }),
+            success: function (res) {
+              if (res.success && res.data) {
+                var p = res.data;
+                var text = p.nama + (p.no_telp ? ' (' + p.no_telp + ')' : '');
+
+                if ($('#pelanggan_id').find("option[value='" + p.id + "']").length) {
+                  $('#pelanggan_id').val(p.id).trigger('change');
+                } else {
+                  var newOption = new Option(text, p.id, true, true);
+                  $('#pelanggan_id').append(newOption).trigger('change');
+                }
+
+                $('#pelangganModal').modal('hide');
+                $('#new_pelanggan_nama').val('');
+                $('#new_pelanggan_telp').val('');
+                $('#new_pelanggan_alamat').val('');
+                showToast('Pelanggan berhasil dipilih', 'success');
+              }
+            },
+            error: function (xhr) { showToast(xhr.responseJSON?.message || 'Gagal menambahkan pelanggan', 'danger'); }
+          });
         }
-        
-        $('#pelangganModal').modal('hide');
-        $('#new_pelanggan_nama').val('');
-        $('#new_pelanggan_telp').val('');
-        $('#new_pelanggan_alamat').val('');
-        showToast('Pelanggan berhasil dipilih', 'success');
-      }
-    },
-    error: function(xhr) { showToast(xhr.responseJSON?.message || 'Gagal menambahkan pelanggan', 'danger'); }
-  });
-}
 
-// Removed onSelectBarang function
+        // Removed onSelectBarang function
 
-function getItemTotal(tipe) {
-  var bid = $('#' + tipe + '_barang_id').val();
-  if (!bid) return 0;
-  var h = parseFloat($('#' + tipe + '_harga').val().replace(/[^0-9]/g,'')) || 0;
-  var j = parseInt($('#' + tipe + '_jumlah').val()) || 1;
-  return h * j;
-}
+        function getItemTotal(tipe) {
+          var bid = $('#' + tipe + '_barang_id').val();
+          if (!bid) return 0;
+          var h = parseFloat($('#' + tipe + '_harga').val().replace(/[^0-9]/g, '')) || 0;
+          var j = parseInt($('#' + tipe + '_jumlah').val()) || 1;
+          return h * j;
+        }
 
-function calculate() {
-  var subtotal = 0;
-  ['frame', 'lensa_r', 'lensa_l'].forEach(function(type) {
-    if ($('#' + type + '_barang_id').val()) {
-      var h = parseInt($('#' + type + '_harga').data('raw-value') || $('#' + type + '_harga').val().replace(/[^0-9]/g, '')) || 0;
-      var q = parseInt($('#' + type + '_jumlah').val()) || 1;
-      subtotal += (h * q);
-    }
-  });
-  var bpjs = parseFloat($('#bpjs').val().replace(/[^0-9]/g,'')) || 0;
-  $('#subtotalDisplay').text(fmtRp(subtotal));
-  $('#totalDisplay').text(fmtRp(subtotal - bpjs));
-}
+        function calculate() {
+          var subtotal = 0;
+          ['frame', 'lensa_r', 'lensa_l'].forEach(function (type) {
+            if ($('#' + type + '_barang_id').val()) {
+              var h = parseInt($('#' + type + '_harga').data('raw-value') || $('#' + type + '_harga').val().replace(/[^0-9]/g, '')) || 0;
+              var q = parseInt($('#' + type + '_jumlah').val()) || 1;
+              subtotal += (h * q);
+            }
+          });
+          var bpjs = parseFloat($('#bpjs').val().replace(/[^0-9]/g, '')) || 0;
+          $('#subtotalDisplay').text(fmtRp(subtotal));
+          $('#totalDisplay').text(fmtRp(subtotal - bpjs));
+        }
 
-function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
+        function fmtRp(v) { return 'Rp ' + Number(v || 0).toLocaleString('id-ID'); }
 
-$(document).on('input', '.calc-input', calculate);
+        $(document).on('input', '.calc-input', calculate);
 
-function toggleDP() {
-  var status = $('#status_bayar').val();
-  if (status === 'dp') { $('#dpRow').show(); } else { $('#dpRow').hide(); }
-}
+        function toggleDP() {
+          var status = $('#status_bayar').val();
+          if (status === 'dp') { $('#dpRow').show(); } else { $('#dpRow').hide(); }
+        }
 
-function buildItem(tipe) {
-  var bid = $('#' + tipe + '_barang_id').val();
-  if (!bid) return null;
-  return { tipe: tipe, barang_id: parseInt(bid),
-    harga: parseFloat($('#' + tipe + '_harga').data('raw-value') || $('#' + tipe + '_harga').val().replace(/[^0-9]/g,''))||0,
-    jumlah: parseInt($('#' + tipe + '_jumlah').val())||1 };
-}
+        function buildItem(tipe) {
+          var bid = $('#' + tipe + '_barang_id').val();
+          if (!bid) return null;
+          return {
+            tipe: tipe, barang_id: parseInt(bid),
+            harga: parseFloat($('#' + tipe + '_harga').data('raw-value') || $('#' + tipe + '_harga').val().replace(/[^0-9]/g, '')) || 0,
+            jumlah: parseInt($('#' + tipe + '_jumlah').val()) || 1
+          };
+        }
 
-function savePenjualan(withPrint) {
-  var items = [buildItem('frame'), buildItem('lensa_l'), buildItem('lensa_r')].filter(Boolean);
-  if (items.length === 0) { showToast('Pilih minimal satu barang', 'danger'); return; }
+        function savePenjualan(withPrint) {
+          var items = [buildItem('frame'), buildItem('lensa_l'), buildItem('lensa_r')].filter(Boolean);
+          if (items.length === 0) { showToast('Pilih minimal satu barang', 'danger'); return; }
 
-  var pelangganId = $('#pelanggan_id').val();
-  var salesId = $('#sales_id').val();
-  if (!pelangganId) { showToast('Pelanggan wajib diisi', 'danger'); return; }
-  if (!salesId) { showToast('Sales wajib diisi', 'danger'); return; }
+          var pelangganId = $('#pelanggan_id').val();
+          var salesId = $('#sales_id').val();
+          if (!pelangganId) { showToast('Pelanggan wajib diisi', 'danger'); return; }
+          if (!salesId) { showToast('Sales wajib diisi', 'danger'); return; }
 
-  var payload = {
-    pelanggan_id: pelangganId,
-    sales_id: salesId,
-    order_date: $('#order_date').val(),
-    tanggal_selesai: $('#tanggal_selesai').val() || null,
-    bpjs: parseFloat($('#bpjs').data('raw-value') || $('#bpjs').val().replace(/[^0-9]/g,'')) || 0,
-    status_bayar: $('#status_bayar').val(),
-    dp: parseInt($('#dp_amount').data('raw-value') || $('#dp_amount').val().replace(/[^0-9]/g, '')) || 0,
-    sph_r: $('#sph_r').val(), cyl_r: $('#cyl_r').val(), axis_r: $('#axis_r').val(), add_r: $('#add_r').val(),
-    sph_l: $('#sph_l').val(), cyl_l: $('#cyl_l').val(), axis_l: $('#axis_l').val(), add_l: $('#add_l').val(),
-    items: items,
-  };
-  $.ajax({ url: '/penjualan', method: 'POST', contentType: 'application/json', data: JSON.stringify(payload),
-    success: function(res) {
-      if (res.success && withPrint) printNotaData(res.data);
-      window.location.href = '/penjualan';
-    },
-    error: function(xhr) { showToast(xhr.responseJSON?.message || 'Gagal menyimpan', 'danger'); }
-  });
-}
-</script>
+          var payload = {
+            pelanggan_id: pelangganId,
+            sales_id: salesId,
+            order_date: $('#order_date').val(),
+            tanggal_selesai: $('#tanggal_selesai').val() || null,
+            bpjs: parseFloat($('#bpjs').data('raw-value') || $('#bpjs').val().replace(/[^0-9]/g, '')) || 0,
+            status_bayar: $('#status_bayar').val(),
+            dp: parseInt($('#dp_amount').data('raw-value') || $('#dp_amount').val().replace(/[^0-9]/g, '')) || 0,
+            sph_r: $('#sph_r').val(), cyl_r: $('#cyl_r').val(), axis_r: $('#axis_r').val(), add_r: $('#add_r').val(),
+            sph_l: $('#sph_l').val(), cyl_l: $('#cyl_l').val(), axis_l: $('#axis_l').val(), add_l: $('#add_l').val(),
+            items: items,
+          };
+          $.ajax({
+            url: '/penjualan', method: 'POST', contentType: 'application/json', data: JSON.stringify(payload),
+            success: function (res) {
+              if (res.success && withPrint) printNotaData(res.data);
+              window.location.href = '/penjualan';
+            },
+            error: function (xhr) { showToast(xhr.responseJSON?.message || 'Gagal menyimpan', 'danger'); }
+          });
+        }
+      </script>
 
-<%- include('../partials/bottom') %>
+      <%- include('../partials/bottom') %>

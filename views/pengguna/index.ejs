@@ -1,58 +1,82 @@
 <%- include('../partials/top', { title, activePage }) %>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <div></div>
-  <button class="btn btn-primary btn-sm" id="btnAdd"><i class="bi bi-plus"></i> Tambah Pengguna</button>
-</div>
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <div></div>
+    <button class="btn btn-primary btn-sm" id="btnAdd"><i class="bi bi-plus"></i> Tambah Pengguna</button>
+  </div>
 
-<div class="card p-3">
-  <table id="tblPengguna" class="table table-hover mb-0" style="width:100%">
-    <thead><tr><th style="width:50px">No</th><th>Nama</th><th>Username</th><th>Hak Akses</th><th style="width:120px">Aksi</th></tr></thead>
-    <tbody>
-      <% data.forEach(function(item, i) { %>
-      <tr>
-        <td><%= i + 1 %></td>
-        <td><%= item.nama %></td>
-        <td class="font-monospace"><%= item.username %></td>
-        <td><span class="badge <%= item.hak_akses === 'admin' ? 'bg-info' : 'bg-success' %>"><%= item.hak_akses %></span></td>
-        <td>
-          <button class="btn btn-sm btn-outline-secondary me-1 btn-edit"
-            data-id="<%= item.id %>" data-nama="<%= item.nama %>"
-            data-username="<%= item.username %>" data-hakakses="<%= item.hak_akses %>">
-            <i class="bi bi-pencil"></i>
-          </button>
-          <button class="btn btn-sm btn-outline-danger btn-del" data-id="<%= item.id %>" data-url="/pengguna/<%= item.id %>"><i class="bi bi-trash"></i></button>
-        </td>
-      </tr>
-      <% }); %>
-    </tbody>
-  </table>
-</div>
+  <div class="card p-3">
+    <table id="tblPengguna" class="table table-hover mb-0" style="width:100%">
+      <thead>
+        <tr>
+          <th style="width:50px">No</th>
+          <th>Nama</th>
+          <th>Username</th>
+          <th>Hak Akses</th>
+          <th style="width:120px">Aksi</th>
+        </tr>
+      </thead>
+      <tbody>
+        <% data.forEach(function(item, i) { %>
+          <tr>
+            <td>
+              <%= i + 1 %>
+            </td>
+            <td>
+              <%= item.nama %>
+            </td>
+            <td class="font-monospace">
+              <%= item.username %>
+            </td>
+            <td><span class="badge <%= item.hak_akses === 'admin' ? 'bg-info' : 'bg-success' %>">
+                <%= item.hak_akses %>
+              </span></td>
+            <td>
+              <button class="btn btn-sm btn-outline-secondary me-1 btn-edit" data-id="<%= item.id %>"
+                data-nama="<%= item.nama %>" data-username="<%= item.username %>" data-hakakses="<%= item.hak_akses %>">
+                <i class="bi bi-pencil"></i>
+              </button>
+              <button class="btn btn-sm btn-outline-danger btn-del" data-id="<%= item.id %>"
+                data-url="/pengguna/<%= item.id %>"><i class="bi bi-trash"></i></button>
+            </td>
+          </tr>
+          <% }); %>
+      </tbody>
+    </table>
+  </div>
 
-<div class="modal fade" id="formModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header"><h5 class="modal-title">Pengguna</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-      <div class="modal-body">
-        <input type="hidden" id="editId">
-        <div class="mb-3"><label class="form-label small">Nama</label><input type="text" class="form-control" id="nama"></div>
-        <div class="row">
-          <div class="col-6 mb-3"><label class="form-label small">Username</label><input type="text" class="form-control" id="username"></div>
-          <div class="col-6 mb-3"><label class="form-label small">Hak Akses</label>
-            <select class="form-select" id="hak_akses"><option value="admin">Admin</option><option value="kasir">Kasir</option></select>
-          </div>
+  <div class="modal fade" id="formModal" tabindex="-1">
+    <div class="modal-dialog modal-dialog-centered">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h5 class="modal-title">Pengguna</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button>
         </div>
-        <div class="mb-3"><label class="form-label small" id="pwdLabel">Password</label><input type="password" class="form-control" id="password"></div>
-      </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
-        <button class="btn btn-primary btn-sm" id="btnSave">Simpan</button>
+        <div class="modal-body">
+          <input type="hidden" id="editId">
+          <div class="mb-3"><label class="form-label small">Nama</label><input type="text" class="form-control"
+              id="nama"></div>
+          <div class="row">
+            <div class="col-6 mb-3"><label class="form-label small">Username</label><input type="text"
+                class="form-control" id="username"></div>
+            <div class="col-6 mb-3"><label class="form-label small">Hak Akses</label>
+              <select class="form-select" id="hak_akses">
+                <option value="admin">Admin</option>
+                <option value="kasir">Kasir</option>
+              </select>
+            </div>
+          </div>
+          <div class="mb-3"><label class="form-label small" id="pwdLabel">Password</label><input type="password"
+              class="form-control" id="password"></div>
+        </div>
+        <div class="modal-footer">
+          <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+          <button class="btn btn-primary btn-sm" id="btnSave">Simpan</button>
+        </div>
       </div>
     </div>
   </div>
-</div>
 
-<script>
+  <script>
 $(function() {
   $('#tblPengguna').DataTable({ order: [], language: dtLanguageID });
 
@@ -96,6 +120,6 @@ $(function() {
     });
   });
 });
-</script>
+  </script>
 
-<%- include('../partials/bottom') %>
+  <%- include('../partials/bottom') %>

@@ -1,188 +1,192 @@
-<%
-function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
-%>
-<%- include('../partials/top', { title, activePage }) %>
-<%- include('../partials/select2') %>
+<% function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); } %>
+  <%- include('../partials/top', { title, activePage }) %>
+    <%- include('../partials/select2') %>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <div></div>
-  <a href="/pembelian" class="btn btn-secondary btn-sm"><i class="bi bi-arrow-left"></i> Kembali</a>
-</div>
-
-
-<div class="row g-3">
-  <!-- LEFT: Info Pembelian -->
-  <div class="col-md-4">
-    <div class="card p-3">
-      <h6 class="mb-3">Info Pembelian</h6>
-      <div class="mb-3">
-        <label class="form-label small">Supplier <span class="text-danger">*</span></label>
-        <select class="form-select" id="supplier_id">
-          <option value="">-- Pilih Supplier --</option>
-          <% supplierList.forEach(function(s) { %>
-          <option value="<%= s.id %>"><%= s.nama %></option>
-          <% }); %>
-        </select>
-      </div>
-      <div class="mb-3">
-        <label class="form-label small">Tanggal Pembelian</label>
-        <input type="date" class="form-control" id="tanggal_pembelian" value="<%= new Date().toISOString().slice(0,10) %>">
-      </div>
-    </div>
-  </div>
-
-  <!-- RIGHT: Items -->
-  <div class="col-md-8">
-    <div class="card p-3 mb-3">
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="mb-0">📦 Item Pembelian</h6>
-        <button class="btn btn-sm btn-outline-primary" onclick="addItem()"><i class="bi bi-plus"></i> Tambah Item</button>
+        <div></div>
+        <a href="/pembelian" class="btn btn-secondary btn-sm"><i class="bi bi-arrow-left"></i> Kembali</a>
       </div>
-      <div id="itemList">
-        <!-- Items will be added here dynamically -->
-      </div>
-      <div id="emptyMsg" class="text-center text-muted py-3">
-        <i class="bi bi-inbox" style="font-size:1.5rem"></i>
-        <div class="small mt-1">Belum ada item. Klik "Tambah Item" untuk mulai.</div>
-      </div>
-    </div>
 
-    <!-- Summary -->
-    <div class="card p-3">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <div class="small text-muted">Pilih lunas jika sudah dibayar penuh. Jika tidak, akan masuk Hutang.</div>
-        <div class="form-check mb-0">
-          <input class="form-check-input" type="checkbox" id="status_bayar">
-          <label class="form-check-label small fw-bold" for="status_bayar">Tandai Lunas</label>
+
+      <div class="row g-3">
+        <!-- LEFT: Info Pembelian -->
+        <div class="col-md-4">
+          <div class="card p-3">
+            <h6 class="mb-3">Info Pembelian</h6>
+            <div class="mb-3">
+              <label class="form-label small">Supplier <span class="text-danger">*</span></label>
+              <select class="form-select" id="supplier_id">
+                <option value="">-- Pilih Supplier --</option>
+                <% supplierList.forEach(function(s) { %>
+                  <option value="<%= s.id %>">
+                    <%= s.nama %>
+                  </option>
+                  <% }); %>
+              </select>
+            </div>
+            <div class="mb-3">
+              <label class="form-label small">Tanggal Pembelian</label>
+              <input type="date" class="form-control" id="tanggal_pembelian"
+                value="<%= new Date().toISOString().slice(0,10) %>">
+            </div>
+          </div>
+        </div>
+
+        <!-- RIGHT: Items -->
+        <div class="col-md-8">
+          <div class="card p-3 mb-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <h6 class="mb-0">📦 Item Pembelian</h6>
+              <button class="btn btn-sm btn-outline-primary" onclick="addItem()"><i class="bi bi-plus"></i> Tambah
+                Item</button>
+            </div>
+            <div id="itemList">
+              <!-- Items will be added here dynamically -->
+            </div>
+            <div id="emptyMsg" class="text-center text-muted py-3">
+              <i class="bi bi-inbox" style="font-size:1.5rem"></i>
+              <div class="small mt-1">Belum ada item. Klik "Tambah Item" untuk mulai.</div>
+            </div>
+          </div>
+
+          <!-- Summary -->
+          <div class="card p-3">
+            <div class="d-flex justify-content-between align-items-center mb-3">
+              <div class="small text-muted">Pilih lunas jika sudah dibayar penuh. Jika tidak, akan masuk Hutang.</div>
+              <div class="form-check mb-0">
+                <input class="form-check-input" type="checkbox" id="status_bayar">
+                <label class="form-check-label small fw-bold" for="status_bayar">Tandai Lunas</label>
+              </div>
+            </div>
+            <hr class="mt-0">
+            <div class="row g-2 align-items-center">
+              <div class="col-6"><strong class="fs-5">TOTAL</strong></div>
+              <div class="col-6 text-end fw-bold fs-5 text-success" id="totalDisplay">Rp 0</div>
+            </div>
+            <div class="d-flex gap-2 mt-3">
+              <button class="btn btn-success flex-fill" onclick="savePembelian()"><i class="bi bi-check-lg"></i>
+                Simpan</button>
+            </div>
+          </div>
         </div>
       </div>
-      <hr class="mt-0">
-      <div class="row g-2 align-items-center">
-        <div class="col-6"><strong class="fs-5">TOTAL</strong></div>
-        <div class="col-6 text-end fw-bold fs-5 text-success" id="totalDisplay">Rp 0</div>
-      </div>
-      <div class="d-flex gap-2 mt-3">
-        <button class="btn btn-success flex-fill" onclick="savePembelian()"><i class="bi bi-check-lg"></i> Simpan</button>
-      </div>
-    </div>
-  </div>
-</div>
 
-<script>
-$(function() {
-  $('#supplier_id').select2({ theme: 'bootstrap-5', placeholder: '-- Pilih Supplier --', allowClear: true });
-});
+      <script>
+        $(function () {
+          $('#supplier_id').select2({ theme: 'bootstrap-5', placeholder: '-- Pilih Supplier --', allowClear: true });
+        });
 
-var itemIndex = 0;
+        var itemIndex = 0;
 
-function addItem() {
-  var idx = itemIndex++;
-  var html = '<div class="row g-2 align-items-end mb-2 item-row" data-idx="' + idx + '">' +
-    '<div class="col-md-4"><label class="form-label small">Barang</label>' +
-    '<select class="form-select form-select-sm item-barang" data-idx="' + idx + '"><option value="">-- Pilih Barang --</option></select></div>' +
-    '<div class="col-md-2"><label class="form-label small">Qty</label>' +
-    '<input type="number" class="form-control form-control-sm item-jumlah calc-input" data-idx="' + idx + '" value="1" min="1"></div>' +
-    '<div class="col-md-3"><label class="form-label small">Harga Beli</label>' +
-    '<input type="text" class="form-control form-control-sm item-harga calc-input input-currency" data-idx="' + idx + '" value="0"></div>' +
-    '<div class="col-md-2"><label class="form-label small">Subtotal</label>' +
-    '<div class="form-control-plaintext form-control-sm fw-bold item-subtotal" data-idx="' + idx + '">Rp 0</div></div>' +
-    '<div class="col-md-1"><button class="btn btn-sm btn-outline-danger" onclick="removeItem(' + idx + ')"><i class="bi bi-trash"></i></button></div>' +
-    '</div>';
-  $('#itemList').append(html);
-  
-  $('.item-barang[data-idx="' + idx + '"]').select2({
-    theme: 'bootstrap-5',
-    placeholder: '-- Pilih Barang --',
-    allowClear: true,
-    ajax: {
-      url: '/barang/search',
-      dataType: 'json',
-      delay: 250,
-      data: function (params) {
-        return { q: params.term };
-      },
-      processResults: function (data) {
-        return {
-          results: $.map(data.data, function (item) {
-            return {
-              id: item.id,
-              text: item.nama_barang + 
-                    (item.sph_r || item.sph_l || item.cyl_r || item.cyl_l || item.add_r || item.add_l ? ' (SPH : ' + (item.sph_r||item.sph_l||'') + ' CYL : ' + (item.cyl_r||item.cyl_l||'') + ' ADD : ' + (item.add_r||item.add_l||'') + ')' : '') +
-                    ' (Stok: ' + (item.qty !== null ? item.qty : '-') + ')',
-              item: item
+        function addItem() {
+          var idx = itemIndex++;
+          var html = '<div class="row g-2 align-items-end mb-2 item-row" data-idx="' + idx + '">' +
+            '<div class="col-md-4"><label class="form-label small">Barang</label>' +
+            '<select class="form-select form-select-sm item-barang" data-idx="' + idx + '"><option value="">-- Pilih Barang --</option></select></div>' +
+            '<div class="col-md-2"><label class="form-label small">Qty</label>' +
+            '<input type="number" class="form-control form-control-sm item-jumlah calc-input" data-idx="' + idx + '" value="1" min="1"></div>' +
+            '<div class="col-md-3"><label class="form-label small">Harga Beli</label>' +
+            '<input type="text" class="form-control form-control-sm item-harga calc-input input-currency" data-idx="' + idx + '" value="0"></div>' +
+            '<div class="col-md-2"><label class="form-label small">Subtotal</label>' +
+            '<div class="form-control-plaintext form-control-sm fw-bold item-subtotal" data-idx="' + idx + '">Rp 0</div></div>' +
+            '<div class="col-md-1"><button class="btn btn-sm btn-outline-danger" onclick="removeItem(' + idx + ')"><i class="bi bi-trash"></i></button></div>' +
+            '</div>';
+          $('#itemList').append(html);
+
+          $('.item-barang[data-idx="' + idx + '"]').select2({
+            theme: 'bootstrap-5',
+            placeholder: '-- Pilih Barang --',
+            allowClear: true,
+            ajax: {
+              url: '/barang/search',
+              dataType: 'json',
+              delay: 250,
+              data: function (params) {
+                return { q: params.term };
+              },
+              processResults: function (data) {
+                return {
+                  results: $.map(data.data, function (item) {
+                    return {
+                      id: item.id,
+                      text: item.nama_barang +
+                        (item.sph_r || item.sph_l || item.cyl_r || item.cyl_l || item.add_r || item.add_l ? ' (SPH : ' + (item.sph_r || item.sph_l || '') + ' CYL : ' + (item.cyl_r || item.cyl_l || '') + ' ADD : ' + (item.add_r || item.add_l || '') + ')' : '') +
+                        ' (Stok: ' + (item.qty !== null ? item.qty : '-') + ')',
+                      item: item
+                    }
+                  })
+                };
+              },
+              cache: true
             }
-          })
-        };
-      },
-      cache: true
-    }
-  }).on('select2:select', function(e) {
-    var b = e.params.data.item;
-    $('.item-harga[data-idx=' + idx + ']').val(parseInt(b.harga_jual) || 0).trigger('input');
-    calcTotal();
-  }).on('select2:unselect', function(e) {
-    $('.item-harga[data-idx=' + idx + ']').val(0).trigger('input');
-    calcTotal();
-  });
-  $('#emptyMsg').hide();
-  calcTotal();
-}
+          }).on('select2:select', function (e) {
+            var b = e.params.data.item;
+            $('.item-harga[data-idx=' + idx + ']').val(parseInt(b.harga_jual) || 0).trigger('input');
+            calcTotal();
+          }).on('select2:unselect', function (e) {
+            $('.item-harga[data-idx=' + idx + ']').val(0).trigger('input');
+            calcTotal();
+          });
+          $('#emptyMsg').hide();
+          calcTotal();
+        }
 
-function removeItem(idx) {
-  $('.item-row[data-idx=' + idx + ']').remove();
-  if ($('.item-row').length === 0) $('#emptyMsg').show();
-  calcTotal();
-}
+        function removeItem(idx) {
+          $('.item-row[data-idx=' + idx + ']').remove();
+          if ($('.item-row').length === 0) $('#emptyMsg').show();
+          calcTotal();
+        }
 
-// Removed onBarangChange
+        // Removed onBarangChange
 
-function calcTotal() {
-  var total = 0;
-  $('.item-row').each(function() {
-    var idx = $(this).data('idx');
-    var h = parseFloat($('.item-harga[data-idx=' + idx + ']').data('raw-value') || $('.item-harga[data-idx=' + idx + ']').val().replace(/[^0-9]/g,'')) || 0;
-    var j = parseInt($('.item-jumlah[data-idx=' + idx + ']').val()) || 1;
-    var sub = h * j;
-    total += sub;
-    $('.item-subtotal[data-idx=' + idx + ']').text(fmtRp(sub));
-  });
-  $('#totalDisplay').text(fmtRp(total));
-}
+        function calcTotal() {
+          var total = 0;
+          $('.item-row').each(function () {
+            var idx = $(this).data('idx');
+            var h = parseFloat($('.item-harga[data-idx=' + idx + ']').data('raw-value') || $('.item-harga[data-idx=' + idx + ']').val().replace(/[^0-9]/g, '')) || 0;
+            var j = parseInt($('.item-jumlah[data-idx=' + idx + ']').val()) || 1;
+            var sub = h * j;
+            total += sub;
+            $('.item-subtotal[data-idx=' + idx + ']').text(fmtRp(sub));
+          });
+          $('#totalDisplay').text(fmtRp(total));
+        }
 
-$(document).on('input', '.calc-input', calcTotal);
+        $(document).on('input', '.calc-input', calcTotal);
 
-function savePembelian() {
-  var supplierId = $('#supplier_id').val();
-  if (!supplierId) { showToast('Pilih supplier terlebih dahulu', 'danger'); return; }
+        function savePembelian() {
+          var supplierId = $('#supplier_id').val();
+          if (!supplierId) { showToast('Pilih supplier terlebih dahulu', 'danger'); return; }
 
-  var items = [];
-  $('.item-row').each(function() {
-    var idx = $(this).data('idx');
-    var bid = $('.item-barang[data-idx=' + idx + ']').val();
-    if (!bid) return;
-    items.push({
-      barang_id: parseInt(bid),
-      jumlah: parseInt($('.item-jumlah[data-idx=' + idx + ']').val()) || 1,
-      harga_beli: parseFloat($('.item-harga[data-idx=' + idx + ']').data('raw-value') || $('.item-harga[data-idx=' + idx + ']').val().replace(/[^0-9]/g,'')) || 0,
-    });
-  });
+          var items = [];
+          $('.item-row').each(function () {
+            var idx = $(this).data('idx');
+            var bid = $('.item-barang[data-idx=' + idx + ']').val();
+            if (!bid) return;
+            items.push({
+              barang_id: parseInt(bid),
+              jumlah: parseInt($('.item-jumlah[data-idx=' + idx + ']').val()) || 1,
+              harga_beli: parseFloat($('.item-harga[data-idx=' + idx + ']').data('raw-value') || $('.item-harga[data-idx=' + idx + ']').val().replace(/[^0-9]/g, '')) || 0,
+            });
+          });
 
-  if (items.length === 0) { showToast('Tambah minimal satu item barang', 'danger'); return; }
+          if (items.length === 0) { showToast('Tambah minimal satu item barang', 'danger'); return; }
 
-  var payload = {
-    supplier_id: supplierId,
-    tanggal_pembelian: $('#tanggal_pembelian').val(),
-    status_bayar: $('#status_bayar').is(':checked') ? 'lunas' : 'belum_lunas',
-    items: items,
-  };
+          var payload = {
+            supplier_id: supplierId,
+            tanggal_pembelian: $('#tanggal_pembelian').val(),
+            status_bayar: $('#status_bayar').is(':checked') ? 'lunas' : 'belum_lunas',
+            items: items,
+          };
 
-  $.ajax({ url: '/pembelian', method: 'POST', contentType: 'application/json', data: JSON.stringify(payload),
-    success: function(res) {
-      if (res.success) window.location.href = '/pembelian';
-    },
-    error: function(xhr) { showToast(xhr.responseJSON?.message || 'Gagal menyimpan', 'danger'); }
-  });
-}
-</script>
+          $.ajax({
+            url: '/pembelian', method: 'POST', contentType: 'application/json', data: JSON.stringify(payload),
+            success: function (res) {
+              if (res.success) window.location.href = '/pembelian';
+            },
+            error: function (xhr) { showToast(xhr.responseJSON?.message || 'Gagal menyimpan', 'danger'); }
+          });
+        }
+      </script>
 
-<%- include('../partials/bottom') %>
+      <%- include('../partials/bottom') %>

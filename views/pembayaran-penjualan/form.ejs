@@ -1,103 +1,148 @@
-<%
-function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
-function fmtDate(d) { return d ? new Date(d).toLocaleDateString('id-ID') : '-'; }
-var totalDibayar = payments.reduce(function(s,p){ return s + parseFloat(p.jumlah_bayar||0); }, 0);
-var sisa = penjualan.total - totalDibayar;
-%>
-<%- include('../partials/top', { title, activePage }) %>
+<% function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); } function fmtDate(d) { return d ? new
+  Date(d).toLocaleDateString('id-ID') : '-' ; } var totalDibayar=payments.reduce(function(s,p){ return s +
+  parseFloat(p.jumlah_bayar||0); }, 0); var sisa=penjualan.total - totalDibayar; %>
+  <%- include('../partials/top', { title, activePage }) %>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <div></div>
-  <a href="/pembayaran-penjualan" class="btn btn-secondary btn-sm"><i class="bi bi-arrow-left"></i> Kembali</a>
-</div>
-
-<div class="row g-3">
-  <!-- Info Penjualan -->
-  <div class="col-md-5">
-    <div class="card p-3 mb-3">
-      <h6>🧾 Info Penjualan</h6>
-      <table class="table table-sm mb-0">
-        <tr><td class="text-muted">Nota</td><td class="font-monospace fw-bold text-info"><%= penjualan.no_nota %></td></tr>
-        <tr><td class="text-muted">Tanggal</td><td><%= fmtDate(penjualan.order_date) %></td></tr>
-        <tr><td class="text-muted">Pelanggan</td><td><%= penjualan.pelanggan_nama || 'Walk-in' %></td></tr>
-        <tr><td class="text-muted">Total Tagihan</td><td class="fw-bold"><%= fmtRp(penjualan.total) %></td></tr>
-        <tr><td class="text-muted">Sudah Dibayar</td><td class="text-success fw-bold"><%= fmtRp(totalDibayar) %></td></tr>
-        <tr><td class="text-muted">Sisa Piutang</td><td class="text-danger fw-bold fs-5"><%= fmtRp(sisa) %></td></tr>
-      </table>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div></div>
+      <a href="/pembayaran-penjualan" class="btn btn-secondary btn-sm"><i class="bi bi-arrow-left"></i> Kembali</a>
     </div>
 
-    <% if (sisa > 0) { %>
-    <div class="card p-3">
-      <h6>💰 Pelunasan</h6>
-      <div class="mb-2">
-        <label class="form-label small">Tanggal</label>
-        <input type="date" class="form-control form-control-sm" id="tanggal_bayar" value="<%= new Date().toISOString().slice(0,10) %>">
+    <div class="row g-3">
+      <!-- Info Penjualan -->
+      <div class="col-md-5">
+        <div class="card p-3 mb-3">
+          <h6>🧾 Info Penjualan</h6>
+          <table class="table table-sm mb-0">
+            <tr>
+              <td class="text-muted">Nota</td>
+              <td class="font-monospace fw-bold text-info">
+                <%= penjualan.no_nota %>
+              </td>
+            </tr>
+            <tr>
+              <td class="text-muted">Tanggal</td>
+              <td>
+                <%= fmtDate(penjualan.order_date) %>
+              </td>
+            </tr>
+            <tr>
+              <td class="text-muted">Pelanggan</td>
+              <td>
+                <%= penjualan.pelanggan_nama || 'Walk-in' %>
+              </td>
+            </tr>
+            <tr>
+              <td class="text-muted">Total Tagihan</td>
+              <td class="fw-bold">
+                <%= fmtRp(penjualan.total) %>
+              </td>
+            </tr>
+            <tr>
+              <td class="text-muted">Sudah Dibayar</td>
+              <td class="text-success fw-bold">
+                <%= fmtRp(totalDibayar) %>
+              </td>
+            </tr>
+            <tr>
+              <td class="text-muted">Sisa Piutang</td>
+              <td class="text-danger fw-bold fs-5">
+                <%= fmtRp(sisa) %>
+              </td>
+            </tr>
+          </table>
+        </div>
+
+        <% if (sisa> 0) { %>
+          <div class="card p-3">
+            <h6>💰 Pelunasan</h6>
+            <div class="mb-2">
+              <label class="form-label small">Tanggal</label>
+              <input type="date" class="form-control form-control-sm" id="tanggal_bayar"
+                value="<%= new Date().toISOString().slice(0,10) %>">
+            </div>
+            <div class="mb-2">
+              <label class="form-label small">Jumlah Bayar</label>
+              <input type="number" class="form-control form-control-sm" id="jumlah_bayar" value="<%= sisa %>" min="1">
+            </div>
+            <div class="mb-3">
+              <label class="form-label small">Keterangan</label>
+              <input type="text" class="form-control form-control-sm" id="keterangan"
+                placeholder="Opsional (mis: Pelunasan sisa tagihan)">
+            </div>
+            <button class="btn btn-success btn-sm w-100" onclick="bayar()"><i class="bi bi-check-lg"></i> Bayar</button>
+          </div>
+          <% } else { %>
+            <div class="card p-3 text-center text-success py-4">
+              <i class="bi bi-check-circle" style="font-size:2.5rem"></i>
+              <h5 class="mt-2">Lunas!</h5>
+            </div>
+            <% } %>
       </div>
-      <div class="mb-2">
-        <label class="form-label small">Jumlah Bayar</label>
-        <input type="number" class="form-control form-control-sm" id="jumlah_bayar" value="<%= sisa %>" min="1">
+
+      <!-- Riwayat Pembayaran -->
+      <div class="col-md-7">
+        <div class="card p-3">
+          <h6>📜 Riwayat Pembayaran (DP & Cicilan)</h6>
+          <% if (payments.length===0) { %>
+            <div class="text-center text-muted py-4">Belum ada pembayaran</div>
+            <% } else { %>
+              <table class="table table-sm table-hover mb-0">
+                <thead>
+                  <tr>
+                    <th>Tanggal</th>
+                    <th>Jumlah</th>
+                    <th>Keterangan</th>
+                    <th></th>
+                  </tr>
+                </thead>
+                <tbody>
+                  <% payments.forEach(function(p) { %>
+                    <tr>
+                      <td>
+                        <%= fmtDate(p.tanggal_bayar) %>
+                      </td>
+                      <td class="text-success fw-bold">
+                        <%= fmtRp(p.jumlah_bayar) %>
+                      </td>
+                      <td class="small">
+                        <%= p.keterangan || '-' %>
+                      </td>
+                      <td><button class="btn btn-sm btn-outline-danger" onclick="hapusBayar(<%= p.id %>)"><i
+                            class="bi bi-trash"></i></button></td>
+                    </tr>
+                    <% }); %>
+                </tbody>
+              </table>
+              <% } %>
+        </div>
       </div>
-      <div class="mb-3">
-        <label class="form-label small">Keterangan</label>
-        <input type="text" class="form-control form-control-sm" id="keterangan" placeholder="Opsional (mis: Pelunasan sisa tagihan)">
-      </div>
-      <button class="btn btn-success btn-sm w-100" onclick="bayar()"><i class="bi bi-check-lg"></i> Bayar</button>
     </div>
-    <% } else { %>
-    <div class="card p-3 text-center text-success py-4">
-      <i class="bi bi-check-circle" style="font-size:2.5rem"></i>
-      <h5 class="mt-2">Lunas!</h5>
-    </div>
-    <% } %>
-  </div>
 
-  <!-- Riwayat Pembayaran -->
-  <div class="col-md-7">
-    <div class="card p-3">
-      <h6>📜 Riwayat Pembayaran (DP & Cicilan)</h6>
-      <% if (payments.length === 0) { %>
-        <div class="text-center text-muted py-4">Belum ada pembayaran</div>
-      <% } else { %>
-      <table class="table table-sm table-hover mb-0">
-        <thead><tr><th>Tanggal</th><th>Jumlah</th><th>Keterangan</th><th></th></tr></thead>
-        <tbody>
-          <% payments.forEach(function(p) { %>
-          <tr>
-            <td><%= fmtDate(p.tanggal_bayar) %></td>
-            <td class="text-success fw-bold"><%= fmtRp(p.jumlah_bayar) %></td>
-            <td class="small"><%= p.keterangan || '-' %></td>
-            <td><button class="btn btn-sm btn-outline-danger" onclick="hapusBayar(<%= p.id %>)"><i class="bi bi-trash"></i></button></td>
-          </tr>
-          <% }); %>
-        </tbody>
-      </table>
-      <% } %>
-    </div>
-  </div>
-</div>
+    <script>
+      function bayar() {
+        var payload = {
+          penjualan_id: <%= penjualan.id %>,
+          tanggal_bayar: $('#tanggal_bayar').val(),
+          jumlah_bayar: parseFloat($('#jumlah_bayar').val()) || 0,
+          keterangan: $('#keterangan').val(),
+        };
+        if (payload.jumlah_bayar <= 0) { showToast('Jumlah bayar harus > 0', 'danger'); return; }
+        $.ajax({
+          url: '/pembayaran-penjualan', method: 'POST', contentType: 'application/json', data: JSON.stringify(payload),
+          success: function () { location.reload(); },
+          error: function (xhr) { showToast(xhr.responseJSON?.message || 'Gagal', 'danger'); }
+        });
+      }
 
-<script>
-function bayar() {
-  var payload = {
-    penjualan_id: <%= penjualan.id %>,
-    tanggal_bayar: $('#tanggal_bayar').val(),
-    jumlah_bayar: parseFloat($('#jumlah_bayar').val()) || 0,
-    keterangan: $('#keterangan').val(),
-  };
-  if (payload.jumlah_bayar <= 0) { showToast('Jumlah bayar harus > 0', 'danger'); return; }
-  $.ajax({ url: '/pembayaran-penjualan', method: 'POST', contentType: 'application/json', data: JSON.stringify(payload),
-    success: function() { location.reload(); },
-    error: function(xhr) { showToast(xhr.responseJSON?.message || 'Gagal', 'danger'); }
-  });
-}
+      function hapusBayar(id) {
+        if (!confirm('Hapus pembayaran ini?')) return;
+        $.ajax({
+          url: '/pembayaran-penjualan/' + id, method: 'DELETE',
+          success: function () { location.reload(); },
+          error: function (xhr) { showToast(xhr.responseJSON?.message || 'Gagal', 'danger'); }
+        });
+      }
+    </script>
 
-function hapusBayar(id) {
-  if (!confirm('Hapus pembayaran ini?')) return;
-  $.ajax({ url: '/pembayaran-penjualan/' + id, method: 'DELETE',
-    success: function() { location.reload(); },
-    error: function(xhr) { showToast(xhr.responseJSON?.message || 'Gagal', 'danger'); }
-  });
-}
-</script>
-
-<%- include('../partials/bottom') %>
+    <%- include('../partials/bottom') %>

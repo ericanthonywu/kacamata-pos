@@ -1,63 +1,85 @@
-<%
-function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
-function fmtDate(d) { return d ? new Date(d).toLocaleDateString('id-ID') : '-'; }
-%>
-<%- include('../partials/top', { title, activePage }) %>
+<% function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); } function fmtDate(d) { return d ? new
+  Date(d).toLocaleDateString('id-ID') : '-' ; } %>
+  <%- include('../partials/top', { title, activePage }) %>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <div></div>
-  <a href="/pembelian-retur/baru" class="btn btn-primary btn-sm"><i class="bi bi-plus"></i> Retur Baru</a>
-</div>
-
-<div class="card p-3">
-  <table id="tblReturBeli" class="table table-hover mb-0" style="width:100%">
-    <thead><tr><th>Kode Retur</th><th>Tanggal</th><th>Kode Pembelian</th><th>Supplier</th><th>Total Retur</th><th style="width:120px">Aksi</th></tr></thead>
-    <tbody>
-      <% data.forEach(function(item) { %>
-      <tr>
-        <td class="font-monospace text-warning"><%= item.kode_retur %></td>
-        <td><%= fmtDate(item.tanggal_retur) %></td>
-        <td class="font-monospace text-info"><%= item.kode_pembelian || '-' %></td>
-        <td><%= item.supplier_nama || '-' %></td>
-        <td class="fw-bold"><%= fmtRp(item.total_retur) %></td>
-        <td>
-          <button class="btn btn-sm btn-outline-info me-1" onclick="showDetail(<%= item.id %>)"><i class="bi bi-eye"></i></button>
-          <button class="btn btn-sm btn-outline-danger" onclick="confirmVoid(<%= item.id %>)"><i class="bi bi-x-circle"></i></button>
-        </td>
-      </tr>
-      <% }); %>
-    </tbody>
-  </table>
-</div>
-
-<!-- Detail Modal -->
-<div class="modal fade" id="detailModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header"><h5 class="modal-title">Detail Retur Pembelian</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-      <div class="modal-body" id="detailBody"></div>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div></div>
+      <a href="/pembelian-retur/baru" class="btn btn-primary btn-sm"><i class="bi bi-plus"></i> Retur Baru</a>
     </div>
-  </div>
-</div>
 
-<!-- Void Modal -->
-<div class="modal fade" id="voidModal" tabindex="-1">
-  <div class="modal-dialog modal-sm modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-body text-center py-4">
-        <i class="bi bi-exclamation-triangle text-warning" style="font-size:2.5rem"></i>
-        <h5 class="mt-3">Batalkan Retur?</h5>
-        <p class="text-muted small">Stok barang akan dikembalikan.</p>
-      </div>
-      <div class="modal-footer justify-content-center border-0 pt-0">
-        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Kembali</button>
-        <button class="btn btn-danger btn-sm" id="voidBtn">Ya, Batalkan</button>
+    <div class="card p-3">
+      <table id="tblReturBeli" class="table table-hover mb-0" style="width:100%">
+        <thead>
+          <tr>
+            <th>Kode Retur</th>
+            <th>Tanggal</th>
+            <th>Kode Pembelian</th>
+            <th>Supplier</th>
+            <th>Total Retur</th>
+            <th style="width:120px">Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% data.forEach(function(item) { %>
+            <tr>
+              <td class="font-monospace text-warning">
+                <%= item.kode_retur %>
+              </td>
+              <td>
+                <%= fmtDate(item.tanggal_retur) %>
+              </td>
+              <td class="font-monospace text-info">
+                <%= item.kode_pembelian || '-' %>
+              </td>
+              <td>
+                <%= item.supplier_nama || '-' %>
+              </td>
+              <td class="fw-bold">
+                <%= fmtRp(item.total_retur) %>
+              </td>
+              <td>
+                <button class="btn btn-sm btn-outline-info me-1" onclick="showDetail(<%= item.id %>)"><i
+                    class="bi bi-eye"></i></button>
+                <button class="btn btn-sm btn-outline-danger" onclick="confirmVoid(<%= item.id %>)"><i
+                    class="bi bi-x-circle"></i></button>
+              </td>
+            </tr>
+            <% }); %>
+        </tbody>
+      </table>
+    </div>
+
+    <!-- Detail Modal -->
+    <div class="modal fade" id="detailModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Detail Retur Pembelian</h5><button type="button" class="btn-close"
+              data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body" id="detailBody"></div>
+        </div>
       </div>
     </div>
-  </div>
-</div>
 
-<script>
+    <!-- Void Modal -->
+    <div class="modal fade" id="voidModal" tabindex="-1">
+      <div class="modal-dialog modal-sm modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-body text-center py-4">
+            <i class="bi bi-exclamation-triangle text-warning" style="font-size:2.5rem"></i>
+            <h5 class="mt-3">Batalkan Retur?</h5>
+            <p class="text-muted small">Stok barang akan dikembalikan.</p>
+          </div>
+          <div class="modal-footer justify-content-center border-0 pt-0">
+            <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Kembali</button>
+            <button class="btn btn-danger btn-sm" id="voidBtn">Ya, Batalkan</button>
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <script>
 $(function() { $('#tblReturBeli').DataTable({ order: [], language: dtLanguageID }); });
 
 function showDetail(id) {
@@ -93,6 +115,6 @@ $('#voidBtn').on('click', function() {
     error: function(xhr) { showToast(xhr.responseJSON?.message || 'Gagal', 'danger'); }
   });
 });
-</script>
+    </script>
 
-<%- include('../partials/bottom') %>
+    <%- include('../partials/bottom') %>

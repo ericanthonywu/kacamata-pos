@@ -1,111 +1,164 @@
-<%
-function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
-function fmtDate(d) { return d ? new Date(d).toLocaleDateString('id-ID') : '-'; }
-%>
-<%- include('../partials/top', { title, activePage }) %>
+<% function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); } function fmtDate(d) { return d ? new
+  Date(d).toLocaleDateString('id-ID') : '-' ; } %>
+  <%- include('../partials/top', { title, activePage }) %>
 
-<form class="row g-2 mb-3 align-items-end" method="GET" action="/laporan/kas">
-  <div class="col-auto">
-    <label class="form-label small">Dari</label>
-    <input type="date" name="from" class="form-control form-control-sm" value="<%= filters.from || '' %>">
-  </div>
-  <div class="col-auto">
-    <label class="form-label small">Sampai</label>
-    <input type="date" name="to" class="form-control form-control-sm" value="<%= filters.to || '' %>">
-  </div>
-  <div class="col-auto">
-    <label class="form-label small">Sales</label>
-    <select name="sales_id" class="form-select form-select-sm">
-      <option value="">Semua</option>
-      <% salesList.forEach(function(s) { %>
-      <option value="<%= s.id %>" <%= String(filters.sales_id) === String(s.id) ? 'selected' : '' %>><%= s.nama %></option>
-      <% }); %>
-    </select>
-  </div>
-  <div class="col-auto">
-    <label class="form-label small">Kategori</label>
-    <select name="kategori_id" class="form-select form-select-sm">
-      <option value="">Semua</option>
-      <% kategoriList.forEach(function(k) { %>
-      <option value="<%= k.id %>" <%= String(filters.kategori_id) === String(k.id) ? 'selected' : '' %>><%= k.nama %></option>
-      <% }); %>
-      <option value="both" <%= filters.kategori_id === 'both' ? 'selected' : '' %>>Frame + Lensa</option>
-    </select>
-  </div>
-  <div class="col-auto">
-    <label class="form-label small">Status</label>
-    <select name="status_bayar" class="form-select form-select-sm">
-      <option value="">Semua</option>
-      <option value="lunas" <%= filters.status_bayar === 'lunas' ? 'selected' : '' %>>Lunas</option>
-      <option value="dp" <%= filters.status_bayar === 'dp' ? 'selected' : '' %>>DP (Belum Lunas)</option>
-    </select>
-  </div>
-  <div class="col-auto"><button type="submit" class="btn btn-primary btn-sm">Tampilkan</button></div>
-</form>
-
-<div class="row g-3 mb-4 row-cols-2 row-cols-md-5">
-  <div class="col">
-    <div class="stat-card"><i class="bi bi-receipt stat-icon text-info"></i><div class="stat-value"><%= summary.total_transaksi %></div><div class="stat-label">Transaksi</div></div>
-  </div>
-  <div class="col">
-    <div class="stat-card"><i class="bi bi-shield-plus stat-icon text-secondary"></i><div class="stat-value"><%= fmtRp(summary.total_bpjs) %></div><div class="stat-label">Total BPJS</div></div>
-  </div>
-  <% if (currentUser.hak_akses === 'admin') { %>
-  <div class="col">
-    <div class="stat-card"><i class="bi bi-cash stat-icon text-primary"></i><div class="stat-value"><%= fmtRp(summary.total_subtotal) %></div><div class="stat-label">Subtotal</div></div>
-  </div>
-  <div class="col">
-    <div class="stat-card"><i class="bi bi-wallet2 stat-icon text-warning"></i><div class="stat-value"><%= fmtRp(summary.total_dp_belum_lunas) %></div><div class="stat-label">Total DP (Belum Lunas)</div></div>
-  </div>
-  <div class="col">
-    <div class="stat-card"><i class="bi bi-graph-up stat-icon text-success"></i><div class="stat-value"><%= fmtRp(summary.total_penjualan) %></div><div class="stat-label">Total Penjualan</div></div>
-  </div>
-  <% } %>
-</div>
-
-<div class="card p-3">
-  <table id="tblKas" class="table table-hover mb-0" style="width:100%">
-    <thead>
-      <tr><th>No. Nota</th><th>Tanggal</th><th>Pelanggan</th><th>Sales</th><th>Total</th><th>DP</th><th>BPJS</th><th>Sisa</th><th>Aksi</th></tr>
-    </thead>
-    <tbody>
-      <% transactions.forEach(function(t) { %>
-      <tr>
-        <td class="font-monospace text-info"><%= t.no_nota %></td>
-        <td><%= fmtDate(t.order_date) %></td>
-        <td><%= t.pelanggan_nama || '-' %></td>
-        <td><%= t.sales_nama || '-' %></td>
-        <td><%= fmtRp(t.subtotal) %></td>
-        <td><%= t.dp > 0 ? fmtRp(t.dp) : '-' %></td>
-        <td><%= t.bpjs > 0 ? fmtRp(t.bpjs) : '-' %></td>
-        <% var sisa = t.status_bayar === 'lunas' ? 0 : (t.subtotal - (t.dp || 0) - (t.bpjs || 0)); %>
-        <td class="fw-bold <%= sisa === 0 ? 'text-success' : 'text-danger' %>">
-          <%= fmtRp(sisa) %> <%= sisa === 0 ? '(sudah lunas DP)' : '' %>
-        </td>
-        <td>
-          <button class="btn btn-sm btn-outline-info" onclick="showDetail(<%= t.id %>)" title="Detail"><i class="bi bi-eye"></i></button>
-        </td>
-      </tr>
-      <% }); %>
-    </tbody>
-  </table>
-</div>
-
-<div class="modal fade" id="detailModal" tabindex="-1">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Detail Penjualan</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <form class="row g-2 mb-3 align-items-end" method="GET" action="/laporan/kas">
+      <div class="col-auto">
+        <label class="form-label small">Dari</label>
+        <input type="date" name="from" class="form-control form-control-sm" value="<%= filters.from || '' %>">
       </div>
-      <div class="modal-body" id="detailBody">
-        <div class="text-center"><div class="spinner-border text-primary" role="status"></div></div>
+      <div class="col-auto">
+        <label class="form-label small">Sampai</label>
+        <input type="date" name="to" class="form-control form-control-sm" value="<%= filters.to || '' %>">
+      </div>
+      <div class="col-auto">
+        <label class="form-label small">Sales</label>
+        <select name="sales_id" class="form-select form-select-sm">
+          <option value="">Semua</option>
+          <% salesList.forEach(function(s) { %>
+            <option value="<%= s.id %>" <%=String(filters.sales_id)===String(s.id) ? 'selected' : '' %>><%= s.nama %>
+            </option>
+            <% }); %>
+        </select>
+      </div>
+      <div class="col-auto">
+        <label class="form-label small">Kategori</label>
+        <select name="kategori_id" class="form-select form-select-sm">
+          <option value="">Semua</option>
+          <% kategoriList.forEach(function(k) { %>
+            <option value="<%= k.id %>" <%=String(filters.kategori_id)===String(k.id) ? 'selected' : '' %>><%= k.nama %>
+            </option>
+            <% }); %>
+              <option value="both" <%=filters.kategori_id==='both' ? 'selected' : '' %>>Frame + Lensa</option>
+        </select>
+      </div>
+      <div class="col-auto">
+        <label class="form-label small">Status</label>
+        <select name="status_bayar" class="form-select form-select-sm">
+          <option value="">Semua</option>
+          <option value="lunas" <%=filters.status_bayar==='lunas' ? 'selected' : '' %>>Lunas</option>
+          <option value="dp" <%=filters.status_bayar==='dp' ? 'selected' : '' %>>DP (Belum Lunas)</option>
+        </select>
+      </div>
+      <div class="col-auto"><button type="submit" class="btn btn-primary btn-sm">Tampilkan</button></div>
+    </form>
+
+    <div class="row g-3 mb-4 row-cols-2 row-cols-md-5">
+      <div class="col">
+        <div class="stat-card"><i class="bi bi-receipt stat-icon text-info"></i>
+          <div class="stat-value">
+            <%= summary.total_transaksi %>
+          </div>
+          <div class="stat-label">Transaksi</div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="stat-card"><i class="bi bi-shield-plus stat-icon text-secondary"></i>
+          <div class="stat-value">
+            <%= fmtRp(summary.total_bpjs) %>
+          </div>
+          <div class="stat-label">Total BPJS</div>
+        </div>
+      </div>
+      <% if (currentUser.hak_akses==='admin' ) { %>
+        <div class="col">
+          <div class="stat-card"><i class="bi bi-cash stat-icon text-primary"></i>
+            <div class="stat-value">
+              <%= fmtRp(summary.total_subtotal) %>
+            </div>
+            <div class="stat-label">Subtotal</div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="stat-card"><i class="bi bi-wallet2 stat-icon text-warning"></i>
+            <div class="stat-value">
+              <%= fmtRp(summary.total_dp_belum_lunas) %>
+            </div>
+            <div class="stat-label">Total DP (Belum Lunas)</div>
+          </div>
+        </div>
+        <div class="col">
+          <div class="stat-card"><i class="bi bi-graph-up stat-icon text-success"></i>
+            <div class="stat-value">
+              <%= fmtRp(summary.total_penjualan) %>
+            </div>
+            <div class="stat-label">Total Penjualan</div>
+          </div>
+        </div>
+        <% } %>
+    </div>
+
+    <div class="card p-3">
+      <table id="tblKas" class="table table-hover mb-0" style="width:100%">
+        <thead>
+          <tr>
+            <th>No. Nota</th>
+            <th>Tanggal</th>
+            <th>Pelanggan</th>
+            <th>Sales</th>
+            <th>Total</th>
+            <th>DP</th>
+            <th>BPJS</th>
+            <th>Sisa</th>
+            <th>Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% transactions.forEach(function(t) { %>
+            <tr>
+              <td class="font-monospace text-info">
+                <%= t.no_nota %>
+              </td>
+              <td>
+                <%= fmtDate(t.order_date) %>
+              </td>
+              <td>
+                <%= t.pelanggan_nama || '-' %>
+              </td>
+              <td>
+                <%= t.sales_nama || '-' %>
+              </td>
+              <td>
+                <%= fmtRp(t.subtotal) %>
+              </td>
+              <td>
+                <%= t.dp> 0 ? fmtRp(t.dp) : '-' %>
+              </td>
+              <td>
+                <%= t.bpjs> 0 ? fmtRp(t.bpjs) : '-' %>
+              </td>
+              <% var sisa=t.status_bayar==='lunas' ? 0 : (t.subtotal - (t.dp || 0) - (t.bpjs || 0)); %>
+                <td class="fw-bold <%= sisa === 0 ? 'text-success' : 'text-danger' %>">
+                  <%= fmtRp(sisa) %>
+                    <%= sisa===0 ? '(sudah lunas DP)' : '' %>
+                </td>
+                <td>
+                  <button class="btn btn-sm btn-outline-info" onclick="showDetail(<%= t.id %>)" title="Detail"><i
+                      class="bi bi-eye"></i></button>
+                </td>
+            </tr>
+            <% }); %>
+        </tbody>
+      </table>
+    </div>
+
+    <div class="modal fade" id="detailModal" tabindex="-1">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Detail Penjualan</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body" id="detailBody">
+            <div class="text-center">
+              <div class="spinner-border text-primary" role="status"></div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-</div>
 
-<script>
+    <script>
 $(function() {
   $('#tblKas').DataTable({
     order: [],
@@ -141,6 +194,6 @@ function showDetail(id) {
     $('#detailBody').html('<div class="alert alert-danger">Terjadi kesalahan.</div>');
   });
 }
-</script>
+    </script>
 
-<%- include('../partials/bottom') %>
+    <%- include('../partials/bottom') %>

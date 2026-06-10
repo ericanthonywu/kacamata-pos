@@ -1,284 +1,287 @@
-<%
-function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
-function fmtDate(d) { return d ? new Date(d).toLocaleDateString('id-ID') : '-'; }
-%>
-<%- include('../partials/top', { title, activePage }) %>
+<% function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); } function fmtDate(d) { return d ? new
+  Date(d).toLocaleDateString('id-ID') : '-' ; } %>
+  <%- include('../partials/top', { title, activePage }) %>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <div class="d-flex gap-2 align-items-center">
-    <label class="mb-0 fw-bold">Filter:</label>
-    <select id="filterStatus" class="form-select form-select-sm" style="width:130px">
-      <option value="">Semua Status</option>
-      <option value="lunas">Lunas</option>
-      <option value="dp">DP</option>
-      <option value="belum_lunas">Belum Lunas</option>
-    </select>
-    <input type="date" id="filterStartDate" class="form-control form-control-sm" style="width:130px">
-    <span>-</span>
-    <input type="date" id="filterEndDate" class="form-control form-control-sm" style="width:130px">
-    <button class="btn btn-sm btn-secondary" onclick="reloadTable()"><i class="bi bi-search"></i> Terapkan</button>
-    <button class="btn btn-sm btn-outline-danger" onclick="resetFilter()"><i class="bi bi-x-circle"></i> Reset</button>
-  </div>
-  <a href="/penjualan/baru" class="btn btn-primary btn-sm"><i class="bi bi-plus"></i> Penjualan Baru</a>
-</div>
-
-<div class="card p-3">
-  <table id="tblPenjualan" class="table table-hover mb-0" style="width:100%">
-    <thead><tr>
-      <th>Tanggal</th>
-      <th>No. Nota</th>
-      <th>Pelanggan</th>
-      <th>Total</th>
-      <th>DP</th>
-      <th>Sisa Bayar</th>
-      <th>Status</th>
-      <th>Sales</th>
-      <th style="width:150px">Aksi</th>
-    </tr></thead>
-    <tbody></tbody>
-  </table>
-</div>
-
-
-
-<script>
-$(function() {
-  function newExportAction(e, dt, button, config) {
-    var self = this;
-    var oldStart = dt.settings()[0]._iDisplayStart;
-    dt.one('preXhr', function (e, s, data) {
-      data.start = 0;
-      data.length = -1;
-      dt.one('preDraw', function (e, settings) {
-        if (button[0].className.indexOf('buttons-excel') >= 0) {
-          $.fn.dataTable.ext.buttons.excelHtml5.available(dt, config) ?
-            $.fn.dataTable.ext.buttons.excelHtml5.action.call(self, e, dt, button, config) : null;
-        } else if (button[0].className.indexOf('buttons-csv') >= 0) {
-          $.fn.dataTable.ext.buttons.csvHtml5.available(dt, config) ?
-            $.fn.dataTable.ext.buttons.csvHtml5.action.call(self, e, dt, button, config) : null;
-        } else if (button[0].className.indexOf('buttons-print') >= 0) {
-          $.fn.dataTable.ext.buttons.print.action.call(self, e, dt, button, config);
-        }
-        dt.one('preXhr', function (e, s, data) {
-          settings._iDisplayStart = oldStart;
-          data.start = oldStart;
-        });
-        setTimeout(dt.ajax.reload, 0);
-        return false;
-      });
-    });
-    dt.ajax.reload();
-  }
-
-  var table = $('#tblPenjualan').DataTable({
-    serverSide: true,
-    processing: true,
-    ajax: {
-      url: '/penjualan/dt',
-      data: function(d) {
-        d.start_date = $('#filterStartDate').val();
-        d.end_date = $('#filterEndDate').val();
-        d.status = $('#filterStatus').val();
-      }
-    },
-    order: [[0, 'desc']],
-    lengthMenu: [[10, 50, 100, -1], [10, 50, 100, "All"]],
-    layout: {
-      topStart: {
-        pageLength: {},
-        buttons: {}
-      },
-      topEnd: 'search',
-      bottomStart: 'info',
-      bottomEnd: 'paging'
-    },
-    buttons: [
-      {
-        extend: 'excelHtml5',
-        text: '<i class="bi bi-file-earmark-excel"></i> Excel',
-        className: 'btn btn-success btn-sm',
-        action: newExportAction,
-        exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7], orthogonal: 'export' }
-      },
-      {
-        extend: 'csvHtml5',
-        text: '<i class="bi bi-filetype-csv"></i> CSV',
-        className: 'btn btn-info btn-sm',
-        action: newExportAction,
-        exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7], orthogonal: 'export' }
-      },
-      {
-        extend: 'print',
-        text: '<i class="bi bi-printer"></i> Print',
-        className: 'btn btn-secondary btn-sm',
-        exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7], orthogonal: 'export' }
-      }
-    ],
-    columns: [
-      { 
-        data: 'order_date',
-        render: function(data) { return data ? new Date(data).toLocaleDateString('id-ID') : '-'; }
-      },
-      { 
-        data: 'no_nota',
-        render: function(data) { return '<span class="font-monospace text-info">' + escapeHtml(data) + '</span>'; }
-      },
-      { 
-        data: 'pelanggan_nama',
-        render: function(data) { return escapeHtml(data || '-'); }
-      },
-      { 
-        data: 'total',
-        className: 'fw-bold',
-        render: function(data) { return fmtRp(data); }
-      },
-      {
-        data: 'dp',
-        render: function(data) { return fmtRp(data); }
-      },
-      {
-        data: null,
-        className: 'text-danger fw-bold',
-        render: function(data, type, row) {
-          if (row.status_bayar === 'dp') {
-            return fmtRp(parseFloat(row.total || 0) - parseFloat(row.dp || 0));
-          }
-          return '-';
-        }
-      },
-      { 
-        data: 'status_bayar',
-        render: function(data, type, row) {
-          if (type !== 'display') {
-            if (data === 'lunas') return 'Lunas';
-            if (data === 'dp') return 'DP';
-            return 'Belum Lunas';
-          }
-          if (data === 'lunas') return '<span class="badge bg-success">✅ Lunas</span>';
-          if (data === 'dp') return '<a href="/pembayaran-penjualan/bayar/'+row.id+'" class="badge bg-warning text-dark text-decoration-none">⏳ DP</a>';
-          return '<a href="/pembayaran-penjualan/bayar/'+row.id+'" class="badge bg-danger text-decoration-none">❌ Belum Lunas</a>';
-        }
-      },
-      { 
-        data: 'sales_nama',
-        render: function(data) { return escapeHtml(data || '-'); }
-      },
-      { 
-        data: null, 
-        orderable: false,
-        render: function(data, type, row) {
-          var html = '<button class="btn btn-sm btn-outline-info me-1" onclick="showDetail(' + row.id + ')" title="Detail"><i class="bi bi-eye"></i></button>';
-          html += '<button class="btn btn-sm btn-outline-secondary me-1" onclick="printNota(' + row.id + ')" title="Print Nota"><i class="bi bi-printer"></i></button>';
-          if (row.status_bayar !== 'lunas') {
-            html += '<a href="/pembayaran-penjualan/bayar/' + row.id + '" class="btn btn-sm btn-outline-success me-1" title="Bayar"><i class="bi bi-wallet2"></i></a>';
-          }
-          html += '<a href="/penjualan-retur/baru?penjualan_id=' + row.id + '" class="btn btn-sm btn-outline-warning" title="Retur"><i class="bi bi-arrow-return-left"></i></a>';
-          return html;
-        }
-      }
-    ],
-    language: dtLanguageID
-  });
-});
-
-function reloadTable() {
-  $('#tblPenjualan').DataTable().ajax.reload();
-}
-
-function resetFilter() {
-  $('#filterStatus').val('');
-  $('#filterStartDate').val('');
-  $('#filterEndDate').val('');
-  $('#tblPenjualan').DataTable().ajax.reload();
-}
-
-function printNota(id) {
-  $.get('/penjualan/' + id, function(res) {
-    if (res.success) printNotaData(res.data);
-  });
-}
-
-function showDetail(id) {
-  var myModal = new bootstrap.Modal(document.getElementById('detailModal'));
-  myModal.show();
-  $('#detailBody').html('<div class="text-center"><div class="spinner-border text-primary" role="status"></div></div>');
-  
-  $.get('/penjualan/' + id, function(res) {
-    if (!res.success) {
-      $('#detailBody').html('<div class="alert alert-danger">Gagal memuat detail.</div>');
-      return;
-    }
-    var d = res.data;
-    
-    // Rincian Barang
-    var html = '<h6 class="fw-bold mb-3">Detail Barang</h6>';
-    html += '<table class="table table-sm table-bordered"><thead><tr class="bg-light"><th>Barang (Kategori)</th><th>Qty</th><th>Harga</th><th>Subtotal</th></tr></thead><tbody>';
-    d.detail.forEach(function(item) {
-      var itemName = item.nama_barang || item.barang_nama || '-';
-      var sph = item.b_sph_r || item.b_sph_l || '';
-      var cyl = item.b_cyl_r || item.b_cyl_l || '';
-      var add = item.b_add_r || item.b_add_l || '';
-      if (sph || cyl || add) {
-        itemName += ' <span class="text-muted small">(SPH : ' + sph + ' CYL : ' + cyl + ' ADD : ' + add + ')</span>';
-      }
-      var categoryName = item.kategori_nama ? ' <span class="badge bg-info bg-opacity-25 text-info">' + item.kategori_nama + '</span>' : '';
-      
-      html += '<tr>';
-      html += '<td>' + itemName + categoryName + '</td>';
-      html += '<td>' + (item.jumlah || 0) + '</td>';
-      html += '<td>' + fmtRp(item.harga) + '</td>';
-      html += '<td>' + fmtRp((item.harga || 0) * (item.jumlah || 0)) + '</td>';
-      html += '</tr>';
-    });
-    html += '</tbody></table>';
-
-    // Rincian Resep
-    var hasResepR = d.sph_r || d.cyl_r || d.axis_r || d.add_r;
-    var hasResepL = d.sph_l || d.cyl_l || d.axis_l || d.add_l;
-    
-    if (hasResepR || hasResepL) {
-      html += '<h6 class="fw-bold mt-4 mb-3">Resep Kacamata</h6>';
-      html += '<table class="table table-sm table-bordered text-center">';
-      html += '<thead class="bg-light"><tr><th>Mata</th><th>SPH</th><th>CYL</th><th>AXIS</th><th>ADD</th></tr></thead><tbody>';
-      if (hasResepR) {
-        html += '<tr><td><strong>Kanan (R)</strong></td>';
-        html += '<td>' + (d.sph_r || '-') + '</td>';
-        html += '<td>' + (d.cyl_r || '-') + '</td>';
-        html += '<td>' + (d.axis_r || '-') + '</td>';
-        html += '<td>' + (d.add_r || '-') + '</td></tr>';
-      }
-      if (hasResepL) {
-        html += '<tr><td><strong>Kiri (L)</strong></td>';
-        html += '<td>' + (d.sph_l || '-') + '</td>';
-        html += '<td>' + (d.cyl_l || '-') + '</td>';
-        html += '<td>' + (d.axis_l || '-') + '</td>';
-        html += '<td>' + (d.add_l || '-') + '</td></tr>';
-      }
-      html += '</tbody></table>';
-    }
-
-    $('#detailBody').html(html);
-  }).fail(function() {
-    $('#detailBody').html('<div class="alert alert-danger">Terjadi kesalahan.</div>');
-  });
-}
-
-function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
-
-</script>
-
-<div class="modal fade" id="detailModal" tabindex="-1">
-  <div class="modal-dialog modal-lg modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h5 class="modal-title">Detail Penjualan</h5>
-        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div class="d-flex gap-2 align-items-center">
+        <label class="mb-0 fw-bold">Filter:</label>
+        <select id="filterStatus" class="form-select form-select-sm" style="width:130px">
+          <option value="">Semua Status</option>
+          <option value="lunas">Lunas</option>
+          <option value="dp">DP</option>
+          <option value="belum_lunas">Belum Lunas</option>
+        </select>
+        <input type="date" id="filterStartDate" class="form-control form-control-sm" style="width:130px">
+        <span>-</span>
+        <input type="date" id="filterEndDate" class="form-control form-control-sm" style="width:130px">
+        <button class="btn btn-sm btn-secondary" onclick="reloadTable()"><i class="bi bi-search"></i> Terapkan</button>
+        <button class="btn btn-sm btn-outline-danger" onclick="resetFilter()"><i class="bi bi-x-circle"></i>
+          Reset</button>
       </div>
-      <div class="modal-body" id="detailBody">
-        <div class="text-center"><div class="spinner-border text-primary" role="status"></div></div>
+      <a href="/penjualan/baru" class="btn btn-primary btn-sm"><i class="bi bi-plus"></i> Penjualan Baru</a>
+    </div>
+
+    <div class="card p-3">
+      <table id="tblPenjualan" class="table table-hover mb-0" style="width:100%">
+        <thead>
+          <tr>
+            <th>Tanggal</th>
+            <th>No. Nota</th>
+            <th>Pelanggan</th>
+            <th>Total</th>
+            <th>DP</th>
+            <th>Sisa Bayar</th>
+            <th>Status</th>
+            <th>Sales</th>
+            <th style="width:150px">Aksi</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
+
+
+
+    <script>
+      $(function () {
+        function newExportAction(e, dt, button, config) {
+          var self = this;
+          var oldStart = dt.settings()[0]._iDisplayStart;
+          dt.one('preXhr', function (e, s, data) {
+            data.start = 0;
+            data.length = -1;
+            dt.one('preDraw', function (e, settings) {
+              if (button[0].className.indexOf('buttons-excel') >= 0) {
+                $.fn.dataTable.ext.buttons.excelHtml5.available(dt, config) ?
+                  $.fn.dataTable.ext.buttons.excelHtml5.action.call(self, e, dt, button, config) : null;
+              } else if (button[0].className.indexOf('buttons-csv') >= 0) {
+                $.fn.dataTable.ext.buttons.csvHtml5.available(dt, config) ?
+                  $.fn.dataTable.ext.buttons.csvHtml5.action.call(self, e, dt, button, config) : null;
+              } else if (button[0].className.indexOf('buttons-print') >= 0) {
+                $.fn.dataTable.ext.buttons.print.action.call(self, e, dt, button, config);
+              }
+              dt.one('preXhr', function (e, s, data) {
+                settings._iDisplayStart = oldStart;
+                data.start = oldStart;
+              });
+              setTimeout(dt.ajax.reload, 0);
+              return false;
+            });
+          });
+          dt.ajax.reload();
+        }
+
+        var table = $('#tblPenjualan').DataTable({
+          serverSide: true,
+          processing: true,
+          ajax: {
+            url: '/penjualan/dt',
+            data: function (d) {
+              d.start_date = $('#filterStartDate').val();
+              d.end_date = $('#filterEndDate').val();
+              d.status = $('#filterStatus').val();
+            }
+          },
+          order: [[0, 'desc']],
+          lengthMenu: [[10, 50, 100, -1], [10, 50, 100, "All"]],
+          layout: {
+            topStart: {
+              pageLength: {},
+              buttons: {}
+            },
+            topEnd: 'search',
+            bottomStart: 'info',
+            bottomEnd: 'paging'
+          },
+          buttons: [
+            {
+              extend: 'excelHtml5',
+              text: '<i class="bi bi-file-earmark-excel"></i> Excel',
+              className: 'btn btn-success btn-sm',
+              action: newExportAction,
+              exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7], orthogonal: 'export' }
+            },
+            {
+              extend: 'csvHtml5',
+              text: '<i class="bi bi-filetype-csv"></i> CSV',
+              className: 'btn btn-info btn-sm',
+              action: newExportAction,
+              exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7], orthogonal: 'export' }
+            },
+            {
+              extend: 'print',
+              text: '<i class="bi bi-printer"></i> Print',
+              className: 'btn btn-secondary btn-sm',
+              exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7], orthogonal: 'export' }
+            }
+          ],
+          columns: [
+            {
+              data: 'order_date',
+              render: function (data) { return data ? new Date(data).toLocaleDateString('id-ID') : '-'; }
+            },
+            {
+              data: 'no_nota',
+              render: function (data) { return '<span class="font-monospace text-info">' + escapeHtml(data) + '</span>'; }
+            },
+            {
+              data: 'pelanggan_nama',
+              render: function (data) { return escapeHtml(data || '-'); }
+            },
+            {
+              data: 'total',
+              className: 'fw-bold',
+              render: function (data) { return fmtRp(data); }
+            },
+            {
+              data: 'dp',
+              render: function (data) { return fmtRp(data); }
+            },
+            {
+              data: null,
+              className: 'text-danger fw-bold',
+              render: function (data, type, row) {
+                if (row.status_bayar === 'dp') {
+                  return fmtRp(parseFloat(row.total || 0) - parseFloat(row.dp || 0));
+                }
+                return '-';
+              }
+            },
+            {
+              data: 'status_bayar',
+              render: function (data, type, row) {
+                if (type !== 'display') {
+                  if (data === 'lunas') return 'Lunas';
+                  if (data === 'dp') return 'DP';
+                  return 'Belum Lunas';
+                }
+                if (data === 'lunas') return '<span class="badge bg-success">✅ Lunas</span>';
+                if (data === 'dp') return '<a href="/pembayaran-penjualan/bayar/' + row.id + '" class="badge bg-warning text-dark text-decoration-none">⏳ DP</a>';
+                return '<a href="/pembayaran-penjualan/bayar/' + row.id + '" class="badge bg-danger text-decoration-none">❌ Belum Lunas</a>';
+              }
+            },
+            {
+              data: 'sales_nama',
+              render: function (data) { return escapeHtml(data || '-'); }
+            },
+            {
+              data: null,
+              orderable: false,
+              render: function (data, type, row) {
+                var html = '<button class="btn btn-sm btn-outline-info me-1" onclick="showDetail(' + row.id + ')" title="Detail"><i class="bi bi-eye"></i></button>';
+                html += '<button class="btn btn-sm btn-outline-secondary me-1" onclick="printNota(' + row.id + ')" title="Print Nota"><i class="bi bi-printer"></i></button>';
+                if (row.status_bayar !== 'lunas') {
+                  html += '<a href="/pembayaran-penjualan/bayar/' + row.id + '" class="btn btn-sm btn-outline-success me-1" title="Bayar"><i class="bi bi-wallet2"></i></a>';
+                }
+                html += '<a href="/penjualan-retur/baru?penjualan_id=' + row.id + '" class="btn btn-sm btn-outline-warning" title="Retur"><i class="bi bi-arrow-return-left"></i></a>';
+                return html;
+              }
+            }
+          ],
+          language: dtLanguageID
+        });
+      });
+
+      function reloadTable() {
+        $('#tblPenjualan').DataTable().ajax.reload();
+      }
+
+      function resetFilter() {
+        $('#filterStatus').val('');
+        $('#filterStartDate').val('');
+        $('#filterEndDate').val('');
+        $('#tblPenjualan').DataTable().ajax.reload();
+      }
+
+      function printNota(id) {
+        $.get('/penjualan/' + id, function (res) {
+          if (res.success) printNotaData(res.data);
+        });
+      }
+
+      function showDetail(id) {
+        var myModal = new bootstrap.Modal(document.getElementById('detailModal'));
+        myModal.show();
+        $('#detailBody').html('<div class="text-center"><div class="spinner-border text-primary" role="status"></div></div>');
+
+        $.get('/penjualan/' + id, function (res) {
+          if (!res.success) {
+            $('#detailBody').html('<div class="alert alert-danger">Gagal memuat detail.</div>');
+            return;
+          }
+          var d = res.data;
+
+          // Rincian Barang
+          var html = '<h6 class="fw-bold mb-3">Detail Barang</h6>';
+          html += '<table class="table table-sm table-bordered"><thead><tr class="bg-light"><th>Barang (Kategori)</th><th>Qty</th><th>Harga</th><th>Subtotal</th></tr></thead><tbody>';
+          d.detail.forEach(function (item) {
+            var itemName = item.nama_barang || item.barang_nama || '-';
+            var sph = item.b_sph_r || item.b_sph_l || '';
+            var cyl = item.b_cyl_r || item.b_cyl_l || '';
+            var add = item.b_add_r || item.b_add_l || '';
+            if (sph || cyl || add) {
+              itemName += ' <span class="text-muted small">(SPH : ' + sph + ' CYL : ' + cyl + ' ADD : ' + add + ')</span>';
+            }
+            var categoryName = item.kategori_nama ? ' <span class="badge bg-info bg-opacity-25 text-info">' + item.kategori_nama + '</span>' : '';
+
+            html += '<tr>';
+            html += '<td>' + itemName + categoryName + '</td>';
+            html += '<td>' + (item.jumlah || 0) + '</td>';
+            html += '<td>' + fmtRp(item.harga) + '</td>';
+            html += '<td>' + fmtRp((item.harga || 0) * (item.jumlah || 0)) + '</td>';
+            html += '</tr>';
+          });
+          html += '</tbody></table>';
+
+          // Rincian Resep
+          var hasResepR = d.sph_r || d.cyl_r || d.axis_r || d.add_r;
+          var hasResepL = d.sph_l || d.cyl_l || d.axis_l || d.add_l;
+
+          if (hasResepR || hasResepL) {
+            html += '<h6 class="fw-bold mt-4 mb-3">Resep Kacamata</h6>';
+            html += '<table class="table table-sm table-bordered text-center">';
+            html += '<thead class="bg-light"><tr><th>Mata</th><th>SPH</th><th>CYL</th><th>AXIS</th><th>ADD</th></tr></thead><tbody>';
+            if (hasResepR) {
+              html += '<tr><td><strong>Kanan (R)</strong></td>';
+              html += '<td>' + (d.sph_r || '-') + '</td>';
+              html += '<td>' + (d.cyl_r || '-') + '</td>';
+              html += '<td>' + (d.axis_r || '-') + '</td>';
+              html += '<td>' + (d.add_r || '-') + '</td></tr>';
+            }
+            if (hasResepL) {
+              html += '<tr><td><strong>Kiri (L)</strong></td>';
+              html += '<td>' + (d.sph_l || '-') + '</td>';
+              html += '<td>' + (d.cyl_l || '-') + '</td>';
+              html += '<td>' + (d.axis_l || '-') + '</td>';
+              html += '<td>' + (d.add_l || '-') + '</td></tr>';
+            }
+            html += '</tbody></table>';
+          }
+
+          $('#detailBody').html(html);
+        }).fail(function () {
+          $('#detailBody').html('<div class="alert alert-danger">Terjadi kesalahan.</div>');
+        });
+      }
+
+      function fmtRp(v) { return 'Rp ' + Number(v || 0).toLocaleString('id-ID'); }
+
+    </script>
+
+    <div class="modal fade" id="detailModal" tabindex="-1">
+      <div class="modal-dialog modal-lg modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Detail Penjualan</h5>
+            <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body" id="detailBody">
+            <div class="text-center">
+              <div class="spinner-border text-primary" role="status"></div>
+            </div>
+          </div>
+        </div>
       </div>
     </div>
-  </div>
-</div>
 
-<%- include('../partials/bottom') %>
+    <%- include('../partials/bottom') %>

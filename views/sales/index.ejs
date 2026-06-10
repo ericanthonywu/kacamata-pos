@@ -1,69 +1,98 @@
-<%
-function fmtDate(d) { return d ? new Date(d).toLocaleDateString('id-ID') : '-'; }
-%>
-<%- include('../partials/top', { title, activePage }) %>
+<% function fmtDate(d) { return d ? new Date(d).toLocaleDateString('id-ID') : '-' ; } %>
+  <%- include('../partials/top', { title, activePage }) %>
 
-<div class="d-flex justify-content-between align-items-center mb-3">
-  <div></div>
-  <button class="btn btn-primary btn-sm" id="btnAdd"><i class="bi bi-plus"></i> Tambah Sales</button>
-</div>
+    <div class="d-flex justify-content-between align-items-center mb-3">
+      <div></div>
+      <button class="btn btn-primary btn-sm" id="btnAdd"><i class="bi bi-plus"></i> Tambah Sales</button>
+    </div>
 
-<div class="card p-3">
-  <table id="tblSales" class="table table-hover mb-0" style="width:100%">
-    <thead><tr><th style="width:50px">No</th><th>Nama</th><th>Komisi Frame</th><th>Komisi Lensa</th><th>Tanggal Kerja</th><th>Status</th><th style="width:120px">Aksi</th></tr></thead>
-    <tbody>
-      <% data.forEach(function(item, i) { %>
-      <tr>
-        <td><%= i + 1 %></td>
-        <td><%= item.nama %></td>
-        <td><span class="badge bg-primary bg-opacity-25 text-primary"><%= item.komisi_frame || 0 %>%</span></td>
-        <td><span class="badge bg-info bg-opacity-25 text-info"><%= item.komisi_lensa || 0 %>%</span></td>
-        <td><%= fmtDate(item.tanggal_kerja) %></td>
-        <td><span class="badge <%= item.status === 'aktif' ? 'bg-success' : 'bg-danger' %>"><%= item.status %></span></td>
-        <td>
-          <button class="btn btn-sm btn-outline-secondary me-1 btn-edit"
-            data-id="<%= item.id %>" data-nama="<%= item.nama %>"
-            data-komisi_frame="<%= item.komisi_frame || 0 %>"
-            data-komisi_lensa="<%= item.komisi_lensa || 0 %>"
-            data-tanggal="<%= item.tanggal_kerja ? new Date(item.tanggal_kerja).toISOString().slice(0,10) : '' %>"
-            data-status="<%= item.status %>">
-            <i class="bi bi-pencil"></i>
-          </button>
-          <button class="btn btn-sm btn-outline-danger btn-del" data-id="<%= item.id %>" data-url="/sales/<%= item.id %>"><i class="bi bi-trash"></i></button>
-        </td>
-      </tr>
-      <% }); %>
-    </tbody>
-  </table>
-</div>
+    <div class="card p-3">
+      <table id="tblSales" class="table table-hover mb-0" style="width:100%">
+        <thead>
+          <tr>
+            <th style="width:50px">No</th>
+            <th>Nama</th>
+            <th>Komisi Frame</th>
+            <th>Komisi Lensa</th>
+            <th>Tanggal Kerja</th>
+            <th>Status</th>
+            <th style="width:120px">Aksi</th>
+          </tr>
+        </thead>
+        <tbody>
+          <% data.forEach(function(item, i) { %>
+            <tr>
+              <td>
+                <%= i + 1 %>
+              </td>
+              <td>
+                <%= item.nama %>
+              </td>
+              <td><span class="badge bg-primary bg-opacity-25 text-primary">
+                  <%= item.komisi_frame || 0 %>%
+                </span></td>
+              <td><span class="badge bg-info bg-opacity-25 text-info">
+                  <%= item.komisi_lensa || 0 %>%
+                </span></td>
+              <td>
+                <%= fmtDate(item.tanggal_kerja) %>
+              </td>
+              <td><span class="badge <%= item.status === 'aktif' ? 'bg-success' : 'bg-danger' %>">
+                  <%= item.status %>
+                </span></td>
+              <td>
+                <button class="btn btn-sm btn-outline-secondary me-1 btn-edit" data-id="<%= item.id %>"
+                  data-nama="<%= item.nama %>" data-komisi_frame="<%= item.komisi_frame || 0 %>"
+                  data-komisi_lensa="<%= item.komisi_lensa || 0 %>"
+                  data-tanggal="<%= item.tanggal_kerja ? new Date(item.tanggal_kerja).toISOString().slice(0,10) : '' %>"
+                  data-status="<%= item.status %>">
+                  <i class="bi bi-pencil"></i>
+                </button>
+                <button class="btn btn-sm btn-outline-danger btn-del" data-id="<%= item.id %>"
+                  data-url="/sales/<%= item.id %>"><i class="bi bi-trash"></i></button>
+              </td>
+            </tr>
+            <% }); %>
+        </tbody>
+      </table>
+    </div>
 
-<div class="modal fade" id="formModal" tabindex="-1">
-  <div class="modal-dialog modal-dialog-centered">
-    <div class="modal-content">
-      <div class="modal-header"><h5 class="modal-title">Sales</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button></div>
-      <div class="modal-body">
-        <input type="hidden" id="editId">
-        <div class="mb-3"><label class="form-label small">Nama Sales</label><input type="text" class="form-control" id="nama" placeholder="Nama sales"></div>
-        <div class="row">
-          <div class="col-6 mb-3"><label class="form-label small">Komisi Frame (%)</label><input type="number" class="form-control" id="komisi_frame" min="0" max="100" step="0.5" value="0"></div>
-          <div class="col-6 mb-3"><label class="form-label small">Komisi Lensa (%)</label><input type="number" class="form-control" id="komisi_lensa" min="0" max="100" step="0.5" value="0"></div>
-        </div>
-        <div class="row">
-          <div class="col-6 mb-3"><label class="form-label small">Tanggal Kerja</label><input type="date" class="form-control" id="tanggal_kerja"></div>
-          <div class="col-6 mb-3"><label class="form-label small">Status</label>
-            <select class="form-select" id="status"><option value="aktif">Aktif</option><option value="tidak aktif">Tidak Aktif</option></select>
+    <div class="modal fade" id="formModal" tabindex="-1">
+      <div class="modal-dialog modal-dialog-centered">
+        <div class="modal-content">
+          <div class="modal-header">
+            <h5 class="modal-title">Sales</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+          </div>
+          <div class="modal-body">
+            <input type="hidden" id="editId">
+            <div class="mb-3"><label class="form-label small">Nama Sales</label><input type="text" class="form-control"
+                id="nama" placeholder="Nama sales"></div>
+            <div class="row">
+              <div class="col-6 mb-3"><label class="form-label small">Komisi Frame (%)</label><input type="number"
+                  class="form-control" id="komisi_frame" min="0" max="100" step="0.5" value="0"></div>
+              <div class="col-6 mb-3"><label class="form-label small">Komisi Lensa (%)</label><input type="number"
+                  class="form-control" id="komisi_lensa" min="0" max="100" step="0.5" value="0"></div>
+            </div>
+            <div class="row">
+              <div class="col-6 mb-3"><label class="form-label small">Tanggal Kerja</label><input type="date"
+                  class="form-control" id="tanggal_kerja"></div>
+              <div class="col-6 mb-3"><label class="form-label small">Status</label>
+                <select class="form-select" id="status">
+                  <option value="aktif">Aktif</option>
+                  <option value="tidak aktif">Tidak Aktif</option>
+                </select>
+              </div>
+            </div>
+          </div>
+          <div class="modal-footer">
+            <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+            <button class="btn btn-primary btn-sm" id="btnSave">Simpan</button>
           </div>
         </div>
       </div>
-      <div class="modal-footer">
-        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
-        <button class="btn btn-primary btn-sm" id="btnSave">Simpan</button>
-      </div>
     </div>
-  </div>
-</div>
 
-<script>
+    <script>
 $(function() {
   $('#tblSales').DataTable({ order: [], language: dtLanguageID });
 
@@ -106,6 +135,6 @@ $(function() {
     });
   });
 });
-</script>
+    </script>
 
-<%- include('../partials/bottom') %>
+    <%- include('../partials/bottom') %>
