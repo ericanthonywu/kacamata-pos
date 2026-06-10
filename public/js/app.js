@@ -155,7 +155,7 @@ function printNotaData(d) {
   lines.push('  AKAN DINYATAKAN HANGUS DAN DILUAR RESIKO KAMI');
 
   var w = window.open('','_blank','width=800,height=600');
-  w.document.write('<html><head><title>Nota Continuous Form</title><style>@page { size: portrait; margin: 0; } body { font-family: monospace; font-size: 13px; white-space: pre; margin: 10mm; line-height: 1.2; }</style></head><body>' + lines.join('\n') + '</body></html>');
+  w.document.write('<html><head><title>Nota Continuous Form</title><style>@page { size: portrait; margin: 0; } body { font-family: monospace; font-size: 13px; white-space: pre; margin: 10mm; line-height: 1.2; transform: scale(0.75); transform-origin: top left; width: 133.33%; }</style></head><body>' + lines.join('\n') + '</body></html>');
   w.document.close();
   w.onload = function() { w.print(); };
 }
