@@ -182,14 +182,14 @@ function printBarcodes(id, format) {
           '    </div>' +
           '  </div>';
 
-        labels += '<div class="label">';
+        labels += '<div class="label"><div class="label-inner">';
         labels += halfHtml; // Kiri
         if (format === 'double') {
           labels += halfHtml; // Kanan (sama)
         } else {
           labels += '<div class="half"></div>'; // Kanan (kosong)
         }
-        labels += '</div>';
+        labels += '</div></div>';
       }
     });
     var html = [
@@ -197,10 +197,11 @@ function printBarcodes(id, format) {
       '<html><head><title>Barcode Pembelian</title>',
       '<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"><\/script>',
       '<style>',
-      '@page { size: 33mm 15mm; margin: 0; }',
+      '@page { size: 15mm 33mm; margin: 0; }',
       '* { margin: 0; padding: 0; box-sizing: border-box; }',
       'body { background: #fff; color: #000; font-family: Arial, sans-serif; overflow: hidden; }',
-      '.label { width: 33mm; height: 15mm; display: flex; page-break-after: always; overflow: hidden; position: relative; }',
+      '.label { width: 15mm; height: 33mm; page-break-after: always; overflow: hidden; position: relative; }',
+      '.label-inner { width: 33mm; height: 15mm; position: absolute; top: 0; left: 0; transform-origin: top left; transform: translateX(15mm) rotate(90deg); display: flex; }',
       '.half { width: 50%; height: 100%; display: flex; flex-direction: column; justify-content: center; padding: 0.5mm 1mm; }',
       '.name { font-size: 5pt; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: uppercase; margin-bottom: 0.5mm; text-align: center; }',
       '.bc-wrapper { display: flex; justify-content: center; align-items: center; margin-bottom: 0.5mm; min-height: 16px; }',
