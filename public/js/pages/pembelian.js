@@ -201,7 +201,7 @@ function printBarcodes(id, format) {
       '* { margin: 0; padding: 0; box-sizing: border-box; }',
       'body { background: #fff; color: #000; font-family: Arial, sans-serif; overflow: hidden; }',
       '.label { width: 15mm; height: 35mm; page-break-after: always; overflow: hidden; position: relative; }',
-      '.label-inner { width: 35mm; height: 15mm; position: absolute; top: 0; left: 0; transform-origin: top left; transform: translateY(35mm) rotate(90deg); display: flex; }',
+      '.label-inner { width: 35mm; height: 15mm; position: absolute; top: 0; left: 0; transform-origin: top left; transform: translateX(15mm) rotate(-90deg); display: flex; }',
       '.half { width: 50%; height: 100%; display: flex; flex-direction: column; justify-content: center; padding: 0.5mm 1mm; }',
       '.name { font-size: 5pt; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: uppercase; margin-bottom: 0.5mm; text-align: center; }',
       '.bc-wrapper { display: flex; justify-content: center; align-items: center; margin-bottom: 0.5mm; min-height: 16px; }',
