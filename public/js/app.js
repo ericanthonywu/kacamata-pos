@@ -192,7 +192,7 @@ function printBarcodesFromItems(items, format) {
     '<style>',
     '@page { size: 73mm 19mm; margin: 0; }',
     '* { margin: 0; padding: 0; box-sizing: border-box; }',
-    'body { background: #fff; color: #000; font-family: Arial, sans-serif; margin: 0;  margin-top: -2.5px; }',
+    'body { background: #fff; color: #000; font-family: Arial, sans-serif; margin: 0;  margin-top: -2px; }',
     '.label { width: 100%; height: 100vh; display: flex; page-break-after: always; }',
     '.half { width: 48%; height: 100%; display: flex; flex-direction: column; justify-content: flex-start; padding: 0.5mm 2mm; overflow: hidden; }',
     '.label .half:first-child { margin-right: 4%; }',
