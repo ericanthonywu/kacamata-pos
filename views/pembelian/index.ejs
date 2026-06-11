@@ -39,6 +39,13 @@ function fmtDate(d) { return d ? new Date(d).toLocaleDateString('id-ID') : '-'; 
 window.userRole = '<%= currentUser.hak_akses %>';
 var table;
 $(function() {
+  var d = new Date();
+  var y = d.getFullYear();
+  var m = String(d.getMonth() + 1).padStart(2, '0');
+  var day = String(d.getDate()).padStart(2, '0');
+  $('#filterStartDate').val(y + '-' + m + '-01');
+  $('#filterEndDate').val(y + '-' + m + '-' + day);
+
   var expCols = window.userRole === 'admin' ? [0, 1, 2, 3, 4] : [0, 1, 2, 3];
   function newExportAction(e, dt, button, config) {
     var self = this;
@@ -186,10 +193,10 @@ function showDetail(id) {
     html += '</table>';
     if (d.detail && d.detail.length > 0) {
       html += '<hr><h6 class="small fw-bold">Item Pembelian</h6>';
-      html += '<table class="table table-sm mb-0"><thead><tr><th>Barang</th><th>Qty</th><th>Harga Beli</th><th>Subtotal</th></tr></thead><tbody>';
+      html += '<table class="table table-sm mb-0"><thead><tr><th>Barang</th><th>Barcode</th><th>Qty</th><th>Harga Beli</th><th>Subtotal</th></tr></thead><tbody>';
       d.detail.forEach(function(item) {
         var sub = (item.harga_beli || 0) * (item.jumlah || 1);
-        html += '<tr><td>' + (item.nama_barang || '-') + '</td><td>' + item.jumlah + '</td><td>' + fmtRp(item.harga_beli) + '</td><td>' + fmtRp(sub) + '</td></tr>';
+        html += '<tr><td>' + (item.nama_barang || '-') + '</td><td class="font-monospace">' + (item.barcode_id || '-') + '</td><td>' + item.jumlah + '</td><td>' + fmtRp(item.harga_beli) + '</td><td>' + fmtRp(sub) + '</td></tr>';
       });
       html += '</tbody></table>';
     }

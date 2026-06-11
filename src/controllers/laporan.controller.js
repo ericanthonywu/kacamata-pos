@@ -5,9 +5,15 @@ const kategoriService = require('../services/kategori.service');
 
 exports.kas = async function (req, res, next) {
   try {
+    const now = new Date();
+    const year = now.getFullYear();
+    const month = String(now.getMonth() + 1).padStart(2, '0');
+    const todayStr = `${year}-${month}-${String(now.getDate()).padStart(2, '0')}`;
+    const firstDayOfMonth = `${year}-${month}-01`;
+
     const filters = {
-      from: req.query.from || new Date().toISOString().split('T')[0],
-      to: req.query.to || new Date().toISOString().split('T')[0],
+      from: req.query.from || firstDayOfMonth,
+      to: req.query.to || todayStr,
       sales_id: req.query.sales_id || null,
       kategori_id: req.query.kategori_id || null,
       status_bayar: req.query.status_bayar || null,

@@ -44,6 +44,13 @@
 
     <script>
       $(function () {
+        var d = new Date();
+        var y = d.getFullYear();
+        var m = String(d.getMonth() + 1).padStart(2, '0');
+        var day = String(d.getDate()).padStart(2, '0');
+        $('#filterStartDate').val(y + '-' + m + '-01');
+        $('#filterEndDate').val(y + '-' + m + '-' + day);
+
         function newExportAction(e, dt, button, config) {
           var self = this;
           var oldStart = dt.settings()[0]._iDisplayStart;
@@ -213,7 +220,7 @@
 
           // Rincian Barang
           var html = '<h6 class="fw-bold mb-3">Detail Barang</h6>';
-          html += '<table class="table table-sm table-bordered"><thead><tr class="bg-light"><th>Barang (Kategori)</th><th>Qty</th><th>Harga</th><th>Subtotal</th></tr></thead><tbody>';
+          html += '<table class="table table-sm table-bordered"><thead><tr class="bg-light"><th>Barang (Kategori)</th><th>Barcode</th><th>Qty</th><th>Harga</th><th>Subtotal</th></tr></thead><tbody>';
           d.detail.forEach(function (item) {
             var itemName = item.nama_barang || item.barang_nama || '-';
             var sph = item.b_sph_r || item.b_sph_l || '';
@@ -226,6 +233,7 @@
 
             html += '<tr>';
             html += '<td>' + itemName + categoryName + '</td>';
+            html += '<td class="font-monospace">' + (item.barcode_id || '-') + '</td>';
             html += '<td>' + (item.jumlah || 0) + '</td>';
             html += '<td>' + fmtRp(item.harga) + '</td>';
             html += '<td>' + fmtRp((item.harga || 0) * (item.jumlah || 0)) + '</td>';
