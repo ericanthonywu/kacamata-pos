@@ -197,7 +197,7 @@ function printBarcodesFromItems(items, format) {
     '.half { width: 48%; height: 100%; display: flex; flex-direction: column; justify-content: flex-start; padding: 0.5mm 2mm; overflow: hidden; }',
     '.label .half:first-child { margin-right: 4%; }',
     '.name { font-size: 6pt; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: uppercase; text-align: left; margin-bottom: 0.5mm; }',
-    '.bc-wrapper { display: flex; justify-content: center; align-items: center; overflow: hidden; height: 2mm; }',
+    '.bc-wrapper { display: flex; justify-content: center; align-items: center; overflow: hidden; height: 2mm; width: 30%; margin: 0 auto; }',
     'svg { display: block; max-height: 100%; }',
     '.bottom-info { display: flex; justify-content: space-between; font-size: 5pt; font-weight: normal; margin-top: 0.5mm; }',
     '</style></head><body>',
@@ -206,7 +206,7 @@ function printBarcodesFromItems(items, format) {
     'document.querySelectorAll(".bc").forEach(function(el) {',
     '  JsBarcode(el, el.dataset.code, { format: "CODE128", width: 1, height: 30, displayValue: false, margin: 0 });',
     '  var w = parseFloat(el.getAttribute("width")), h = parseFloat(el.getAttribute("height"));',
-    '  if (w && h) { el.setAttribute("viewBox", "0 0 " + w + " " + h); el.removeAttribute("width"); el.removeAttribute("height"); el.style.width = "100%"; el.style.height = "100%"; }',
+    '  if (w && h) { el.setAttribute("viewBox", "0 0 " + w + " " + h); el.removeAttribute("width"); el.removeAttribute("height"); el.setAttribute("preserveAspectRatio", "none"); el.style.width = "100%"; el.style.height = "100%"; }',
     '});',
     'window.onload = function() { setTimeout(function(){ window.print(); }, 500); };',
     '<\/script></body></html>'
