@@ -160,6 +160,61 @@ function printNotaData(d) {
   w.onload = function() { w.print(); };
 }
 
+// Print barcode labels — shared by pembelian & barang
+// items: [{ barcode_id, nama_barang, harga_jual, jumlah }]
+// format: 'double' (both halves filled) | 'single' (right half blank)
+function printBarcodesFromItems(items, format) {
+  format = format || 'double';
+  var labels = '';
+  items.forEach(function (item) {
+    var priceStr = '- Rp ' + Number(item.harga_jual || 0).toLocaleString('id-ID');
+    var halfHtml =
+      '<div class="half">' +
+      '<div class="name">' + escapeHtml(item.nama_barang || '-') + '</div>' +
+      '<div class="bc-wrapper"><svg class="bc" data-code="' + escapeHtml(item.barcode_id) + '"></svg></div>' +
+      '<div class="bottom-info">' +
+      '<span>' + escapeHtml(item.barcode_id) + '</span>' +
+      '<span>' + priceStr + '</span>' +
+      '</div>' +
+      '</div>';
+    for (var q = 0; q < (item.jumlah || 1); q++) {
+      labels += '<div class="label">';
+      labels += halfHtml;
+      labels += (format === 'double') ? halfHtml : '<div class="half"></div>';
+      labels += '</div>';
+    }
+  });
+  var w = window.open('', '_blank', 'width=600,height=400');
+  var html = [
+    '<!DOCTYPE html>',
+    '<html><head><title>Barcode</title>',
+    '<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"><\/script>',
+    '<style>',
+    '@page { size: 73mm 19mm; margin: 0; }',
+    '* { margin: 0; padding: 0; box-sizing: border-box; }',
+    'body { background: #fff; color: #000; font-family: Arial, sans-serif; margin: 0;  margin-top: -2px; }',
+    '.label { width: 100%; height: 100vh; display: flex; page-break-after: always; }',
+    '.half { width: 48%; height: 100%; display: flex; flex-direction: column; justify-content: flex-start; padding: 0.5mm 2mm; overflow: hidden; }',
+    '.label .half:first-child { margin-right: 4%; }',
+    '.name { font-size: 6pt; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: uppercase; text-align: left; margin-bottom: 0.5mm; }',
+    '.bc-wrapper { display: flex; justify-content: center; align-items: center; overflow: hidden; height: 3mm; width: 30%; margin: 0 auto; }',
+    'svg { display: block; max-height: 100%; }',
+    '.bottom-info { display: flex; justify-content: space-between; font-size: 5pt; font-weight: normal; margin-top: 0.5mm; }',
+    '</style></head><body>',
+    labels,
+    '<script>',
+    'document.querySelectorAll(".bc").forEach(function(el) {',
+    '  JsBarcode(el, el.dataset.code, { format: "CODE128", width: 1, height: 30, displayValue: false, margin: 0 });',
+    '  var w = parseFloat(el.getAttribute("width")), h = parseFloat(el.getAttribute("height"));',
+    '  if (w && h) { el.setAttribute("viewBox", "0 0 " + w + " " + h); el.removeAttribute("width"); el.removeAttribute("height"); el.setAttribute("preserveAspectRatio", "none"); el.style.width = "100%"; el.style.height = "100%"; }',
+    '});',
+    'window.onload = function() { setTimeout(function(){ window.print(); }, 500); };',
+    '<\/script></body></html>'
+  ].join('\n');
+  w.document.write(html);
+  w.document.close();
+}
+
 // Confirm delete — used by all CRUD pages
 var deleteUrl = null;
 function confirmDelete(id, url) {

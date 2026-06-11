@@ -162,61 +162,11 @@ function showDetail(id) {
 }
 
 function printBarcodes(id, format) {
-  format = format || 'double';
   $.get('/pembelian/' + id, function (res) {
     if (!res.success || !res.data.detail) return;
     var items = res.data.detail.filter(function (i) { return i.barcode_id; });
     if (items.length === 0) { showToast('Tidak ada item dengan barcode', 'warning'); return; }
-    var w = window.open('', '_blank', 'width=600,height=400');
-    var labels = '';
-    items.forEach(function (item) {
-      var priceStr = '- Rp ' + Number(item.harga_jual || 0).toLocaleString('id-ID');
-      for (var q = 0; q < item.jumlah; q++) {
-        var halfHtml =
-          '  <div class="half">' +
-          '    <div class="name">' + (item.nama_barang || '-') + '</div>' +
-          '    <div class="bc-wrapper"><svg class="bc" data-code="' + item.barcode_id + '"></svg></div>' +
-          '    <div class="bottom-info">' +
-          '      <span>' + item.barcode_id + '</span>' +
-          '      <span>' + priceStr + '</span>' +
-          '    </div>' +
-          '  </div>';
-
-        labels += '<div class="label">';
-        labels += halfHtml; // Kiri
-        if (format === 'double') {
-          labels += halfHtml; // Kanan (sama)
-        } else {
-          labels += '<div class="half"></div>'; // Kanan (kosong)
-        }
-        labels += '</div>';
-      }
-    });
-    var html = [
-      '<!DOCTYPE html>',
-      '<html><head><title>Barcode Pembelian</title>',
-      '<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"><\/script>',
-      '<style>',
-      '@page { size: 33mm 15mm; margin: 0; }',
-      '* { margin: 0; padding: 0; box-sizing: border-box; }',
-      'body { background: #fff; color: #000; font-family: Arial, sans-serif; }',
-      '.label { width: 33mm; height: 15mm; display: flex; page-break-after: always; overflow: hidden; }',
-      '.half { width: 50%; height: 100%; display: flex; flex-direction: column; justify-content: center; padding: 0.5mm 1mm; }',
-      '.name { font-size: 4pt; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: uppercase; margin-bottom: 0.5mm; }',
-      '.bc-wrapper { display: flex; justify-content: center; align-items: center; margin-bottom: 0.5mm; }',
-      'svg { display: block; }',
-      '.bottom-info { display: flex; justify-content: space-between; font-size: 3.5pt; font-weight: normal; }',
-      '</style></head><body>',
-      labels,
-      '<script>',
-      'document.querySelectorAll(".bc").forEach(function(el) {',
-      '  JsBarcode(el, el.dataset.code, { format: "CODE128", width: 0.6, height: 12, displayValue: false, margin: 0 });',
-      '});',
-      'window.onload = function() { setTimeout(function(){ window.print(); }, 500); };',
-      '<\/script></body></html>'
-    ].join('\n');
-    w.document.write(html);
-    w.document.close();
+    printBarcodesFromItems(items, format);
   });
 }
 </script >
