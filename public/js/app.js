@@ -190,7 +190,7 @@ function printBarcodesFromItems(items, format) {
     '<html><head><title>Barcode</title>',
     '<script src="https://cdn.jsdelivr.net/npm/jsbarcode@3.11.6/dist/JsBarcode.all.min.js"><\/script>',
     '<style>',
-    '@page { size: 73mm 21mm; margin: 0; }',
+    '@page { size: 73mm 19mm; margin: 0; margin-top: -4px }',
     '* { margin: 0; padding: 0; box-sizing: border-box; }',
     'body { background: #fff; color: #000; font-family: Arial, sans-serif; margin: 0; }',
     '.label { width: 100%; height: 100vh; display: flex; page-break-after: always; }',
