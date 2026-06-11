@@ -31,7 +31,14 @@ exports.getDatatablesData = async function (params) {
     baseQuery = baseQuery.where(function() {
       this.where('penjualan.no_nota', 'ilike', `%${search.value}%`)
           .orWhere('pelanggan.nama', 'ilike', `%${search.value}%`)
-          .orWhere('sales.nama', 'ilike', `%${search.value}%`);
+          .orWhere('sales.nama', 'ilike', `%${search.value}%`)
+          .orWhereExists(function() {
+            this.select('*')
+                .from('penjualan_detail')
+                .join('barang', 'penjualan_detail.barang_id', 'barang.id')
+                .whereRaw('penjualan_detail.penjualan_id = penjualan.id')
+                .andWhere('barang.barcode_id', 'ilike', `%${search.value}%`);
+          });
     });
   }
 

@@ -22,7 +22,14 @@ exports.getDatatablesData = async function (params) {
   if (search && search.value) {
     baseQuery = baseQuery.where(function() {
       this.where('pembelian.kode_pembelian', 'ilike', `%${search.value}%`)
-          .orWhere('supplier.nama', 'ilike', `%${search.value}%`);
+          .orWhere('supplier.nama', 'ilike', `%${search.value}%`)
+          .orWhereExists(function() {
+            this.select('*')
+                .from('pembelian_detail')
+                .join('barang', 'pembelian_detail.barang_id', 'barang.id')
+                .whereRaw('pembelian_detail.pembelian_id = pembelian.id')
+                .andWhere('barang.barcode_id', 'ilike', `%${search.value}%`);
+          });
     });
   }
 
