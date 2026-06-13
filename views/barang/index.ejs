@@ -207,7 +207,7 @@
             url: id ? '/barang/' + id : '/barang', method: id ? 'PUT' : 'POST',
             contentType: 'application/json', data: JSON.stringify(payload),
             success: function (res) { if (res.success) location.reload(); },
-            error: function (xhr) { showToast(xhr.responseJSON?.message || 'Gagal', 'danger'); }
+            error: function (xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal', 'danger'); }
           });
         });
       });

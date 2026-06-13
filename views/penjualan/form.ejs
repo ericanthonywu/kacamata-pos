@@ -299,7 +299,7 @@
                 showToast('Pelanggan berhasil dipilih', 'success');
               }
             },
-            error: function (xhr) { showToast(xhr.responseJSON?.message || 'Gagal menambahkan pelanggan', 'danger'); }
+            error: function (xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal menambahkan pelanggan', 'danger'); }
           });
         }
 
@@ -373,7 +373,7 @@
               if (res.success && withPrint) printNotaData(res.data);
               window.location.href = '/penjualan';
             },
-            error: function (xhr) { showToast(xhr.responseJSON?.message || 'Gagal menyimpan', 'danger'); }
+            error: function (xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal menyimpan', 'danger'); }
           });
         }
       </script>

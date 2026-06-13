@@ -112,7 +112,7 @@ $('#voidBtn').on('click', function() {
   if (!voidId) return;
   $.ajax({ url: '/pembelian-retur/' + voidId, method: 'DELETE',
     success: function() { location.reload(); },
-    error: function(xhr) { showToast(xhr.responseJSON?.message || 'Gagal', 'danger'); }
+    error: function(xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal', 'danger'); }
   });
 });
     </script>

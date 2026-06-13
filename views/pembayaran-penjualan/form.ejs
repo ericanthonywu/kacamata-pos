@@ -131,7 +131,7 @@
         $.ajax({
           url: '/pembayaran-penjualan', method: 'POST', contentType: 'application/json', data: JSON.stringify(payload),
           success: function () { location.reload(); },
-          error: function (xhr) { showToast(xhr.responseJSON?.message || 'Gagal', 'danger'); }
+          error: function (xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal', 'danger'); }
         });
       }
 
@@ -140,7 +140,7 @@
         $.ajax({
           url: '/pembayaran-penjualan/' + id, method: 'DELETE',
           success: function () { location.reload(); },
-          error: function (xhr) { showToast(xhr.responseJSON?.message || 'Gagal', 'danger'); }
+          error: function (xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal', 'danger'); }
         });
       }
     </script>

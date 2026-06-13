@@ -5,7 +5,7 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
 
 <div class="d-flex justify-content-between align-items-center mb-4">
   <div>
-    <h3 class="fw-bold mb-1">Selamat Datang, <%= currentUser?.nama %> 👋</h3>
+    <h3 class="fw-bold mb-1">Selamat Datang, <%= currentUser ? currentUser.nama : '' %> 👋</h3>
     <p class="text-muted mb-0">Panel admin OPTIK SENTRAL — kelola data toko Anda.</p>
   </div>
   <a href="/penjualan/baru" class="btn btn-primary shadow" style="border-radius: 10px; padding: 10px 20px; font-weight: 600;">

@@ -119,7 +119,7 @@
           url: '/penjualan-retur', method: 'POST', contentType: 'application/json',
           data: JSON.stringify({ penjualan_id: penjualanId, tanggal_retur: $('#tanggal_retur').val(), items: items }),
           success: function (res) { if (res.success) window.location.href = '/penjualan-retur'; },
-          error: function (xhr) { showToast(xhr.responseJSON?.message || 'Gagal', 'danger'); }
+          error: function (xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal', 'danger'); }
         });
       }
 

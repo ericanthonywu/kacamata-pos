@@ -113,7 +113,7 @@
           url: '/pembelian-retur', method: 'POST', contentType: 'application/json',
           data: JSON.stringify({ pembelian_id: pembelianId, tanggal_retur: $('#tanggal_retur').val(), items: items }),
           success: function (res) { if (res.success) window.location.href = '/pembelian-retur'; },
-          error: function (xhr) { showToast(xhr.responseJSON?.message || 'Gagal', 'danger'); }
+          error: function (xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal', 'danger'); }
         });
       }
 

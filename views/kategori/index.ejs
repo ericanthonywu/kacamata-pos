@@ -87,7 +87,7 @@ $(function() {
     $.ajax({ url: id ? '/kategori/' + id : '/kategori', method: id ? 'PUT' : 'POST',
       contentType: 'application/json', data: JSON.stringify({ nama: $('#nama').val() }),
       success: function(res) { if (res.success) location.reload(); },
-      error: function(xhr) { showToast(xhr.responseJSON?.message || 'Gagal menyimpan', 'danger'); }
+      error: function(xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal menyimpan', 'danger'); }
     });
   });
 });

@@ -92,14 +92,14 @@
   <div class="sidebar-footer">
     <div class="sidebar-user">
       <div class="user-avatar">
-        <%= currentUser?.nama?.charAt(0).toUpperCase() || 'U' %>
+        <%= (currentUser && currentUser.nama) ? currentUser.nama.charAt(0).toUpperCase() : 'U' %>
       </div>
       <div class="user-info">
         <div class="user-name">
-          <%= currentUser?.nama || 'User' %>
+          <%= (currentUser && currentUser.nama) ? currentUser.nama : 'User' %>
         </div>
         <div class="user-role">
-          <%= currentUser?.hak_akses || '-' %>
+          <%= (currentUser && currentUser.hak_akses) ? currentUser.hak_akses : '-' %>
         </div>
       </div>
       <a href="/logout" class="btn btn-sm btn-outline-secondary ms-auto" title="Logout">

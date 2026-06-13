@@ -131,7 +131,7 @@ $(function() {
       contentType: 'application/json',
       data: JSON.stringify({ nama: $('#nama').val(), komisi_frame: parseFloat($('#komisi_frame').val()) || 0, komisi_lensa: parseFloat($('#komisi_lensa').val()) || 0, tanggal_kerja: $('#tanggal_kerja').val(), status: $('#status').val() }),
       success: function(r) { if (r.success) location.reload(); },
-      error: function(xhr) { showToast(xhr.responseJSON?.message || 'Gagal', 'danger'); }
+      error: function(xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal', 'danger'); }
     });
   });
 });

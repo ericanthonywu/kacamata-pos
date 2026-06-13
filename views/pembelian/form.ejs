@@ -184,7 +184,7 @@
             success: function (res) {
               if (res.success) window.location.href = '/pembelian';
             },
-            error: function (xhr) { showToast(xhr.responseJSON?.message || 'Gagal menyimpan', 'danger'); }
+            error: function (xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal menyimpan', 'danger'); }
           });
         }
       </script>
