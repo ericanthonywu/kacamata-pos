@@ -158,7 +158,7 @@ function printNotaData(d) {
   lines.push('  AKAN DINYATAKAN HANGUS DAN DILUAR RESIKO KAMI');
 
   var w = window.open('', '_blank', 'width=900,height=600');
-  w.document.write('<html><head><title>Nota Penjualan</title><style>@page { size: portrait; margin: 0; } body { font-family: "Courier New", Courier, monospace; font-size: 12px; font-weight: 1000; white-space: pre; margin: 8mm 5mm 5mm 5mm; line-height: 1.2; }</style></head><body>' + lines.join('\n') + '</body></html>');
+  w.document.write('<html><head><title>Nota Penjualan</title><style>@page { size: portrait; margin: 0; } body { font-family: "Courier New", Courier, monospace; font-size: 12px; font-weight: 1000; white-space: pre; margin: 9mm 5mm 5mm 5mm; line-height: 1.2; }</style></head><body>' + lines.join('\n') + '</body></html>');
   w.document.close();
   w.onload = function () { setTimeout(function () { w.print(); }, 200); };
 }
