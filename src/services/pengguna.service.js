@@ -13,7 +13,7 @@ exports.authenticate = async function (username, password) {
 };
 
 exports.create = async function (data) {
-  if (!data.nama?.trim() || !data.username?.trim() || !data.password)
+  if (!(data.nama || '').trim() || !(data.username || '').trim() || !data.password)
     throw Object.assign(new Error('Nama, username, dan password harus diisi'), { status: 400 });
   const hash = await bcrypt.hash(data.password, 10);
   return repo.create({
@@ -25,7 +25,7 @@ exports.create = async function (data) {
 };
 
 exports.update = async function (id, data) {
-  if (!data.nama?.trim() || !data.username?.trim())
+  if (!(data.nama || '').trim() || !(data.username || '').trim())
     throw Object.assign(new Error('Nama dan username harus diisi'), { status: 400 });
   const payload = { nama: data.nama.trim(), username: data.username.trim(), hak_akses: data.hak_akses || 'kasir' };
   if (data.password) payload.password_hash = await bcrypt.hash(data.password, 10);

@@ -5,7 +5,7 @@ exports.getActive = function () { return repo.findActive(); };
 exports.getById = function (id) { return repo.findById(id); };
 
 exports.create = function (data) {
-  if (!data.nama?.trim()) throw Object.assign(new Error('Nama sales harus diisi'), { status: 400 });
+  if (!(data.nama || '').trim()) throw Object.assign(new Error('Nama sales harus diisi'), { status: 400 });
   return repo.create({
     nama: data.nama.trim(),
     komisi_frame: parseFloat(data.komisi_frame) || 0,
@@ -16,7 +16,7 @@ exports.create = function (data) {
 };
 
 exports.update = function (id, data) {
-  if (!data.nama?.trim()) throw Object.assign(new Error('Nama sales harus diisi'), { status: 400 });
+  if (!(data.nama || '').trim()) throw Object.assign(new Error('Nama sales harus diisi'), { status: 400 });
   return repo.update(id, {
     nama: data.nama.trim(),
     komisi_frame: parseFloat(data.komisi_frame) || 0,
