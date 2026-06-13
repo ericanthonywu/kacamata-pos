@@ -65,99 +65,123 @@ function printNotaData(d) {
     sisa = 0;
   }
 
-  // Helper to pad strings
-  var padRight = function(str, length) { return (str + '                                                                                                    ').substring(0, length); };
-  var padLeft = function(str, length) { return ('                                                                                                    ' + str).slice(-length); };
-  var centerText = function(str, length) { 
-    var pad = Math.max(0, Math.floor((length - str.length) / 2));
-    return padRight('                                                                                                    '.substring(0, pad) + str, length);
-  };
-
   var lines = [];
   
-  lines.push('<div style="display: flex; justify-content: space-between; align-items: flex-start; width: 80ch; font-family: monospace; font-size: 13px; white-space: normal; line-height: 1.5; margin-bottom: 15px;">');
-  lines.push('  <div style="font-size: 18px; font-weight: bold; width: 30%;">NO INVOICE:<br>' + no + '</div>');
-  lines.push('  <div style="text-align: center; width: 40%;">');
-  lines.push('    <strong style="font-size: 16px;">OPTIK SENTRAL</strong><br>');
+  lines.push('<div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; font-family: monospace; font-size: 14px; line-height: 1.5; margin-bottom: 20px;">');
+  lines.push('  <div style="font-size: 18px; font-weight: bold; width: 33%;">NO INVOICE:<br>' + no + '</div>');
+  lines.push('  <div style="text-align: center; width: 33%;">');
+  lines.push('    <strong style="font-size: 18px;">OPTIK SENTRAL</strong><br>');
   lines.push('    JL.R.SUPRAPTONO.NO.41 KETAPANG<br>');
   lines.push('    TELP : 085350509540');
   lines.push('  </div>');
-  lines.push('  <div style="text-align: right; width: 30%;">dikirim<br>' + orderDate + '</div>');
+  lines.push('  <div style="text-align: right; width: 33%;">dikirim<br>' + orderDate + '</div>');
   lines.push('</div>');
-  var strTglSelesai = 'Tgl. Selesai : ' + tglSelesai;
-  lines.push(padRight('Nama      : ' + nama, 80 - strTglSelesai.length) + strTglSelesai);
-  lines.push('Telp      : ' + telp);
-  lines.push('');
-  lines.push('________________________________________________________________________________');
-  lines.push('');
-  
+
+  lines.push('<div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 10px; font-family: monospace; font-size: 14px;">');
+  lines.push('  <div style="width: 50%;">');
+  lines.push('    <table style="width: 100%; font-family: monospace; font-size: 14px;">');
+  lines.push('      <tr><td style="width: 100px;">Nama</td><td>: ' + nama + '</td></tr>');
+  lines.push('      <tr><td>Telp</td><td>: ' + telp + '</td></tr>');
+  lines.push('    </table>');
+  lines.push('  </div>');
+  lines.push('  <div style="width: 50%;">');
+  lines.push('    <table style="width: 100%; font-family: monospace; font-size: 14px;">');
+  lines.push('      <tr><td style="width: 120px;">Tgl. Selesai</td><td>: ' + tglSelesai + '</td></tr>');
+  lines.push('    </table>');
+  lines.push('  </div>');
+  lines.push('</div>');
+
+  lines.push('<hr style="border-top: 1px solid black; border-bottom: 0; margin: 15px 0;">');
+
+  lines.push('<table style="width: 100%; border-collapse: collapse; font-family: monospace; font-size: 14px;">');
   var itemNum = 1;
   if (frameItem) {
-    lines.push(padRight(itemNum + '. FRAME   : ' + (frameItem.nama_barang||'-'), 60) + padLeft('Rp ' + Number(frameItem.harga * frameItem.jumlah).toLocaleString('id-ID'), 20));
+    lines.push('<tr><td style="width: 5%; padding: 4px 0;">' + itemNum + '.</td><td style="width: 65%; padding: 4px 0;">FRAME : ' + (frameItem.nama_barang||'-') + '</td><td style="width: 30%; text-align: right; padding: 4px 0;">Rp ' + Number(frameItem.harga * frameItem.jumlah).toLocaleString('id-ID') + '</td></tr>');
     itemNum++;
   }
   if (lensaRItem) {
-    lines.push(padRight(itemNum + '. LENSA(R): ' + (lensaRItem.nama_barang||'-'), 60) + padLeft('Rp ' + Number(lensaRItem.harga * lensaRItem.jumlah).toLocaleString('id-ID'), 20));
+    lines.push('<tr><td style="padding: 4px 0;">' + itemNum + '.</td><td style="padding: 4px 0;">LENSA(R) : ' + (lensaRItem.nama_barang||'-') + '</td><td style="text-align: right; padding: 4px 0;">Rp ' + Number(lensaRItem.harga * lensaRItem.jumlah).toLocaleString('id-ID') + '</td></tr>');
     itemNum++;
   }
   if (lensaLItem) {
-    lines.push(padRight(itemNum + '. LENSA(L): ' + (lensaLItem.nama_barang||'-'), 60) + padLeft('Rp ' + Number(lensaLItem.harga * lensaLItem.jumlah).toLocaleString('id-ID'), 20));
+    lines.push('<tr><td style="padding: 4px 0;">' + itemNum + '.</td><td style="padding: 4px 0;">LENSA(L) : ' + (lensaLItem.nama_barang||'-') + '</td><td style="text-align: right; padding: 4px 0;">Rp ' + Number(lensaLItem.harga * lensaLItem.jumlah).toLocaleString('id-ID') + '</td></tr>');
     itemNum++;
   }
-  lines.push(padRight('', 40) + padRight('Jumlah', 20) + ': ' + padLeft('Rp ' + Number(total).toLocaleString('id-ID'), 18));
+  lines.push('</table>');
+
+  lines.push('<div style="display: flex; justify-content: flex-end; width: 100%; margin-top: 15px; font-family: monospace; font-size: 14px;">');
+  lines.push('  <table style="width: 40%; font-family: monospace; font-size: 14px;">');
+  lines.push('    <tr><td style="padding: 2px 0;">Jumlah</td><td style="text-align: right; padding: 2px 0;">: Rp ' + Number(total).toLocaleString('id-ID') + '</td></tr>');
   if (d.bpjs > 0) {
-    lines.push(padRight('', 40) + padRight('BPJS', 20) + ': ' + padLeft('- Rp ' + Number(d.bpjs).toLocaleString('id-ID'), 18));
+    lines.push('    <tr><td style="padding: 2px 0;">BPJS</td><td style="text-align: right; padding: 2px 0;">: - Rp ' + Number(d.bpjs).toLocaleString('id-ID') + '</td></tr>');
   }
-  lines.push(padRight('', 40) + padRight('Uang Muka', 20) + ': ' + padLeft('Rp ' + Number(dp).toLocaleString('id-ID'), 18));
-  lines.push(padRight('', 40) + padRight('Sisa', 20) + ': ' + padLeft('Rp ' + Number(sisa).toLocaleString('id-ID'), 18));
-  lines.push('--------------------------------------------------------------------------------');
-  
-  function makeRow(leftText, rightText) {
-    // limit left side to 43 chars so it doesn't overflow to right side
-    return padRight(leftText.substring(0, 43), 45) + rightText;
-  }
+  lines.push('    <tr><td style="padding: 2px 0;">Uang Muka</td><td style="text-align: right; padding: 2px 0;">: Rp ' + Number(dp).toLocaleString('id-ID') + '</td></tr>');
+  lines.push('    <tr><td style="padding: 2px 0;">Sisa</td><td style="text-align: right; padding: 2px 0;">: Rp ' + Number(sisa).toLocaleString('id-ID') + '</td></tr>');
+  lines.push('  </table>');
+  lines.push('</div>');
+
+  lines.push('<hr style="border-top: 1px dashed black; border-bottom: 0; margin: 15px 0;">');
 
   var frameText = 'Frame     : ' + (frameItem ? frameItem.nama_barang||'-' : '-');
-  lines.push(makeRow(frameText, 'No.           : ' + no));
-
   var rResep = [d.sph_r?'SPH: '+d.sph_r:'', d.cyl_r?'CYL: '+d.cyl_r:'', d.add_r?'ADD: '+d.add_r:''].filter(Boolean).join(' ');
   var lensaRText = 'Lensa (R) : ' + (lensaRItem ? lensaRItem.nama_barang||'-' : '-') + (rResep ? ' (' + rResep + ')' : '');
-  lines.push(makeRow(lensaRText, 'Sales         : ' + sales));
-
   var lResep = [d.sph_l?'SPH: '+d.sph_l:'', d.cyl_l?'CYL: '+d.cyl_l:'', d.add_l?'ADD: '+d.add_l:''].filter(Boolean).join(' ');
   var lensaLText = 'Lensa (L) : ' + (lensaLItem ? lensaLItem.nama_barang||'-' : '-') + (lResep ? ' (' + lResep + ')' : '');
-  lines.push(makeRow(lensaLText, 'Tgl. Selesai  : ' + tglSelesai));
 
-  lines.push('');
+  lines.push('<div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 15px; font-family: monospace; font-size: 14px;">');
+  lines.push('  <div style="width: 60%;">');
+  lines.push('    <div style="margin-bottom: 4px;">' + frameText + '</div>');
+  lines.push('    <div style="margin-bottom: 4px;">' + lensaRText + '</div>');
+  lines.push('    <div style="margin-bottom: 4px;">' + lensaLText + '</div>');
+  lines.push('  </div>');
+  lines.push('  <div style="width: 40%;">');
+  lines.push('    <table style="width: 100%; font-family: monospace; font-size: 14px;">');
+  lines.push('      <tr><td style="width: 120px; padding: 2px 0;">No.</td><td style="padding: 2px 0;">: ' + no + '</td></tr>');
+  lines.push('      <tr><td style="width: 120px; padding: 2px 0;">Sales</td><td style="padding: 2px 0;">: ' + sales + '</td></tr>');
+  lines.push('      <tr><td style="width: 120px; padding: 2px 0;">Tgl. Selesai</td><td style="padding: 2px 0;">: ' + tglSelesai + '</td></tr>');
+  lines.push('    </table>');
+  lines.push('  </div>');
+  lines.push('</div>');
 
-  var rSphStr = d.sph_r ? d.sph_r : '      ';
-  var rCylStr = d.cyl_r ? d.cyl_r : '      ';
-  var rAddStr = d.add_r ? d.add_r : '      ';
-  var lSphStr = d.sph_l ? d.sph_l : '      ';
-  var lCylStr = d.cyl_l ? d.cyl_l : '      ';
-  var lAddStr = d.add_l ? d.add_l : '      ';
+  var rSphStr = d.sph_r ? d.sph_r : '-';
+  var rCylStr = d.cyl_r ? d.cyl_r : '-';
+  var rAddStr = d.add_r ? d.add_r : '-';
+  var lSphStr = d.sph_l ? d.sph_l : '-';
+  var lCylStr = d.cyl_l ? d.cyl_l : '-';
+  var lAddStr = d.add_l ? d.add_l : '-';
 
   if (d.sph_r || d.add_r || d.cyl_r || d.sph_l || d.add_l || d.cyl_l) {
-    lines.push('SPHR: ' + padRight(rSphStr, 10) + ' CYLR: ' + padRight(rCylStr, 10) + ' ADDR: ' + rAddStr);
-    lines.push('SPHL: ' + padRight(lSphStr, 10) + ' CYLL: ' + padRight(lCylStr, 10) + ' ADDL: ' + lAddStr);
-    lines.push('');
+    lines.push('<div style="width: 100%; margin-bottom: 25px; font-family: monospace; font-size: 14px;">');
+    lines.push('  <div style="display: flex; margin-bottom: 8px;">');
+    lines.push('    <div style="width: 33%;">SPHR: ' + rSphStr + '</div>');
+    lines.push('    <div style="width: 33%;">CYLR: ' + rCylStr + '</div>');
+    lines.push('    <div style="width: 34%;">ADDR: ' + rAddStr + '</div>');
+    lines.push('  </div>');
+    lines.push('  <div style="display: flex;">');
+    lines.push('    <div style="width: 33%;">SPHL: ' + lSphStr + '</div>');
+    lines.push('    <div style="width: 33%;">CYLL: ' + lCylStr + '</div>');
+    lines.push('    <div style="width: 34%;">ADDL: ' + lAddStr + '</div>');
+    lines.push('  </div>');
+    lines.push('</div>');
   }
 
-  var strDisetujui = 'Disetujui,';
-  lines.push(padRight('', 80 - strDisetujui.length) + strDisetujui);
-  lines.push('');
-  lines.push('');
-  var strTtd = '(...........)';
-  lines.push(padRight('', 80 - strTtd.length) + strTtd);
-  lines.push('');
-  lines.push('SYARAT DAN KETENTUAN');
-  lines.push('* KACAMATA YANG TIDAK DIAMBIL DALAM JANGKA WAKTU 2 BULAN MAKA UANG MUKA');
-  lines.push('  AKAN DINYATAKAN HANGUS DAN DILUAR RESIKO KAMI');
+  lines.push('<div style="display: flex; justify-content: flex-end; width: 100%; margin-bottom: 40px; font-family: monospace; font-size: 14px;">');
+  lines.push('  <div style="text-align: center; width: 200px;">');
+  lines.push('    <div>Disetujui,</div>');
+  lines.push('    <div style="margin-top: 60px;">(...........)</div>');
+  lines.push('  </div>');
+  lines.push('</div>');
+
+  lines.push('<div style="width: 100%; font-family: monospace; font-size: 14px; margin-top: 20px;">');
+  lines.push('  <div style="margin-bottom: 5px;">SYARAT DAN KETENTUAN</div>');
+  lines.push('  <div>* KACAMATA YANG TIDAK DIAMBIL DALAM JANGKA WAKTU 2 BULAN MAKA UANG MUKA</div>');
+  lines.push('  <div>  AKAN DINYATAKAN HANGUS DAN DILUAR RESIKO KAMI</div>');
+  lines.push('</div>');
 
   var w = window.open('','_blank','width=800,height=600');
-  w.document.write('<html><head><title>Nota Continuous Form</title><style>@page { size: portrait; margin: 0; } body { font-family: monospace; font-size: 13px; white-space: pre; margin: 10mm; line-height: 1.2; transform: scale(0.75); transform-origin: top left; width: 133.33%; }</style></head><body>' + lines.join('\n') + '</body></html>');
+  w.document.write('<html><head><title>Nota Continuous Form</title><style>@page { size: portrait; margin: 0; } body { padding: 10mm; margin: 0; background: #fff; color: #000; width: 100%; box-sizing: border-box; }</style></head><body><div style="width: 100%; max-width: 100%;">' + lines.join('\n') + '</div></body></html>');
   w.document.close();
-  w.onload = function() { w.print(); };
+  w.onload = function() { setTimeout(function() { w.print(); }, 200); };
 }
 
 // Print barcode labels — shared by pembelian & barang
