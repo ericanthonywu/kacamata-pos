@@ -65,7 +65,7 @@ function printNotaData(d) {
     sisa = 0;
   }
 
-  var W = 96; // total character width for full page
+  var W = 80; // total character width for full page (Epson LX-310 standard 10 CPI is 80 columns)
   var SP = '                                                                                                                                    ';
   var padRight = function (str, length) { return (str + SP).substring(0, length); };
   var padLeft = function (str, length) { return (SP + str).slice(-length); };
@@ -78,9 +78,9 @@ function printNotaData(d) {
   var lines = [];
 
   // Header: 3 columns
-  lines.push(padRight('NO INVOICE:', 30) + centerText('OPTIK SENTRAL', W - 60) + padLeft('dikirim', 30));
-  lines.push(padRight(no, 30) + centerText('JL.R.SUPRAPTO NO.41 KETAPANG', W - 60) + padLeft(orderDate, 30));
-  lines.push(padRight('', 30) + centerText('TELP : 085350509540', W - 60) + padLeft('', 30));
+  lines.push(padRight('NO INVOICE:', 20) + centerText('OPTIK SENTRAL', W - 40) + padLeft('dikirim', 20));
+  lines.push(padRight(no, 20) + centerText('JL.R.SUPRAPTO NO.41 KETAPANG', W - 40) + padLeft(orderDate, 20));
+  lines.push(padRight('', 20) + centerText('TELP : 085350509540', W - 40) + padLeft('', 20));
   lines.push('');
 
   // Nama, Telp, Tgl Selesai
