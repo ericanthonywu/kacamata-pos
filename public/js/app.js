@@ -180,7 +180,7 @@ function printNotaData(d) {
   lines.push('</div>');
 
   var w = window.open('','_blank','width=800,height=600');
-  w.document.write('<html><head><title>Nota Continuous Form</title><style>@page { size: portrait; margin: 0; } body { padding: 5mm; margin: 0; background: #fff; color: #000; width: 100%; box-sizing: border-box; }</style></head><body><div style="width: 100%; max-width: 100%;">' + lines.join('\n') + '</div></body></html>');
+  w.document.write('<html><head><title>Nota Continuous Form</title><style>@page { size: portrait; margin: 0; } body { padding: 10mm 5mm 5mm 5mm; margin: 0; background: #fff; color: #000; width: 100%; box-sizing: border-box; }</style></head><body><div style="width: 100%; max-width: 100%;">' + lines.join('\n') + '</div></body></html>');
   w.document.close();
   w.onload = function() { setTimeout(function() { w.print(); }, 200); };
 }
