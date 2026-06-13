@@ -19,7 +19,7 @@ var dtLanguageID = {
 };
 
 function escapeHtml(unsafe) {
-  return (unsafe||'').toString()
+  return (unsafe || '').toString()
     .replace(/&/g, "&amp;")
     .replace(/</g, "&lt;")
     .replace(/>/g, "&gt;")
@@ -39,47 +39,47 @@ function showToast(message, type) {
 }
 
 function printNotaData(d) {
-  var dFormatDate = function(dStr) {
+  var dFormatDate = function (dStr) {
     if (!dStr) return '';
     var dt = new Date(dStr);
-    return ('0' + dt.getDate()).slice(-2) + '-' + ['Jan','Feb','Mar','Apr','May','Jun','Jul','Aug','Sep','Oct','Nov','Dec'][dt.getMonth()] + '-' + dt.getFullYear();
+    return ('0' + dt.getDate()).slice(-2) + '-' + ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][dt.getMonth()] + '-' + dt.getFullYear();
   };
 
   var orderDate = dFormatDate(d.order_date);
   var tglSelesai = dFormatDate(d.tanggal_selesai);
-  
+
   var no = d.no_nota || '-';
   var nama = d.pelanggan_nama || '-';
   var telp = d.pelanggan_telp || '-';
   var sales = d.sales_nama || '-';
 
-  var frameItem = (d.detail||[]).find(function(i) { return i.tipe === 'frame'; });
-  var lensaRItem = (d.detail||[]).find(function(i) { return i.tipe === 'lensa_r'; });
-  var lensaLItem = (d.detail||[]).find(function(i) { return i.tipe === 'lensa_l'; });
+  var frameItem = (d.detail || []).find(function (i) { return i.tipe === 'frame'; });
+  var lensaRItem = (d.detail || []).find(function (i) { return i.tipe === 'lensa_r'; });
+  var lensaLItem = (d.detail || []).find(function (i) { return i.tipe === 'lensa_l'; });
 
   var total = d.total || 0;
   var dp = d.dp || 0;
   var sisa = total - dp;
-  if(d.status_bayar === 'lunas') {
+  if (d.status_bayar === 'lunas') {
     dp = total;
     sisa = 0;
   }
 
   var W = 96; // total character width for full page
   var SP = '                                                                                                                                    ';
-  var padRight = function(str, length) { return (str + SP).substring(0, length); };
-  var padLeft = function(str, length) { return (SP + str).slice(-length); };
-  var centerText = function(str, length) {
+  var padRight = function (str, length) { return (str + SP).substring(0, length); };
+  var padLeft = function (str, length) { return (SP + str).slice(-length); };
+  var centerText = function (str, length) {
     var pad = Math.max(0, Math.floor((length - str.length) / 2));
     return padRight(SP.substring(0, pad) + str, length);
   };
-  var separator = function(ch) { var s = ''; for (var i = 0; i < W; i++) s += ch; return s; };
+  var separator = function (ch) { var s = ''; for (var i = 0; i < W; i++) s += ch; return s; };
 
   var lines = [];
 
   // Header: 3 columns
   lines.push(padRight('NO INVOICE:', 30) + centerText('OPTIK SENTRAL', W - 60) + padLeft('dikirim', 30));
-  lines.push(padRight(no, 30) + centerText('JL.R.SUPRAPTONO.NO.41 KETAPANG', W - 60) + padLeft(orderDate, 30));
+  lines.push(padRight(no, 30) + centerText('JL.R.SUPRAPTO NO.41 KETAPANG', W - 60) + padLeft(orderDate, 30));
   lines.push(padRight('', 30) + centerText('TELP : 085350509540', W - 60) + padLeft('', 30));
   lines.push('');
 
@@ -94,15 +94,15 @@ function printNotaData(d) {
   // Items
   var itemNum = 1;
   if (frameItem) {
-    lines.push(padRight(itemNum + '. FRAME   : ' + (frameItem.nama_barang||'-'), W - 25) + padLeft('Rp ' + Number(frameItem.harga * frameItem.jumlah).toLocaleString('id-ID'), 25));
+    lines.push(padRight(itemNum + '. FRAME   : ' + (frameItem.nama_barang || '-'), W - 25) + padLeft('Rp ' + Number(frameItem.harga * frameItem.jumlah).toLocaleString('id-ID'), 25));
     itemNum++;
   }
   if (lensaRItem) {
-    lines.push(padRight(itemNum + '. LENSA(R): ' + (lensaRItem.nama_barang||'-'), W - 25) + padLeft('Rp ' + Number(lensaRItem.harga * lensaRItem.jumlah).toLocaleString('id-ID'), 25));
+    lines.push(padRight(itemNum + '. LENSA(R): ' + (lensaRItem.nama_barang || '-'), W - 25) + padLeft('Rp ' + Number(lensaRItem.harga * lensaRItem.jumlah).toLocaleString('id-ID'), 25));
     itemNum++;
   }
   if (lensaLItem) {
-    lines.push(padRight(itemNum + '. LENSA(L): ' + (lensaLItem.nama_barang||'-'), W - 25) + padLeft('Rp ' + Number(lensaLItem.harga * lensaLItem.jumlah).toLocaleString('id-ID'), 25));
+    lines.push(padRight(itemNum + '. LENSA(L): ' + (lensaLItem.nama_barang || '-'), W - 25) + padLeft('Rp ' + Number(lensaLItem.harga * lensaLItem.jumlah).toLocaleString('id-ID'), 25));
     itemNum++;
   }
 
@@ -120,15 +120,15 @@ function printNotaData(d) {
     return padRight(leftText.substring(0, W - 35), W - 33) + rightText;
   }
 
-  var frameText = 'Frame     : ' + (frameItem ? frameItem.nama_barang||'-' : '-');
+  var frameText = 'Frame     : ' + (frameItem ? frameItem.nama_barang || '-' : '-');
   lines.push(makeRow(frameText, 'No.           : ' + no));
 
-  var rResep = [d.sph_r?'SPH: '+d.sph_r:'', d.cyl_r?'CYL: '+d.cyl_r:'', d.add_r?'ADD: '+d.add_r:''].filter(Boolean).join(' ');
-  var lensaRText = 'Lensa (R) : ' + (lensaRItem ? lensaRItem.nama_barang||'-' : '-') + (rResep ? ' (' + rResep + ')' : '');
+  var rResep = [d.sph_r ? 'SPH: ' + d.sph_r : '', d.cyl_r ? 'CYL: ' + d.cyl_r : '', d.add_r ? 'ADD: ' + d.add_r : ''].filter(Boolean).join(' ');
+  var lensaRText = 'Lensa (R) : ' + (lensaRItem ? lensaRItem.nama_barang || '-' : '-') + (rResep ? ' (' + rResep + ')' : '');
   lines.push(makeRow(lensaRText, 'Sales         : ' + sales));
 
-  var lResep = [d.sph_l?'SPH: '+d.sph_l:'', d.cyl_l?'CYL: '+d.cyl_l:'', d.add_l?'ADD: '+d.add_l:''].filter(Boolean).join(' ');
-  var lensaLText = 'Lensa (L) : ' + (lensaLItem ? lensaLItem.nama_barang||'-' : '-') + (lResep ? ' (' + lResep + ')' : '');
+  var lResep = [d.sph_l ? 'SPH: ' + d.sph_l : '', d.cyl_l ? 'CYL: ' + d.cyl_l : '', d.add_l ? 'ADD: ' + d.add_l : ''].filter(Boolean).join(' ');
+  var lensaLText = 'Lensa (L) : ' + (lensaLItem ? lensaLItem.nama_barang || '-' : '-') + (lResep ? ' (' + lResep + ')' : '');
   lines.push(makeRow(lensaLText, 'Tgl. Selesai  : ' + tglSelesai));
 
   lines.push('');
@@ -157,10 +157,10 @@ function printNotaData(d) {
   lines.push('* KACAMATA YANG TIDAK DIAMBIL DALAM JANGKA WAKTU 2 BULAN MAKA UANG MUKA');
   lines.push('  AKAN DINYATAKAN HANGUS DAN DILUAR RESIKO KAMI');
 
-  var w = window.open('','_blank','width=900,height=600');
+  var w = window.open('', '_blank', 'width=900,height=600');
   w.document.write('<html><head><title>Nota Penjualan</title><style>@page { size: portrait; margin: 0; } body { font-family: "Courier New", Courier, monospace; font-size: 12px; font-weight: 900; white-space: pre; margin: 8mm 5mm 5mm 5mm; line-height: 1.2; }</style></head><body>' + lines.join('\n') + '</body></html>');
   w.document.close();
-  w.onload = function() { setTimeout(function() { w.print(); }, 200); };
+  w.onload = function () { setTimeout(function () { w.print(); }, 200); };
 }
 
 // Print barcode labels — shared by pembelian & barang
@@ -248,13 +248,13 @@ function fmtRp(value) {
 }
 
 // Currency Input Handler
-$(function() {
+$(function () {
   function initCurrencyInput(input) {
     let name = input.attr('name');
     let hidden = input.siblings('.currency-hidden');
     if (name && hidden.length === 0) {
       input.removeAttr('name');
-      hidden = $('<input type="hidden" class="currency-hidden" name="'+name+'">');
+      hidden = $('<input type="hidden" class="currency-hidden" name="' + name + '">');
       input.after(hidden);
     }
     input.data('hidden-target', hidden);
@@ -264,7 +264,7 @@ $(function() {
   function updateCurrencyInput(input) {
     let val = String(input.val() || '').replace(/[^0-9]/g, '');
     let hidden = input.data('hidden-target');
-    
+
     if (val === '') {
       input.val('');
       if (hidden && hidden.length) hidden.val('0');
@@ -277,12 +277,12 @@ $(function() {
   }
 
   // Init existing ones
-  $('.input-currency').each(function() {
+  $('.input-currency').each(function () {
     initCurrencyInput($(this));
   });
 
   // Handle dynamic inputs and typing
-  $(document).on('input', '.input-currency', function() {
+  $(document).on('input', '.input-currency', function () {
     updateCurrencyInput($(this));
   });
 });
