@@ -162,7 +162,7 @@ function printNotaData(d) {
   var useBackendPrint = localStorage.getItem('use_backend_print') === 'true';
   
   if (useBackendPrint) {
-    var printerName = localStorage.getItem('raw_printer_name') || 'EPSON LX-310 ESP/P';
+    var printerName = localStorage.getItem('raw_printer_name') || 'LX310';
     if (!localStorage.getItem('raw_printer_name')) {
       localStorage.setItem('raw_printer_name', printerName);
     }
