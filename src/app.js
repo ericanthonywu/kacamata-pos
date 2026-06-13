@@ -77,6 +77,34 @@ app.use('/pembayaran-pembelian', requireAdmin, require('./routes/pembayaran-pemb
 app.use('/pembayaran-penjualan', requireAdmin, require('./routes/pembayaran-penjualan.routes'));
 app.use('/laporan', require('./routes/laporan.routes')); // Kasir can access /laporan/kas
 
+// Print API
+const fs = require('fs');
+const os = require('os');
+const { exec } = require('child_process');
+
+app.post('/api/print/raw', auth, (req, res) => {
+  const { textData, printerName } = req.body;
+  if (!textData || !printerName) {
+    return res.status(400).json({ success: false, message: 'Data teks dan nama printer harus diisi' });
+  }
+
+  const tempFile = path.join(os.tmpdir(), 'nota_temp.txt');
+  fs.writeFileSync(tempFile, textData, 'utf8');
+
+  // Build print command. 
+  // We use standard Windows UNC path: \\COMPUTERNAME\SharedPrinterName
+  const host = os.hostname();
+  const printCommand = `copy /b "${tempFile}" "\\\\${host}\\${printerName}"`;
+
+  exec(printCommand, (error, stdout, stderr) => {
+    if (error) {
+      console.error('Print Error:', error);
+      return res.status(500).json({ success: false, message: 'Gagal nge-print. Pastikan printer sudah di-share dengan nama: ' + printerName });
+    }
+    res.json({ success: true, message: 'Berhasil dikirim ke printer' });
+  });
+});
+
 // Error handler
 app.use(errorHandler);
 

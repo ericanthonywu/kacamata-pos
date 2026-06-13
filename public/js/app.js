@@ -159,38 +159,37 @@ function printNotaData(d) {
 
   var textData = lines.join('\\n') + '\\n\\n\\n\\n\\n\\n'; // Add form feed
 
-  var useQz = localStorage.getItem('use_qz_tray') === 'true';
+  var useBackendPrint = localStorage.getItem('use_backend_print') === 'true';
   
-  if (useQz && typeof qz !== 'undefined') {
-    var printerName = localStorage.getItem('qz_printer_name') || 'EPSON LX-310 ESP/P';
-    if (!localStorage.getItem('qz_printer_name')) {
-      localStorage.setItem('qz_printer_name', printerName);
+  if (useBackendPrint) {
+    var printerName = localStorage.getItem('raw_printer_name') || 'EPSON LX-310 ESP/P';
+    if (!localStorage.getItem('raw_printer_name')) {
+      localStorage.setItem('raw_printer_name', printerName);
     }
     
-    qz.websocket.connect().then(function() {
-      return qz.printers.find(printerName);
-    }).then(function(printer) {
-      var config = qz.configs.create(printer);
-      var data = [{
-        type: 'raw',
-        format: 'plain',
-        data: textData
-      }];
-      return qz.print(config, data);
-    }).then(function() {
-      showToast("Berhasil mencetak ke printer", "success");
-      return qz.websocket.disconnect();
-    }).catch(function(e) {
-      console.error(e);
-      showToast("Gagal print QZ: " + (e.message || e), "danger");
-      qz.websocket.disconnect();
-      if (confirm("Gagal ngeprint via QZ Tray. Mau print via Browser saja?")) {
-        printNotaBrowser(lines);
+    // Send raw text to local backend Node.js
+    $.ajax({
+      url: '/api/print/raw',
+      method: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify({
+        textData: textData,
+        printerName: printerName
+      }),
+      success: function(res) {
+        showToast("Berhasil mencetak ke printer dot matrix", "success");
+      },
+      error: function(xhr) {
+        var msg = (xhr.responseJSON && xhr.responseJSON.message) || 'Gagal mengirim ke printer';
+        showToast(msg, "danger");
+        if (confirm("Gagal print via Backend. Mau print via Browser biasa saja?")) {
+          printNotaBrowser(lines);
+        }
       }
     });
   } else {
-    if (confirm("Mulai mencetak Nota secara langsung dengan Printer Dot Matrix (Raw Print)? Pastikan aplikasi QZ Tray berjalan.")) {
-      localStorage.setItem('use_qz_tray', 'true');
+    if (confirm("Mulai mencetak Nota secara langsung dengan Printer Dot Matrix (Raw Print via Backend)? Pastikan printer sudah di-share.")) {
+      localStorage.setItem('use_backend_print', 'true');
       printNotaData(d); // Ulangi
       return;
     }
