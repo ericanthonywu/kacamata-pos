@@ -65,7 +65,7 @@ function printNotaData(d) {
     sisa = 0;
   }
 
-  var W = 96; // total character width for full page
+  var W = 80; // total character width for full page
   var SP = '                                                                                                                                    ';
   var padRight = function(str, length) { return (str + SP).substring(0, length); };
   var padLeft = function(str, length) { return (SP + str).slice(-length); };
@@ -158,7 +158,7 @@ function printNotaData(d) {
   lines.push('  AKAN DINYATAKAN HANGUS DAN DILUAR RESIKO KAMI');
 
   var w = window.open('','_blank','width=900,height=600');
-  w.document.write('<html><head><title>Nota Penjualan</title><style>@page { size: portrait; margin: 0; } body { font-family: "Courier New", Courier, monospace; font-size: 12px; white-space: pre; margin: 8mm 5mm 5mm 5mm; line-height: 1.4; }</style></head><body>' + lines.join('\n') + '</body></html>');
+  w.document.write('<html><head><title>Nota Penjualan</title><style>@page { size: portrait; margin: 0; } body { font-family: "Courier New", Courier, monospace; font-size: 15px; font-weight: bold; white-space: pre; margin: 8mm 5mm 5mm 5mm; line-height: 1.5; -webkit-print-color-adjust: exact; }</style></head><body>' + lines.join('\n') + '</body></html>');
   w.document.close();
   w.onload = function() { setTimeout(function() { w.print(); }, 200); };
 }
