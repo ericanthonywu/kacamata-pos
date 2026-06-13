@@ -39,6 +39,7 @@ function showToast(message, type) {
 }
 
 function printNotaData(d) {
+  try {
   var dFormatDate = function (dStr) {
     if (!dStr) return '';
     var dt = new Date(dStr);
@@ -88,7 +89,7 @@ function printNotaData(d) {
   lines.push(padRight('Nama      : ' + nama, W - strTglSelesai.length) + strTglSelesai);
   lines.push('Telp      : ' + telp);
   lines.push('');
-  lines.push(separator('_'));
+  lines.push(separator('-'));
   lines.push('');
 
   // Items
@@ -194,6 +195,10 @@ function printNotaData(d) {
       return;
     }
     printNotaBrowser(lines);
+  }
+  } catch (err) {
+    alert("Error di printNotaData: " + err.message);
+    console.error(err);
   }
 }
 
