@@ -157,8 +157,50 @@ function printNotaData(d) {
   lines.push('* KACAMATA YANG TIDAK DIAMBIL DALAM JANGKA WAKTU 2 BULAN MAKA UANG MUKA');
   lines.push('  AKAN DINYATAKAN HANGUS DAN DILUAR RESIKO KAMI');
 
+  var textData = lines.join('\\n') + '\\n\\n\\n\\n\\n\\n'; // Add form feed
+
+  var useQz = localStorage.getItem('use_qz_tray') === 'true';
+  
+  if (useQz && typeof qz !== 'undefined') {
+    var printerName = localStorage.getItem('qz_printer_name') || 'EPSON LX-310 ESP/P';
+    if (!localStorage.getItem('qz_printer_name')) {
+      localStorage.setItem('qz_printer_name', printerName);
+    }
+    
+    qz.websocket.connect().then(function() {
+      return qz.printers.find(printerName);
+    }).then(function(printer) {
+      var config = qz.configs.create(printer);
+      var data = [{
+        type: 'raw',
+        format: 'plain',
+        data: textData
+      }];
+      return qz.print(config, data);
+    }).then(function() {
+      showToast("Berhasil mencetak ke printer", "success");
+      return qz.websocket.disconnect();
+    }).catch(function(e) {
+      console.error(e);
+      showToast("Gagal print QZ: " + (e.message || e), "danger");
+      qz.websocket.disconnect();
+      if (confirm("Gagal ngeprint via QZ Tray. Mau print via Browser saja?")) {
+        printNotaBrowser(lines);
+      }
+    });
+  } else {
+    if (confirm("Mulai mencetak Nota secara langsung dengan Printer Dot Matrix (Raw Print)? Pastikan aplikasi QZ Tray berjalan.")) {
+      localStorage.setItem('use_qz_tray', 'true');
+      printNotaData(d); // Ulangi
+      return;
+    }
+    printNotaBrowser(lines);
+  }
+}
+
+function printNotaBrowser(lines) {
   var w = window.open('', '_blank', 'width=900,height=600');
-  w.document.write('<html><head><title>Nota Penjualan</title><style>@page { size: portrait; margin: 0; } body { font-family: "Courier New", Courier, monospace; font-size: 12px; font-weight: 1000; white-space: pre; margin: 9mm 5mm 5mm 5mm; line-height: 1.2; }</style></head><body>' + lines.join('\n') + '</body></html>');
+  w.document.write('<html><head><title>Nota Penjualan</title><style>@page { size: portrait; margin: 0; } body { font-family: "Courier New", Courier, monospace; font-size: 12px; font-weight: 1000; white-space: pre; margin: 9mm 5mm 5mm 5mm; line-height: 1.2; }</style></head><body>' + lines.join('\\n') + '</body></html>');
   w.document.close();
   w.onload = function () { setTimeout(function () { w.print(); }, 200); };
 }
