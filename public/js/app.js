@@ -66,61 +66,62 @@ function printNotaData(d) {
   }
 
   var lines = [];
+  var fs = '12px'; // slightly smaller font to ensure fit
   
-  lines.push('<div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; font-family: monospace; font-size: 14px; line-height: 1.5; margin-bottom: 20px;">');
-  lines.push('  <div style="font-size: 18px; font-weight: bold; width: 33%;">NO INVOICE:<br>' + no + '</div>');
+  lines.push('<div style="display: flex; justify-content: space-between; align-items: flex-start; width: 100%; font-family: monospace; font-size: ' + fs + '; line-height: 1.2; margin-bottom: 5px;">');
+  lines.push('  <div style="font-size: 14px; font-weight: bold; width: 33%;">NO INVOICE:<br>' + no + '</div>');
   lines.push('  <div style="text-align: center; width: 33%;">');
-  lines.push('    <strong style="font-size: 18px;">OPTIK SENTRAL</strong><br>');
+  lines.push('    <strong style="font-size: 16px;">OPTIK SENTRAL</strong><br>');
   lines.push('    JL.R.SUPRAPTONO.NO.41 KETAPANG<br>');
   lines.push('    TELP : 085350509540');
   lines.push('  </div>');
   lines.push('  <div style="text-align: right; width: 33%;">dikirim<br>' + orderDate + '</div>');
   lines.push('</div>');
 
-  lines.push('<div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 10px; font-family: monospace; font-size: 14px;">');
+  lines.push('<div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 5px; font-family: monospace; font-size: ' + fs + '; line-height: 1.2;">');
   lines.push('  <div style="width: 50%;">');
-  lines.push('    <table style="width: 100%; font-family: monospace; font-size: 14px;">');
+  lines.push('    <table style="width: 100%; font-family: monospace; font-size: ' + fs + '; line-height: 1.2;">');
   lines.push('      <tr><td style="width: 100px;">Nama</td><td>: ' + nama + '</td></tr>');
   lines.push('      <tr><td>Telp</td><td>: ' + telp + '</td></tr>');
   lines.push('    </table>');
   lines.push('  </div>');
   lines.push('  <div style="width: 50%;">');
-  lines.push('    <table style="width: 100%; font-family: monospace; font-size: 14px;">');
+  lines.push('    <table style="width: 100%; font-family: monospace; font-size: ' + fs + '; line-height: 1.2;">');
   lines.push('      <tr><td style="width: 120px;">Tgl. Selesai</td><td>: ' + tglSelesai + '</td></tr>');
   lines.push('    </table>');
   lines.push('  </div>');
   lines.push('</div>');
 
-  lines.push('<hr style="border-top: 1px solid black; border-bottom: 0; margin: 15px 0;">');
+  lines.push('<hr style="border-top: 1px solid black; border-bottom: 0; margin: 5px 0;">');
 
-  lines.push('<table style="width: 100%; border-collapse: collapse; font-family: monospace; font-size: 14px;">');
+  lines.push('<table style="width: 100%; border-collapse: collapse; font-family: monospace; font-size: ' + fs + '; line-height: 1.2;">');
   var itemNum = 1;
   if (frameItem) {
-    lines.push('<tr><td style="width: 5%; padding: 4px 0;">' + itemNum + '.</td><td style="width: 65%; padding: 4px 0;">FRAME : ' + (frameItem.nama_barang||'-') + '</td><td style="width: 30%; text-align: right; padding: 4px 0;">Rp ' + Number(frameItem.harga * frameItem.jumlah).toLocaleString('id-ID') + '</td></tr>');
+    lines.push('<tr><td style="width: 5%; padding: 1px 0;">' + itemNum + '.</td><td style="width: 65%; padding: 1px 0;">FRAME : ' + (frameItem.nama_barang||'-') + '</td><td style="width: 30%; text-align: right; padding: 1px 0;">Rp ' + Number(frameItem.harga * frameItem.jumlah).toLocaleString('id-ID') + '</td></tr>');
     itemNum++;
   }
   if (lensaRItem) {
-    lines.push('<tr><td style="padding: 4px 0;">' + itemNum + '.</td><td style="padding: 4px 0;">LENSA(R) : ' + (lensaRItem.nama_barang||'-') + '</td><td style="text-align: right; padding: 4px 0;">Rp ' + Number(lensaRItem.harga * lensaRItem.jumlah).toLocaleString('id-ID') + '</td></tr>');
+    lines.push('<tr><td style="padding: 1px 0;">' + itemNum + '.</td><td style="padding: 1px 0;">LENSA(R) : ' + (lensaRItem.nama_barang||'-') + '</td><td style="text-align: right; padding: 1px 0;">Rp ' + Number(lensaRItem.harga * lensaRItem.jumlah).toLocaleString('id-ID') + '</td></tr>');
     itemNum++;
   }
   if (lensaLItem) {
-    lines.push('<tr><td style="padding: 4px 0;">' + itemNum + '.</td><td style="padding: 4px 0;">LENSA(L) : ' + (lensaLItem.nama_barang||'-') + '</td><td style="text-align: right; padding: 4px 0;">Rp ' + Number(lensaLItem.harga * lensaLItem.jumlah).toLocaleString('id-ID') + '</td></tr>');
+    lines.push('<tr><td style="padding: 1px 0;">' + itemNum + '.</td><td style="padding: 1px 0;">LENSA(L) : ' + (lensaLItem.nama_barang||'-') + '</td><td style="text-align: right; padding: 1px 0;">Rp ' + Number(lensaLItem.harga * lensaLItem.jumlah).toLocaleString('id-ID') + '</td></tr>');
     itemNum++;
   }
   lines.push('</table>');
 
-  lines.push('<div style="display: flex; justify-content: flex-end; width: 100%; margin-top: 15px; font-family: monospace; font-size: 14px;">');
-  lines.push('  <table style="width: 40%; font-family: monospace; font-size: 14px;">');
-  lines.push('    <tr><td style="padding: 2px 0;">Jumlah</td><td style="text-align: right; padding: 2px 0;">: Rp ' + Number(total).toLocaleString('id-ID') + '</td></tr>');
+  lines.push('<div style="display: flex; justify-content: flex-end; width: 100%; margin-top: 5px; font-family: monospace; font-size: ' + fs + '; line-height: 1.2;">');
+  lines.push('  <table style="width: 40%; font-family: monospace; font-size: ' + fs + ';">');
+  lines.push('    <tr><td style="padding: 1px 0;">Jumlah</td><td style="text-align: right; padding: 1px 0;">: Rp ' + Number(total).toLocaleString('id-ID') + '</td></tr>');
   if (d.bpjs > 0) {
-    lines.push('    <tr><td style="padding: 2px 0;">BPJS</td><td style="text-align: right; padding: 2px 0;">: - Rp ' + Number(d.bpjs).toLocaleString('id-ID') + '</td></tr>');
+    lines.push('    <tr><td style="padding: 1px 0;">BPJS</td><td style="text-align: right; padding: 1px 0;">: - Rp ' + Number(d.bpjs).toLocaleString('id-ID') + '</td></tr>');
   }
-  lines.push('    <tr><td style="padding: 2px 0;">Uang Muka</td><td style="text-align: right; padding: 2px 0;">: Rp ' + Number(dp).toLocaleString('id-ID') + '</td></tr>');
-  lines.push('    <tr><td style="padding: 2px 0;">Sisa</td><td style="text-align: right; padding: 2px 0;">: Rp ' + Number(sisa).toLocaleString('id-ID') + '</td></tr>');
+  lines.push('    <tr><td style="padding: 1px 0;">Uang Muka</td><td style="text-align: right; padding: 1px 0;">: Rp ' + Number(dp).toLocaleString('id-ID') + '</td></tr>');
+  lines.push('    <tr><td style="padding: 1px 0;">Sisa</td><td style="text-align: right; padding: 1px 0;">: Rp ' + Number(sisa).toLocaleString('id-ID') + '</td></tr>');
   lines.push('  </table>');
   lines.push('</div>');
 
-  lines.push('<hr style="border-top: 1px dashed black; border-bottom: 0; margin: 15px 0;">');
+  lines.push('<hr style="border-top: 1px dashed black; border-bottom: 0; margin: 5px 0;">');
 
   var frameText = 'Frame     : ' + (frameItem ? frameItem.nama_barang||'-' : '-');
   var rResep = [d.sph_r?'SPH: '+d.sph_r:'', d.cyl_r?'CYL: '+d.cyl_r:'', d.add_r?'ADD: '+d.add_r:''].filter(Boolean).join(' ');
@@ -128,17 +129,17 @@ function printNotaData(d) {
   var lResep = [d.sph_l?'SPH: '+d.sph_l:'', d.cyl_l?'CYL: '+d.cyl_l:'', d.add_l?'ADD: '+d.add_l:''].filter(Boolean).join(' ');
   var lensaLText = 'Lensa (L) : ' + (lensaLItem ? lensaLItem.nama_barang||'-' : '-') + (lResep ? ' (' + lResep + ')' : '');
 
-  lines.push('<div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 15px; font-family: monospace; font-size: 14px;">');
+  lines.push('<div style="display: flex; justify-content: space-between; width: 100%; margin-bottom: 5px; font-family: monospace; font-size: ' + fs + '; line-height: 1.2;">');
   lines.push('  <div style="width: 60%;">');
-  lines.push('    <div style="margin-bottom: 4px;">' + frameText + '</div>');
-  lines.push('    <div style="margin-bottom: 4px;">' + lensaRText + '</div>');
-  lines.push('    <div style="margin-bottom: 4px;">' + lensaLText + '</div>');
+  lines.push('    <div style="margin-bottom: 2px;">' + frameText + '</div>');
+  lines.push('    <div style="margin-bottom: 2px;">' + lensaRText + '</div>');
+  lines.push('    <div style="margin-bottom: 2px;">' + lensaLText + '</div>');
   lines.push('  </div>');
   lines.push('  <div style="width: 40%;">');
-  lines.push('    <table style="width: 100%; font-family: monospace; font-size: 14px;">');
-  lines.push('      <tr><td style="width: 120px; padding: 2px 0;">No.</td><td style="padding: 2px 0;">: ' + no + '</td></tr>');
-  lines.push('      <tr><td style="width: 120px; padding: 2px 0;">Sales</td><td style="padding: 2px 0;">: ' + sales + '</td></tr>');
-  lines.push('      <tr><td style="width: 120px; padding: 2px 0;">Tgl. Selesai</td><td style="padding: 2px 0;">: ' + tglSelesai + '</td></tr>');
+  lines.push('    <table style="width: 100%; font-family: monospace; font-size: ' + fs + '; line-height: 1.2;">');
+  lines.push('      <tr><td style="width: 120px; padding: 1px 0;">No.</td><td style="padding: 1px 0;">: ' + no + '</td></tr>');
+  lines.push('      <tr><td style="width: 120px; padding: 1px 0;">Sales</td><td style="padding: 1px 0;">: ' + sales + '</td></tr>');
+  lines.push('      <tr><td style="width: 120px; padding: 1px 0;">Tgl. Selesai</td><td style="padding: 1px 0;">: ' + tglSelesai + '</td></tr>');
   lines.push('    </table>');
   lines.push('  </div>');
   lines.push('</div>');
@@ -151,8 +152,8 @@ function printNotaData(d) {
   var lAddStr = d.add_l ? d.add_l : '-';
 
   if (d.sph_r || d.add_r || d.cyl_r || d.sph_l || d.add_l || d.cyl_l) {
-    lines.push('<div style="width: 100%; margin-bottom: 25px; font-family: monospace; font-size: 14px;">');
-    lines.push('  <div style="display: flex; margin-bottom: 8px;">');
+    lines.push('<div style="width: 100%; margin-bottom: 10px; font-family: monospace; font-size: ' + fs + '; line-height: 1.2;">');
+    lines.push('  <div style="display: flex; margin-bottom: 4px;">');
     lines.push('    <div style="width: 33%;">SPHR: ' + rSphStr + '</div>');
     lines.push('    <div style="width: 33%;">CYLR: ' + rCylStr + '</div>');
     lines.push('    <div style="width: 34%;">ADDR: ' + rAddStr + '</div>');
@@ -165,21 +166,21 @@ function printNotaData(d) {
     lines.push('</div>');
   }
 
-  lines.push('<div style="display: flex; justify-content: flex-end; width: 100%; margin-bottom: 40px; font-family: monospace; font-size: 14px;">');
+  lines.push('<div style="display: flex; justify-content: flex-end; width: 100%; font-family: monospace; font-size: ' + fs + '; line-height: 1.2;">');
   lines.push('  <div style="text-align: center; width: 200px;">');
   lines.push('    <div>Disetujui,</div>');
-  lines.push('    <div style="margin-top: 60px;">(...........)</div>');
+  lines.push('    <div style="margin-top: 35px;">(...........)</div>');
   lines.push('  </div>');
   lines.push('</div>');
 
-  lines.push('<div style="width: 100%; font-family: monospace; font-size: 14px; margin-top: 20px;">');
-  lines.push('  <div style="margin-bottom: 5px;">SYARAT DAN KETENTUAN</div>');
+  lines.push('<div style="width: 100%; font-family: monospace; font-size: ' + fs + '; margin-top: 5px; line-height: 1.2;">');
+  lines.push('  <div style="margin-bottom: 2px;">SYARAT DAN KETENTUAN</div>');
   lines.push('  <div>* KACAMATA YANG TIDAK DIAMBIL DALAM JANGKA WAKTU 2 BULAN MAKA UANG MUKA</div>');
   lines.push('  <div>  AKAN DINYATAKAN HANGUS DAN DILUAR RESIKO KAMI</div>');
   lines.push('</div>');
 
   var w = window.open('','_blank','width=800,height=600');
-  w.document.write('<html><head><title>Nota Continuous Form</title><style>@page { size: portrait; margin: 0; } body { padding: 10mm; margin: 0; background: #fff; color: #000; width: 100%; box-sizing: border-box; }</style></head><body><div style="width: 100%; max-width: 100%;">' + lines.join('\n') + '</div></body></html>');
+  w.document.write('<html><head><title>Nota Continuous Form</title><style>@page { size: portrait; margin: 0; } body { padding: 5mm; margin: 0; background: #fff; color: #000; width: 100%; box-sizing: border-box; }</style></head><body><div style="width: 100%; max-width: 100%;">' + lines.join('\n') + '</div></body></html>');
   w.document.close();
   w.onload = function() { setTimeout(function() { w.print(); }, 200); };
 }
