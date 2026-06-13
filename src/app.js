@@ -82,5 +82,4 @@ app.use(errorHandler);
 
 app.listen(PORT, () => {
   console.log(`\n🚀 OPTIK SENTRAL running on http://localhost:${PORT}`);
-  console.log(`   Login: admin / admin123\n`);
 });
