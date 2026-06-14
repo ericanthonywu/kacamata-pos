@@ -102,7 +102,10 @@ exports.search = function (q, kategori_nama) {
           .orWhere('barang.barcode_id', 'ilike', `%${q}%`);
     })
     .orderBy('barang.nama_barang', 'asc')
-    .limit(20);
+    .orderByRaw("CAST(NULLIF(REGEXP_REPLACE(COALESCE(barang.sph_r, barang.sph_l), '[^0-9.-]', '', 'g'), '') AS NUMERIC) ASC NULLS LAST")
+    .orderByRaw("CAST(NULLIF(REGEXP_REPLACE(COALESCE(barang.cyl_r, barang.cyl_l), '[^0-9.-]', '', 'g'), '') AS NUMERIC) ASC NULLS LAST")
+    .orderByRaw("CAST(NULLIF(REGEXP_REPLACE(COALESCE(barang.add_r, barang.add_l), '[^0-9.-]', '', 'g'), '') AS NUMERIC) ASC NULLS LAST")
+    .limit(50);
 };
 
 exports.create = function (data) {
