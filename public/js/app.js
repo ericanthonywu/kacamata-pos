@@ -80,6 +80,9 @@ function printNotaData(d) {
 
     var lines = [];
 
+    // Margin atas agar teks tidak terpotong di ujung kertas
+    lines.push('');
+
     // Header: 3 columns
     lines.push(padRight('NO INVOICE:', 20) + centerText('OPTIK SENTRAL', W - 40) + padLeft('dikirim', 20));
     lines.push(padRight(no, 20) + centerText('JL.R.SUPRAPTO NO.41 KETAPANG', W - 40) + padLeft(orderDate, 20));
@@ -158,6 +161,7 @@ function printNotaData(d) {
 
     var strDisetujui = 'Disetujui,';
     lines.push(padRight('', W - strDisetujui.length) + strDisetujui);
+    lines.push('');
     lines.push('');
     lines.push('');
     var strTtd = '(...........)';
