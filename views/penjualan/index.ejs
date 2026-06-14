@@ -245,7 +245,7 @@
           var hasResepR = d.sph_r || d.cyl_r || d.axis_r || d.add_r;
           var hasResepL = d.sph_l || d.cyl_l || d.axis_l || d.add_l;
 
-          if (hasResepR || hasResepL) {
+          if (hasResepR || hasResepL || d.pd) {
             html += '<h6 class="fw-bold mt-4 mb-3">Resep Kacamata</h6>';
             html += '<table class="table table-sm table-bordered text-center">';
             html += '<thead class="bg-light"><tr><th>Mata</th><th>SPH</th><th>CYL</th><th>AXIS</th><th>ADD</th></tr></thead><tbody>';
@@ -264,6 +264,10 @@
               html += '<td>' + (d.add_l || '-') + '</td></tr>';
             }
             html += '</tbody></table>';
+            
+            if (d.pd) {
+              html += '<p class="mt-2 mb-0"><strong>PD:</strong> ' + d.pd + '</p>';
+            }
           }
 
           $('#detailBody').html(html);

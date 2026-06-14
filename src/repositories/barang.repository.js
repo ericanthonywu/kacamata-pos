@@ -84,7 +84,13 @@ exports.search = function (q, kategori_nama) {
     .leftJoin('kategori', 'barang.kategori_id', 'kategori.id');
 
   if (kategori_nama) {
-    query = query.where('kategori.nama', 'ilike', `%${kategori_nama}%`);
+    const kats = kategori_nama.split(',').map(k => k.trim());
+    query = query.where(function() {
+      kats.forEach((kat, i) => {
+        if (i === 0) this.where('kategori.nama', 'ilike', `%${kat}%`);
+        else this.orWhere('kategori.nama', 'ilike', `%${kat}%`);
+      });
+    });
   }
 
   return query.andWhere(function() {

@@ -97,6 +97,20 @@
             </div>
           </div>
 
+          <!-- Aksesoris -->
+          <div class="card p-3 mb-3">
+            <h6>🛍️ Aksesoris</h6>
+            <select class="form-select mb-2" id="aksesoris_barang_id">
+              <option value="">-- Pilih Aksesoris --</option>
+            </select>
+            <div class="row g-2" id="aksesoris_fields" style="display:none">
+              <div class="col-6"><label class="form-label small">Harga</label><input type="text"
+                  class="form-control form-control-sm calc-input input-currency" id="aksesoris_harga" value="0"></div>
+              <div class="col-6"><label class="form-label small">Qty</label><input type="number"
+                  class="form-control form-control-sm calc-input" id="aksesoris_jumlah" value="1" min="1"></div>
+            </div>
+          </div>
+
           <!-- Resep -->
           <div class="card p-3 mb-3">
             <h6>📝 Resep Kacamata (Opsional)</h6>
@@ -124,6 +138,13 @@
               <div class="col-3"><input type="text" class="form-control form-control-sm" id="axis_l" placeholder="AXIS">
               </div>
               <div class="col-3"><input type="text" class="form-control form-control-sm" id="add_l" placeholder="ADD">
+              </div>
+            </div>
+            <div class="row g-2">
+              <div class="col-12">
+                <div class="small fw-bold text-muted mb-1">PD</div>
+              </div>
+              <div class="col-6"><input type="text" class="form-control form-control-sm" id="pd" placeholder="PD">
               </div>
             </div>
           </div>
@@ -245,16 +266,16 @@
 
               // Handle Prescription Autofill
               if (type === 'lensa_r') {
-                $('#sph_r').val(b.sph_r !== null ? b.sph_r : '');
-                $('#cyl_r').val(b.cyl_r !== null ? b.cyl_r : '');
-                $('#axis_r').val(b.axis_r !== null ? b.axis_r : '');
-                $('#add_r').val(b.add_r !== null ? b.add_r : '');
+                $('#sph_r').val(b.sph_r != null ? b.sph_r : '');
+                $('#cyl_r').val(b.cyl_r != null ? b.cyl_r : '');
+                $('#axis_r').val(b.axis_r != null ? b.axis_r : '');
+                $('#add_r').val(b.add_r != null ? b.add_r : '');
               }
               if (type === 'lensa_l') {
-                $('#sph_l').val(b.sph_l !== null ? b.sph_l : '');
-                $('#cyl_l').val(b.cyl_l !== null ? b.cyl_l : '');
-                $('#axis_l').val(b.axis_l !== null ? b.axis_l : '');
-                $('#add_l').val(b.add_l !== null ? b.add_l : '');
+                $('#sph_l').val(b.sph_l != null ? b.sph_l : '');
+                $('#cyl_l').val(b.cyl_l != null ? b.cyl_l : '');
+                $('#axis_l').val(b.axis_l != null ? b.axis_l : '');
+                $('#add_l').val(b.add_l != null ? b.add_l : '');
               }
 
               calculate();
@@ -265,8 +286,9 @@
           }
 
           initSelect2Barang('#frame_barang_id', 'frame', 'frame');
-          initSelect2Barang('#lensa_l_barang_id', 'lensa_l', 'lensa');
-          initSelect2Barang('#lensa_r_barang_id', 'lensa_r', 'lensa');
+          initSelect2Barang('#lensa_l_barang_id', 'lensa_l', 'lensa, softlens');
+          initSelect2Barang('#lensa_r_barang_id', 'lensa_r', 'lensa, softlens');
+          initSelect2Barang('#aksesoris_barang_id', 'aksesoris', 'aksesoris');
         });
 
         function saveNewPelanggan() {
@@ -315,7 +337,7 @@
 
         function calculate() {
           var subtotal = 0;
-          ['frame', 'lensa_r', 'lensa_l'].forEach(function (type) {
+          ['frame', 'lensa_r', 'lensa_l', 'aksesoris'].forEach(function (type) {
             if ($('#' + type + '_barang_id').val()) {
               var h = parseInt($('#' + type + '_harga').data('raw-value') || $('#' + type + '_harga').val().replace(/[^0-9]/g, '')) || 0;
               var q = parseInt($('#' + type + '_jumlah').val()) || 1;
@@ -347,7 +369,7 @@
         }
 
         function savePenjualan(withPrint) {
-          var items = [buildItem('frame'), buildItem('lensa_l'), buildItem('lensa_r')].filter(Boolean);
+          var items = [buildItem('frame'), buildItem('lensa_l'), buildItem('lensa_r'), buildItem('aksesoris')].filter(Boolean);
           if (items.length === 0) { showToast('Pilih minimal satu barang', 'danger'); return; }
 
           var pelangganId = $('#pelanggan_id').val();
@@ -365,6 +387,7 @@
             dp: parseInt($('#dp_amount').data('raw-value') || $('#dp_amount').val().replace(/[^0-9]/g, '')) || 0,
             sph_r: $('#sph_r').val(), cyl_r: $('#cyl_r').val(), axis_r: $('#axis_r').val(), add_r: $('#add_r').val(),
             sph_l: $('#sph_l').val(), cyl_l: $('#cyl_l').val(), axis_l: $('#axis_l').val(), add_l: $('#add_l').val(),
+            pd: $('#pd').val(),
             items: items,
           };
           $.ajax({

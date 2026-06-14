@@ -57,6 +57,7 @@ function printNotaData(d) {
     var frameItem = (d.detail || []).find(function (i) { return i.tipe === 'frame'; });
     var lensaRItem = (d.detail || []).find(function (i) { return i.tipe === 'lensa_r'; });
     var lensaLItem = (d.detail || []).find(function (i) { return i.tipe === 'lensa_l'; });
+    var aksesorisItem = (d.detail || []).find(function (i) { return i.tipe === 'aksesoris'; });
 
     var total = d.total || 0;
     var dp = d.dp || 0;
@@ -105,6 +106,10 @@ function printNotaData(d) {
       lines.push(padRight(itemNum + '. LENSA(L): ' + (lensaLItem.nama_barang || '-'), W - 25) + padLeft('Rp ' + Number(lensaLItem.harga * lensaLItem.jumlah).toLocaleString('id-ID'), 25));
       itemNum++;
     }
+    if (aksesorisItem) {
+      lines.push(padRight(itemNum + '. AKSESORIS: ' + (aksesorisItem.nama_barang || '-'), W - 25) + padLeft('Rp ' + Number(aksesorisItem.harga * aksesorisItem.jumlah).toLocaleString('id-ID'), 25));
+      itemNum++;
+    }
 
     // Totals (right-aligned)
     lines.push(padRight('', W - 45) + padRight('Jumlah', 22) + ': ' + padLeft('Rp ' + Number(total).toLocaleString('id-ID'), 21));
@@ -140,9 +145,14 @@ function printNotaData(d) {
     var lCylStr = d.cyl_l ? d.cyl_l : '      ';
     var lAddStr = d.add_l ? d.add_l : '      ';
 
-    if (d.sph_r || d.add_r || d.cyl_r || d.sph_l || d.add_l || d.cyl_l) {
-      lines.push('SPHR: ' + padRight(rSphStr, 12) + ' CYLR: ' + padRight(rCylStr, 12) + ' ADDR: ' + rAddStr);
-      lines.push('SPHL: ' + padRight(lSphStr, 12) + ' CYLL: ' + padRight(lCylStr, 12) + ' ADDL: ' + lAddStr);
+    if (d.sph_r || d.add_r || d.cyl_r || d.sph_l || d.add_l || d.cyl_l || d.pd) {
+      if (d.sph_r || d.add_r || d.cyl_r || d.sph_l || d.add_l || d.cyl_l) {
+        lines.push('SPHR: ' + padRight(rSphStr, 12) + ' CYLR: ' + padRight(rCylStr, 12) + ' ADDR: ' + rAddStr);
+        lines.push('SPHL: ' + padRight(lSphStr, 12) + ' CYLL: ' + padRight(lCylStr, 12) + ' ADDL: ' + lAddStr);
+      }
+      if (d.pd) {
+        lines.push('PD  : ' + d.pd);
+      }
       lines.push('');
     }
 
