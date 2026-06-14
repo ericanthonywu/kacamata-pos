@@ -58,6 +58,7 @@ function printNotaData(d) {
     var lensaRItem = (d.detail || []).find(function (i) { return i.tipe === 'lensa_r'; });
     var lensaLItem = (d.detail || []).find(function (i) { return i.tipe === 'lensa_l'; });
     var aksesorisItem = (d.detail || []).find(function (i) { return i.tipe === 'aksesoris'; });
+    var lainLainItem = (d.detail || []).find(function (i) { return i.tipe === 'lain_lain'; });
 
     var total = d.total || 0;
     var dp = d.dp || 0;
@@ -88,9 +89,7 @@ function printNotaData(d) {
     var strTglSelesai = 'Tgl. Selesai : ' + tglSelesai;
     lines.push(padRight('Nama      : ' + nama, W - strTglSelesai.length) + strTglSelesai);
     lines.push('Telp      : ' + telp);
-    lines.push('');
     lines.push(separator('-'));
-    lines.push('');
 
     // Items
     var itemNum = 1;
@@ -108,6 +107,10 @@ function printNotaData(d) {
     }
     if (aksesorisItem) {
       lines.push(padRight(itemNum + '. AKSESORIS: ' + (aksesorisItem.nama_barang || '-'), W - 25) + padLeft('Rp ' + Number(aksesorisItem.harga * aksesorisItem.jumlah).toLocaleString('id-ID'), 25));
+      itemNum++;
+    }
+    if (lainLainItem) {
+      lines.push(padRight(itemNum + '. LAIN-LAIN: ' + (lainLainItem.keterangan || '-'), W - 25) + padLeft('Rp ' + Number(lainLainItem.harga * lainLainItem.jumlah).toLocaleString('id-ID'), 25));
       itemNum++;
     }
 
@@ -136,8 +139,6 @@ function printNotaData(d) {
     var lensaLText = 'Lensa (L) : ' + (lensaLItem ? lensaLItem.nama_barang || '-' : '-') + (lResep ? ' (' + lResep + ')' : '');
     lines.push(makeRow(lensaLText, 'Tgl. Selesai  : ' + tglSelesai));
 
-    lines.push('');
-
     var rSphStr = d.sph_r ? d.sph_r : '      ';
     var rCylStr = d.cyl_r ? d.cyl_r : '      ';
     var rAddStr = d.add_r ? d.add_r : '      ';
@@ -153,11 +154,11 @@ function printNotaData(d) {
       if (d.pd) {
         lines.push('PD  : ' + d.pd);
       }
-      lines.push('');
     }
 
     var strDisetujui = 'Disetujui,';
     lines.push(padRight('', W - strDisetujui.length) + strDisetujui);
+    lines.push('');
     lines.push('');
     var strTtd = '(...........)';
     lines.push(padRight('', W - strTtd.length) + strTtd);

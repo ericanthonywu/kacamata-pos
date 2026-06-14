@@ -222,7 +222,7 @@
           var html = '<h6 class="fw-bold mb-3">Detail Barang</h6>';
           html += '<table class="table table-sm table-bordered"><thead><tr class="bg-light"><th>Barang (Kategori)</th><th>Barcode</th><th>Qty</th><th>Harga</th><th>Subtotal</th></tr></thead><tbody>';
           d.detail.forEach(function (item) {
-            var itemName = item.nama_barang || item.barang_nama || '-';
+            var itemName = item.nama_barang || item.keterangan || item.barang_nama || '-';
             var sph = item.b_sph_r || item.b_sph_l || '';
             var cyl = item.b_cyl_r || item.b_cyl_l || '';
             var add = item.b_add_r || item.b_add_l || '';

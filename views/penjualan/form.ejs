@@ -111,6 +111,21 @@
             </div>
           </div>
 
+          <!-- Lain-lain -->
+          <div class="card p-3 mb-3">
+            <h6>✨ Lain-lain</h6>
+            <div class="mb-2">
+              <label class="form-label small">Nama Barang / Keterangan</label>
+              <input type="text" class="form-control form-control-sm" id="lain_keterangan" placeholder="Keterangan opsional">
+            </div>
+            <div class="row g-2">
+              <div class="col-6"><label class="form-label small">Harga</label><input type="text"
+                  class="form-control form-control-sm calc-input input-currency" id="lain_harga" value="0"></div>
+              <div class="col-6"><label class="form-label small">Qty</label><input type="number"
+                  class="form-control form-control-sm calc-input" id="lain_jumlah" value="1" min="1"></div>
+            </div>
+          </div>
+
           <!-- Resep -->
           <div class="card p-3 mb-3">
             <h6>📝 Resep Kacamata (Opsional)</h6>
@@ -344,6 +359,13 @@
               subtotal += (h * q);
             }
           });
+          
+          if ($('#lain_keterangan').val().trim()) {
+            var lh = parseInt($('#lain_harga').data('raw-value') || $('#lain_harga').val().replace(/[^0-9]/g, '')) || 0;
+            var lq = parseInt($('#lain_jumlah').val()) || 1;
+            subtotal += (lh * lq);
+          }
+
           var bpjs = parseFloat($('#bpjs').val().replace(/[^0-9]/g, '')) || 0;
           $('#subtotalDisplay').text(fmtRp(subtotal));
           $('#totalDisplay').text(fmtRp(subtotal - bpjs));
@@ -370,7 +392,18 @@
 
         function savePenjualan(withPrint) {
           var items = [buildItem('frame'), buildItem('lensa_l'), buildItem('lensa_r'), buildItem('aksesoris')].filter(Boolean);
-          if (items.length === 0) { showToast('Pilih minimal satu barang', 'danger'); return; }
+          
+          if ($('#lain_keterangan').val().trim()) {
+            items.push({
+              tipe: 'lain_lain',
+              barang_id: null,
+              keterangan: $('#lain_keterangan').val().trim(),
+              harga: parseFloat($('#lain_harga').data('raw-value') || $('#lain_harga').val().replace(/[^0-9]/g, '')) || 0,
+              jumlah: parseInt($('#lain_jumlah').val()) || 1
+            });
+          }
+          
+          if (items.length === 0) { showToast('Pilih minimal satu barang atau masukkan keterangan lain-lain', 'danger'); return; }
 
           var pelangganId = $('#pelanggan_id').val();
           var salesId = $('#sales_id').val();

@@ -16,14 +16,16 @@ exports.create = async function (data, userId) {
     throw Object.assign(new Error('Minimal satu item harus diisi'), { status: 400 });
 
   let subtotal = 0;
-  const items = data.items.filter(i => i.barang_id);
+  const items = data.items.filter(i => i.barang_id || i.tipe === 'lain_lain');
 
   // --- Stock validation ---
   // Aggregate quantities per barang_id (in case same item appears multiple times)
   const qtyMap = {};
   for (const item of items) {
-    const id = item.barang_id;
-    qtyMap[id] = (qtyMap[id] || 0) + (parseInt(item.jumlah) || 1);
+    if (item.barang_id) {
+      const id = item.barang_id;
+      qtyMap[id] = (qtyMap[id] || 0) + (parseInt(item.jumlah) || 1);
+    }
   }
 
   for (const [barangId, totalQty] of Object.entries(qtyMap)) {

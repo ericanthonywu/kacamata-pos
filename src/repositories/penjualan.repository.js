@@ -103,6 +103,7 @@ exports.create = async function (penjualanData, detailItems) {
       await trx('penjualan_detail').insert({
         penjualan_id: penjualan.id, tipe: item.tipe, barang_id: item.barang_id,
         harga: item.harga || 0, diskon: item.diskon || 0, jumlah: item.jumlah || 1,
+        keterangan: item.keterangan || null
       });
       if (item.barang_id) {
         const brg = await trx('barang').select('qty').where('id', item.barang_id).first();
