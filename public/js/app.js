@@ -148,10 +148,10 @@ function printNotaData(d) {
 
     if (d.sph_r || d.add_r || d.cyl_r || d.sph_l || d.add_l || d.cyl_l || d.pd) {
       if (d.sph_r || d.add_r || d.cyl_r || d.sph_l || d.add_l || d.cyl_l) {
-        lines.push('SPHR: ' + padRight(rSphStr, 12) + ' CYLR: ' + padRight(rCylStr, 12) + ' ADDR: ' + rAddStr);
+        var pdStr = d.pd ? 'PD: ' + d.pd : '';
+        lines.push('SPHR: ' + padRight(rSphStr, 12) + ' CYLR: ' + padRight(rCylStr, 12) + ' ADDR: ' + padRight(rAddStr, 12) + pdStr);
         lines.push('SPHL: ' + padRight(lSphStr, 12) + ' CYLL: ' + padRight(lCylStr, 12) + ' ADDL: ' + lAddStr);
-      }
-      if (d.pd) {
+      } else if (d.pd) {
         lines.push('PD  : ' + d.pd);
       }
     }
