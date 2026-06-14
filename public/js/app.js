@@ -40,162 +40,159 @@ function showToast(message, type) {
 
 function printNotaData(d) {
   try {
-  var dFormatDate = function (dStr) {
-    if (!dStr) return '';
-    var dt = new Date(dStr);
-    return ('0' + dt.getDate()).slice(-2) + '-' + ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][dt.getMonth()] + '-' + dt.getFullYear();
-  };
+    var dFormatDate = function (dStr) {
+      if (!dStr) return '';
+      var dt = new Date(dStr);
+      return ('0' + dt.getDate()).slice(-2) + '-' + ['Jan', 'Feb', 'Mar', 'Apr', 'May', 'Jun', 'Jul', 'Aug', 'Sep', 'Oct', 'Nov', 'Dec'][dt.getMonth()] + '-' + dt.getFullYear();
+    };
 
-  var orderDate = dFormatDate(d.order_date);
-  var tglSelesai = dFormatDate(d.tanggal_selesai);
+    var orderDate = dFormatDate(d.order_date);
+    var tglSelesai = dFormatDate(d.tanggal_selesai);
 
-  var no = d.no_nota || '-';
-  var nama = d.pelanggan_nama || '-';
-  var telp = d.pelanggan_telp || '-';
-  var sales = d.sales_nama || '-';
+    var no = d.no_nota || '-';
+    var nama = d.pelanggan_nama || '-';
+    var telp = d.pelanggan_telp || '-';
+    var sales = d.sales_nama || '-';
 
-  var frameItem = (d.detail || []).find(function (i) { return i.tipe === 'frame'; });
-  var lensaRItem = (d.detail || []).find(function (i) { return i.tipe === 'lensa_r'; });
-  var lensaLItem = (d.detail || []).find(function (i) { return i.tipe === 'lensa_l'; });
+    var frameItem = (d.detail || []).find(function (i) { return i.tipe === 'frame'; });
+    var lensaRItem = (d.detail || []).find(function (i) { return i.tipe === 'lensa_r'; });
+    var lensaLItem = (d.detail || []).find(function (i) { return i.tipe === 'lensa_l'; });
 
-  var total = d.total || 0;
-  var dp = d.dp || 0;
-  var sisa = total - dp;
-  if (d.status_bayar === 'lunas') {
-    dp = total;
-    sisa = 0;
-  }
+    var total = d.total || 0;
+    var dp = d.dp || 0;
+    var sisa = total - dp;
+    if (d.status_bayar === 'lunas') {
+      dp = total;
+      sisa = 0;
+    }
 
-  var W = 80; // total character width for full page (Epson LX-310 standard 10 CPI is 80 columns)
-  var SP = '                                                                                                                                    ';
-  var padRight = function (str, length) { return (str + SP).substring(0, length); };
-  var padLeft = function (str, length) { return (SP + str).slice(-length); };
-  var centerText = function (str, length) {
-    var pad = Math.max(0, Math.floor((length - str.length) / 2));
-    return padRight(SP.substring(0, pad) + str, length);
-  };
-  var separator = function (ch) { var s = ''; for (var i = 0; i < W; i++) s += ch; return s; };
+    var W = 80; // total character width for full page (Epson LX-310 standard 10 CPI is 80 columns)
+    var SP = '                                                                                                                                    ';
+    var padRight = function (str, length) { return (str + SP).substring(0, length); };
+    var padLeft = function (str, length) { return (SP + str).slice(-length); };
+    var centerText = function (str, length) {
+      var pad = Math.max(0, Math.floor((length - str.length) / 2));
+      return padRight(SP.substring(0, pad) + str, length);
+    };
+    var separator = function (ch) { var s = ''; for (var i = 0; i < W; i++) s += ch; return s; };
 
-  var lines = [];
+    var lines = [];
 
-  // Header: 3 columns
-  lines.push(padRight('NO INVOICE:', 20) + centerText('OPTIK SENTRAL', W - 40) + padLeft('dikirim', 20));
-  lines.push(padRight(no, 20) + centerText('JL.R.SUPRAPTO NO.41 KETAPANG', W - 40) + padLeft(orderDate, 20));
-  lines.push(padRight('', 20) + centerText('TELP : 085350509540', W - 40) + padLeft('', 20));
-  lines.push('');
+    // Header: 3 columns
+    lines.push(padRight('NO INVOICE:', 20) + centerText('OPTIK SENTRAL', W - 40) + padLeft('dikirim', 20));
+    lines.push(padRight(no, 20) + centerText('JL.R.SUPRAPTO NO.41 KETAPANG', W - 40) + padLeft(orderDate, 20));
+    lines.push(padRight('', 20) + centerText('TELP : 085350509540', W - 40) + padLeft('', 20));
 
-  // Nama, Telp, Tgl Selesai
-  var strTglSelesai = 'Tgl. Selesai : ' + tglSelesai;
-  lines.push(padRight('Nama      : ' + nama, W - strTglSelesai.length) + strTglSelesai);
-  lines.push('Telp      : ' + telp);
-  lines.push('');
-  lines.push(separator('-'));
-  lines.push('');
-
-  // Items
-  var itemNum = 1;
-  if (frameItem) {
-    lines.push(padRight(itemNum + '. FRAME   : ' + (frameItem.nama_barang || '-'), W - 25) + padLeft('Rp ' + Number(frameItem.harga * frameItem.jumlah).toLocaleString('id-ID'), 25));
-    itemNum++;
-  }
-  if (lensaRItem) {
-    lines.push(padRight(itemNum + '. LENSA(R): ' + (lensaRItem.nama_barang || '-'), W - 25) + padLeft('Rp ' + Number(lensaRItem.harga * lensaRItem.jumlah).toLocaleString('id-ID'), 25));
-    itemNum++;
-  }
-  if (lensaLItem) {
-    lines.push(padRight(itemNum + '. LENSA(L): ' + (lensaLItem.nama_barang || '-'), W - 25) + padLeft('Rp ' + Number(lensaLItem.harga * lensaLItem.jumlah).toLocaleString('id-ID'), 25));
-    itemNum++;
-  }
-
-  // Totals (right-aligned)
-  lines.push(padRight('', W - 45) + padRight('Jumlah', 22) + ': ' + padLeft('Rp ' + Number(total).toLocaleString('id-ID'), 21));
-  if (d.bpjs > 0) {
-    lines.push(padRight('', W - 45) + padRight('BPJS', 22) + ': ' + padLeft('- Rp ' + Number(d.bpjs).toLocaleString('id-ID'), 21));
-  }
-  lines.push(padRight('', W - 45) + padRight('Uang Muka', 22) + ': ' + padLeft('Rp ' + Number(dp).toLocaleString('id-ID'), 21));
-  lines.push(padRight('', W - 45) + padRight('Sisa', 22) + ': ' + padLeft('Rp ' + Number(sisa).toLocaleString('id-ID'), 21));
-  lines.push(separator('-'));
-
-  // Detail section: left = frame/lensa info, right = no/sales/tgl
-  function makeRow(leftText, rightText) {
-    return padRight(leftText.substring(0, W - 35), W - 33) + rightText;
-  }
-
-  var frameText = 'Frame     : ' + (frameItem ? frameItem.nama_barang || '-' : '-');
-  lines.push(makeRow(frameText, 'No.           : ' + no));
-
-  var rResep = [d.sph_r ? 'SPH: ' + d.sph_r : '', d.cyl_r ? 'CYL: ' + d.cyl_r : '', d.add_r ? 'ADD: ' + d.add_r : ''].filter(Boolean).join(' ');
-  var lensaRText = 'Lensa (R) : ' + (lensaRItem ? lensaRItem.nama_barang || '-' : '-') + (rResep ? ' (' + rResep + ')' : '');
-  lines.push(makeRow(lensaRText, 'Sales         : ' + sales));
-
-  var lResep = [d.sph_l ? 'SPH: ' + d.sph_l : '', d.cyl_l ? 'CYL: ' + d.cyl_l : '', d.add_l ? 'ADD: ' + d.add_l : ''].filter(Boolean).join(' ');
-  var lensaLText = 'Lensa (L) : ' + (lensaLItem ? lensaLItem.nama_barang || '-' : '-') + (lResep ? ' (' + lResep + ')' : '');
-  lines.push(makeRow(lensaLText, 'Tgl. Selesai  : ' + tglSelesai));
-
-  lines.push('');
-
-  var rSphStr = d.sph_r ? d.sph_r : '      ';
-  var rCylStr = d.cyl_r ? d.cyl_r : '      ';
-  var rAddStr = d.add_r ? d.add_r : '      ';
-  var lSphStr = d.sph_l ? d.sph_l : '      ';
-  var lCylStr = d.cyl_l ? d.cyl_l : '      ';
-  var lAddStr = d.add_l ? d.add_l : '      ';
-
-  if (d.sph_r || d.add_r || d.cyl_r || d.sph_l || d.add_l || d.cyl_l) {
-    lines.push('SPHR: ' + padRight(rSphStr, 12) + ' CYLR: ' + padRight(rCylStr, 12) + ' ADDR: ' + rAddStr);
-    lines.push('SPHL: ' + padRight(lSphStr, 12) + ' CYLL: ' + padRight(lCylStr, 12) + ' ADDL: ' + lAddStr);
+    // Nama, Telp, Tgl Selesai
+    var strTglSelesai = 'Tgl. Selesai : ' + tglSelesai;
+    lines.push(padRight('Nama      : ' + nama, W - strTglSelesai.length) + strTglSelesai);
+    lines.push('Telp      : ' + telp);
     lines.push('');
-  }
+    lines.push(separator('-'));
+    lines.push('');
 
-  var strDisetujui = 'Disetujui,';
-  lines.push(padRight('', W - strDisetujui.length) + strDisetujui);
-  lines.push('');
-  lines.push('');
-  var strTtd = '(...........)';
-  lines.push(padRight('', W - strTtd.length) + strTtd);
-  lines.push('');
-  lines.push('SYARAT DAN KETENTUAN');
-  lines.push('* KACAMATA YANG TIDAK DIAMBIL DALAM JANGKA WAKTU 2 BULAN MAKA UANG MUKA');
-  lines.push('  AKAN DINYATAKAN HANGUS DAN DILUAR RESIKO KAMI');
-
-  var textData = lines.join('\r\n') + '\r\n\r\n\r\n\r\n\r\n\r\n'; // Add form feed
-
-  var useBackendPrint = localStorage.getItem('use_backend_print') === 'true';
-  
-  if (useBackendPrint) {
-    var printerName = localStorage.getItem('raw_printer_name') || 'LX310';
-    if (!localStorage.getItem('raw_printer_name')) {
-      localStorage.setItem('raw_printer_name', printerName);
+    // Items
+    var itemNum = 1;
+    if (frameItem) {
+      lines.push(padRight(itemNum + '. FRAME   : ' + (frameItem.nama_barang || '-'), W - 25) + padLeft('Rp ' + Number(frameItem.harga * frameItem.jumlah).toLocaleString('id-ID'), 25));
+      itemNum++;
     }
-    
-    // Send raw text to local backend Node.js
-    $.ajax({
-      url: '/api/print/raw',
-      method: 'POST',
-      contentType: 'application/json',
-      data: JSON.stringify({
-        textData: textData,
-        printerName: printerName
-      }),
-      success: function(res) {
-        showToast("Berhasil mencetak ke printer dot matrix", "success");
-      },
-      error: function(xhr) {
-        var msg = (xhr.responseJSON && xhr.responseJSON.message) || 'Gagal mengirim ke printer';
-        showToast(msg, "danger");
-        if (confirm("Gagal print via Backend. Mau print via Browser biasa saja?")) {
-          printNotaBrowser(lines);
-        }
+    if (lensaRItem) {
+      lines.push(padRight(itemNum + '. LENSA(R): ' + (lensaRItem.nama_barang || '-'), W - 25) + padLeft('Rp ' + Number(lensaRItem.harga * lensaRItem.jumlah).toLocaleString('id-ID'), 25));
+      itemNum++;
+    }
+    if (lensaLItem) {
+      lines.push(padRight(itemNum + '. LENSA(L): ' + (lensaLItem.nama_barang || '-'), W - 25) + padLeft('Rp ' + Number(lensaLItem.harga * lensaLItem.jumlah).toLocaleString('id-ID'), 25));
+      itemNum++;
+    }
+
+    // Totals (right-aligned)
+    lines.push(padRight('', W - 45) + padRight('Jumlah', 22) + ': ' + padLeft('Rp ' + Number(total).toLocaleString('id-ID'), 21));
+    if (d.bpjs > 0) {
+      lines.push(padRight('', W - 45) + padRight('BPJS', 22) + ': ' + padLeft('- Rp ' + Number(d.bpjs).toLocaleString('id-ID'), 21));
+    }
+    lines.push(padRight('', W - 45) + padRight('Uang Muka', 22) + ': ' + padLeft('Rp ' + Number(dp).toLocaleString('id-ID'), 21));
+    lines.push(padRight('', W - 45) + padRight('Sisa', 22) + ': ' + padLeft('Rp ' + Number(sisa).toLocaleString('id-ID'), 21));
+    lines.push(separator('-'));
+
+    // Detail section: left = frame/lensa info, right = no/sales/tgl
+    function makeRow(leftText, rightText) {
+      return padRight(leftText.substring(0, W - 35), W - 33) + rightText;
+    }
+
+    var frameText = 'Frame     : ' + (frameItem ? frameItem.nama_barang || '-' : '-');
+    lines.push(makeRow(frameText, 'No.           : ' + no));
+
+    var rResep = [d.sph_r ? 'SPH: ' + d.sph_r : '', d.cyl_r ? 'CYL: ' + d.cyl_r : '', d.add_r ? 'ADD: ' + d.add_r : ''].filter(Boolean).join(' ');
+    var lensaRText = 'Lensa (R) : ' + (lensaRItem ? lensaRItem.nama_barang || '-' : '-') + (rResep ? ' (' + rResep + ')' : '');
+    lines.push(makeRow(lensaRText, 'Sales         : ' + sales));
+
+    var lResep = [d.sph_l ? 'SPH: ' + d.sph_l : '', d.cyl_l ? 'CYL: ' + d.cyl_l : '', d.add_l ? 'ADD: ' + d.add_l : ''].filter(Boolean).join(' ');
+    var lensaLText = 'Lensa (L) : ' + (lensaLItem ? lensaLItem.nama_barang || '-' : '-') + (lResep ? ' (' + lResep + ')' : '');
+    lines.push(makeRow(lensaLText, 'Tgl. Selesai  : ' + tglSelesai));
+
+    lines.push('');
+
+    var rSphStr = d.sph_r ? d.sph_r : '      ';
+    var rCylStr = d.cyl_r ? d.cyl_r : '      ';
+    var rAddStr = d.add_r ? d.add_r : '      ';
+    var lSphStr = d.sph_l ? d.sph_l : '      ';
+    var lCylStr = d.cyl_l ? d.cyl_l : '      ';
+    var lAddStr = d.add_l ? d.add_l : '      ';
+
+    if (d.sph_r || d.add_r || d.cyl_r || d.sph_l || d.add_l || d.cyl_l) {
+      lines.push('SPHR: ' + padRight(rSphStr, 12) + ' CYLR: ' + padRight(rCylStr, 12) + ' ADDR: ' + rAddStr);
+      lines.push('SPHL: ' + padRight(lSphStr, 12) + ' CYLL: ' + padRight(lCylStr, 12) + ' ADDL: ' + lAddStr);
+      lines.push('');
+    }
+
+    var strDisetujui = 'Disetujui,';
+    lines.push(padRight('', W - strDisetujui.length) + strDisetujui);
+    lines.push('');
+    var strTtd = '(...........)';
+    lines.push(padRight('', W - strTtd.length) + strTtd);
+    lines.push('SYARAT DAN KETENTUAN');
+    lines.push('* KACAMATA YANG TIDAK DIAMBIL DALAM JANGKA WAKTU 2 BULAN MAKA UANG MUKA');
+    lines.push('  AKAN DINYATAKAN HANGUS DAN DILUAR RESIKO KAMI');
+
+    var textData = lines.join('\r\n') + '\r\n\r\n'; // Minimal form feed to prevent second page spill
+
+    var useBackendPrint = localStorage.getItem('use_backend_print') === 'true';
+
+    if (useBackendPrint) {
+      var printerName = localStorage.getItem('raw_printer_name') || 'LX310';
+      if (!localStorage.getItem('raw_printer_name')) {
+        localStorage.setItem('raw_printer_name', printerName);
       }
-    });
-  } else {
-    if (confirm("Mulai mencetak Nota secara langsung dengan Printer Dot Matrix (Raw Print via Backend)? Pastikan printer sudah di-share.")) {
-      localStorage.setItem('use_backend_print', 'true');
-      printNotaData(d); // Ulangi
-      return;
+
+      // Send raw text to local backend Node.js
+      $.ajax({
+        url: '/api/print/raw',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({
+          textData: textData,
+          printerName: printerName
+        }),
+        success: function (res) {
+          showToast("Berhasil mencetak ke printer dot matrix", "success");
+        },
+        error: function (xhr) {
+          var msg = (xhr.responseJSON && xhr.responseJSON.message) || 'Gagal mengirim ke printer';
+          showToast(msg, "danger");
+          if (confirm("Gagal print via Backend. Mau print via Browser biasa saja?")) {
+            printNotaBrowser(lines);
+          }
+        }
+      });
+    } else {
+      if (confirm("Mulai mencetak Nota secara langsung dengan Printer Dot Matrix (Raw Print via Backend)? Pastikan printer sudah di-share.")) {
+        localStorage.setItem('use_backend_print', 'true');
+        printNotaData(d); // Ulangi
+        return;
+      }
+      printNotaBrowser(lines);
     }
-    printNotaBrowser(lines);
-  }
   } catch (err) {
     alert("Error di printNotaData: " + err.message);
     console.error(err);
