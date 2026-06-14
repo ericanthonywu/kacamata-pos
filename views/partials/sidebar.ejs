@@ -39,17 +39,19 @@
       <i class="bi bi-arrow-return-right"></i> Retur Pembelian
     </a>
   </div>
+  <% } %>
 
   <div class="sidebar-section">
     <div class="sidebar-label">Hutang / Piutang</div>
+    <% if (currentUser.hak_akses === 'admin') { %>
     <a href="/pembayaran-pembelian" class="sidebar-link <%= activePage === 'hutang-pembelian' ? 'active' : '' %>">
       <i class="bi bi-wallet2"></i> Hutang Pembelian
     </a>
+    <% } %>
     <a href="/pembayaran-penjualan" class="sidebar-link <%= activePage === 'hutang-penjualan' ? 'active' : '' %>">
       <i class="bi bi-cash-coin"></i> Hutang Penjualan
     </a>
   </div>
-  <% } %>
 
   <div class="sidebar-section">
     <div class="sidebar-label">Master Data</div>

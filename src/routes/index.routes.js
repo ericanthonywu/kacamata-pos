@@ -53,7 +53,7 @@ router.use('/pembelian', require('./pembelian.routes'));
 router.use('/pembelian-retur', requireAdmin, require('./pembelian-retur.routes'));
 router.use('/penjualan-retur', requireAdmin, require('./penjualan-retur.routes'));
 router.use('/pembayaran-pembelian', requireAdmin, require('./pembayaran-pembelian.routes'));
-router.use('/pembayaran-penjualan', requireAdmin, require('./pembayaran-penjualan.routes'));
+router.use('/pembayaran-penjualan', require('./pembayaran-penjualan.routes'));
 router.use('/laporan', require('./laporan.routes')); 
 
 // Print API
