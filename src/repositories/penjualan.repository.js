@@ -28,17 +28,17 @@ exports.getDatatablesData = async function (params) {
   if (end_date) baseQuery = baseQuery.where('penjualan.order_date', '<=', end_date);
 
   if (search && search.value) {
-    baseQuery = baseQuery.where(function() {
+    baseQuery = baseQuery.where(function () {
       this.where('penjualan.no_nota', 'ilike', `%${search.value}%`)
-          .orWhere('pelanggan.nama', 'ilike', `%${search.value}%`)
-          .orWhere('sales.nama', 'ilike', `%${search.value}%`)
-          .orWhereExists(function() {
-            this.select('*')
-                .from('penjualan_detail')
-                .join('barang', 'penjualan_detail.barang_id', 'barang.id')
-                .whereRaw('penjualan_detail.penjualan_id = penjualan.id')
-                .andWhere('barang.barcode_id', 'ilike', `%${search.value}%`);
-          });
+        .orWhere('pelanggan.nama', 'ilike', `%${search.value}%`)
+        .orWhere('sales.nama', 'ilike', `%${search.value}%`)
+        .orWhereExists(function () {
+          this.select('*')
+            .from('penjualan_detail')
+            .join('barang', 'penjualan_detail.barang_id', 'barang.id')
+            .whereRaw('penjualan_detail.penjualan_id = penjualan.id')
+            .andWhere('barang.barcode_id', 'ilike', `%${search.value}%`);
+        });
     });
   }
 
@@ -83,9 +83,9 @@ exports.findById = function (id) {
 exports.findDetailsByPenjualanId = function (penjualanId) {
   return db('penjualan_detail')
     .select(
-      'penjualan_detail.*', 
-      'barang.nama_barang', 
-      'barang.barcode_id', 
+      'penjualan_detail.*',
+      'barang.nama_barang',
+      'barang.barcode_id',
       'barang.sph_r as b_sph_r', 'barang.cyl_r as b_cyl_r', 'barang.add_r as b_add_r',
       'barang.sph_l as b_sph_l', 'barang.cyl_l as b_cyl_l', 'barang.add_l as b_add_l',
       'kategori.nama as kategori_nama'
@@ -138,7 +138,7 @@ exports.create = async function (penjualanData, detailItems) {
         if (item.tipe === 'frame') frameTotal += lineTotal;
         else if (item.tipe === 'lensa_r' || item.tipe === 'lensa_l') lensaTotal += lineTotal;
       }
-      
+
       const sales = await trx('sales').where('id', penjualanData.sales_id).first();
       if (sales) {
         if (frameTotal > 0 && parseFloat(sales.komisi_frame) > 0) {
