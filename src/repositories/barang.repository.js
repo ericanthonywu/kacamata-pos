@@ -1,6 +1,18 @@
 const db = require('../config/database');
 const TABLE = 'barang';
 
+const getNumVal = (col1, col2) => `CAST(NULLIF(REGEXP_REPLACE(COALESCE(${col1}, ${col2}), '[^0-9.-]', '', 'g'), '') AS NUMERIC)`;
+const orderSph = `CASE WHEN ${getNumVal('barang.sph_r', 'barang.sph_l')} > 0 THEN 1 WHEN ${getNumVal('barang.sph_r', 'barang.sph_l')} = 0 THEN 2 WHEN ${getNumVal('barang.sph_r', 'barang.sph_l')} < 0 THEN 3 ELSE 4 END ASC, ABS(${getNumVal('barang.sph_r', 'barang.sph_l')}) ASC`;
+const orderCyl = `CASE WHEN ${getNumVal('barang.cyl_r', 'barang.cyl_l')} > 0 THEN 1 WHEN ${getNumVal('barang.cyl_r', 'barang.cyl_l')} < 0 THEN 2 WHEN ${getNumVal('barang.cyl_r', 'barang.cyl_l')} = 0 THEN 3 ELSE 4 END ASC, ABS(${getNumVal('barang.cyl_r', 'barang.cyl_l')}) ASC`;
+const orderAdd = `CASE WHEN ${getNumVal('barang.add_r', 'barang.add_l')} > 0 THEN 1 WHEN ${getNumVal('barang.add_r', 'barang.add_l')} < 0 THEN 2 WHEN ${getNumVal('barang.add_r', 'barang.add_l')} = 0 THEN 3 ELSE 4 END ASC, ABS(${getNumVal('barang.add_r', 'barang.add_l')}) ASC`;
+
+function applyOpticalSort(query) {
+  return query
+    .orderByRaw(orderSph)
+    .orderByRaw(orderCyl)
+    .orderByRaw(orderAdd);
+}
+
 exports.findAll = function (filters = {}) {
   let query = db(TABLE)
     .select('barang.*', 'kategori.nama as kategori_nama')
@@ -11,7 +23,7 @@ exports.findAll = function (filters = {}) {
     query = query.where('barang.kategori_id', filters.kategori_id);
   }
   
-  return query.orderBy('barang.nama_barang', 'asc');
+  return applyOpticalSort(query.orderBy('barang.nama_barang', 'asc'));
 };
 
 exports.getDatatablesData = async function (params) {
@@ -50,11 +62,14 @@ exports.getDatatablesData = async function (params) {
     if (columns[colIndex]) {
       const orderCol = columns[colIndex] === 'kategori_nama' ? 'kategori.nama' : `barang.${columns[colIndex]}`;
       baseQuery = baseQuery.orderBy(orderCol, dir);
+      if (columns[colIndex] === 'nama_barang') {
+        baseQuery = applyOpticalSort(baseQuery);
+      }
     } else {
-      baseQuery = baseQuery.orderBy('barang.nama_barang', 'asc');
+      baseQuery = applyOpticalSort(baseQuery.orderBy('barang.nama_barang', 'asc'));
     }
   } else {
-    baseQuery = baseQuery.orderBy('barang.nama_barang', 'asc');
+    baseQuery = applyOpticalSort(baseQuery.orderBy('barang.nama_barang', 'asc'));
   }
 
   // Pagination
@@ -97,15 +112,11 @@ exports.search = function (q, kategori_nama) {
     });
   }
 
-  return query.andWhere(function() {
+  return applyOpticalSort(query.andWhere(function() {
       this.where('barang.nama_barang', 'ilike', `%${q}%`)
           .orWhere('barang.barcode_id', 'ilike', `%${q}%`);
     })
-    .orderBy('barang.nama_barang', 'asc')
-    .orderByRaw("CAST(NULLIF(REGEXP_REPLACE(COALESCE(barang.sph_r, barang.sph_l), '[^0-9.-]', '', 'g'), '') AS NUMERIC) DESC NULLS LAST")
-    .orderByRaw("CAST(NULLIF(REGEXP_REPLACE(COALESCE(barang.cyl_r, barang.cyl_l), '[^0-9.-]', '', 'g'), '') AS NUMERIC) DESC NULLS LAST")
-    .orderByRaw("CAST(NULLIF(REGEXP_REPLACE(COALESCE(barang.add_r, barang.add_l), '[^0-9.-]', '', 'g'), '') AS NUMERIC) DESC NULLS LAST")
-    .limit(50);
+    .orderBy('barang.nama_barang', 'asc'));
 };
 
 exports.create = function (data) {
