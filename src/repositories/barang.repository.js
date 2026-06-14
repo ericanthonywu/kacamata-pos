@@ -50,9 +50,16 @@ exports.getDatatablesData = async function (params) {
   }
 
   // Count filtered
-  const filteredCountRes = await baseQuery.clone().count('barang.id as count').sum('barang.qty as total_qty').first();
-  const recordsFiltered = parseInt(filteredCountRes.count);
+  const filteredCountRes = await baseQuery.clone()
+    .select(
+      db.raw('COUNT(barang.id) as count'),
+      db.raw('SUM(barang.qty) as total_qty'),
+      db.raw('SUM(CASE WHEN COALESCE(barang.qty, 0) < 1 THEN 1 ELSE 0 END) as out_of_stock')
+    )
+    .first();
+  const recordsFiltered = parseInt(filteredCountRes.count) || 0;
   const totalQty = parseInt(filteredCountRes.total_qty) || 0;
+  const outOfStock = parseInt(filteredCountRes.out_of_stock) || 0;
 
   // Apply ordering
   if (order && order.length > 0) {
@@ -92,6 +99,7 @@ exports.getDatatablesData = async function (params) {
     recordsTotal,
     recordsFiltered,
     totalQty,
+    outOfStock,
     data
   };
 };

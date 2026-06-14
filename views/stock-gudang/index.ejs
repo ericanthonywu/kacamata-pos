@@ -15,16 +15,22 @@
   </div>
 
   <div class="row g-3 mb-4">
-    <div class="col-md-6 col-6">
+    <div class="col-md-4 col-4">
       <div class="stat-card"><i class="bi bi-box-seam stat-icon text-info"></i>
         <div class="stat-value" id="valJenis">0</div>
         <div class="stat-label">Jenis Barang</div>
       </div>
     </div>
-    <div class="col-md-6 col-6">
+    <div class="col-md-4 col-4">
       <div class="stat-card"><i class="bi bi-layers stat-icon text-success"></i>
         <div class="stat-value" id="valStock">0</div>
         <div class="stat-label">Total Stock</div>
+      </div>
+    </div>
+    <div class="col-md-4 col-4">
+      <div class="stat-card"><i class="bi bi-exclamation-triangle stat-icon text-danger"></i>
+        <div class="stat-value text-danger" id="valHabis">0</div>
+        <div class="stat-label">Stok < 1</div>
       </div>
     </div>
   </div>
@@ -94,6 +100,7 @@ $(function() {
     if (json) {
       $('#valJenis').text(json.recordsFiltered || 0);
       $('#valStock').text(json.totalQty || 0);
+      $('#valHabis').text(json.outOfStock || 0);
     }
   });
 
