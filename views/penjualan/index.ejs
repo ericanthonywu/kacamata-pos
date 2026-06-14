@@ -181,7 +181,7 @@
                   html += '<a href="/pembayaran-penjualan/bayar/' + row.id + '" class="btn btn-sm btn-outline-success me-1" title="Bayar"><i class="bi bi-wallet2"></i></a>';
                 }
                 <% if (currentUser && currentUser.role === 'admin') { %>
-                  html += '<a href="/penjualan-retur/baru?penjualan_id=' + row.id + '" class="btn btn-sm btn-outline-warning" title="Retur"><i class="bi bi-arrow-return-left"></i></a>';
+                html += '<a href="/penjualan-retur/baru?penjualan_id=' + row.id + '" class="btn btn-sm btn-outline-warning" title="Retur"><i class="bi bi-arrow-return-left"></i></a>';
                 <% } %>
                 return html;
               }
@@ -266,7 +266,7 @@
               html += '<td>' + (d.add_l || '-') + '</td></tr>';
             }
             html += '</tbody></table>';
-
+            
             if (d.pd) {
               html += '<p class="mt-2 mb-0"><strong>PD:</strong> ' + d.pd + '</p>';
             }

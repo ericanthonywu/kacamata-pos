@@ -4,7 +4,8 @@ const TABLE = 'barang';
 exports.findAll = function (filters = {}) {
   let query = db(TABLE)
     .select('barang.*', 'kategori.nama as kategori_nama')
-    .leftJoin('kategori', 'barang.kategori_id', 'kategori.id');
+    .leftJoin('kategori', 'barang.kategori_id', 'kategori.id')
+    .whereNull('barang.deleted_at');
     
   if (filters.kategori_id) {
     query = query.where('barang.kategori_id', filters.kategori_id);
@@ -17,7 +18,8 @@ exports.getDatatablesData = async function (params) {
   const { start, length, search, order, kategori_id } = params;
   
   let baseQuery = db(TABLE)
-    .leftJoin('kategori', 'barang.kategori_id', 'kategori.id');
+    .leftJoin('kategori', 'barang.kategori_id', 'kategori.id')
+    .whereNull('barang.deleted_at');
 
   if (kategori_id) {
     baseQuery = baseQuery.where('barang.kategori_id', kategori_id);
@@ -75,13 +77,15 @@ exports.findById = function (id) {
     .select('barang.*', 'kategori.nama as kategori_nama')
     .leftJoin('kategori', 'barang.kategori_id', 'kategori.id')
     .where('barang.id', id)
+    .whereNull('barang.deleted_at')
     .first();
 };
 
 exports.search = function (q, kategori_nama) {
   let query = db(TABLE)
     .select('barang.*', 'kategori.nama as kategori_nama')
-    .leftJoin('kategori', 'barang.kategori_id', 'kategori.id');
+    .leftJoin('kategori', 'barang.kategori_id', 'kategori.id')
+    .whereNull('barang.deleted_at');
 
   if (kategori_nama) {
     const kats = kategori_nama.split(',').map(k => k.trim());
@@ -111,7 +115,7 @@ exports.update = function (id, data) {
 };
 
 exports.del = function (id) {
-  return db(TABLE).where('id', id).del();
+  return db(TABLE).where('id', id).update({ deleted_at: db.fn.now() });
 };
 
 exports.decrementQty = function (id, amount) {

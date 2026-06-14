@@ -179,7 +179,7 @@ Tables created across migrations: `db/migrations/20240101000000_initial.js` and 
 | Table | Description | Key Columns |
 |-------|-------------|-------------|
 | `kategori` | Product categories | `id`, `nama` |
-| `barang` | Products/items | `id`, `nama_barang`, `kategori_id` (FK→kategori), `qty` (stock), `harga_jual`, `barcode_id` (unique, auto-generated as `BRG-XXXXXX`) |
+| `barang` | Products/items | `id`, `nama_barang`, `kategori_id` (FK→kategori), `qty` (stock), `harga_jual`, `barcode_id` (unique, auto-generated as `BRG-XXXXXX`), `deleted_at` (soft delete) |
 | `supplier` | Suppliers | `id`, `nama` |
 | `pelanggan` | Customers | `id`, `nama`, `no_telp` |
 | `sales` | Salespeople | `id`, `nama`, `tanggal_kerja`, `status` (`aktif`/`nonaktif`) |
@@ -254,6 +254,7 @@ Purchase flow for buying products from suppliers.
 - CRUD with auto-generated `barcode_id` (format: `BRG-XXXXXX`)
 - `qty` is managed via direct edit and auto-adjusted by sales (decrement) and purchases (increment)
 - Has search endpoint (`GET /barang/search?q=`) for typeahead (used by `ilike` on `nama_barang` and `barcode_id`)
+- **Soft Delete**: Deleting a barang sets `deleted_at` instead of hard deleting. Soft deleted items are filtered out (`deleted_at IS NULL`) in master data queries, but are NOT filtered out in historical transaction queries (sales, purchases, returns, reports) so that past invoices and reports remain intact.
 
 ### Stock Gudang (Warehouse Stock)
 - **Read-only view** — same data as Barang but displayed without edit controls
