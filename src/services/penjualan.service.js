@@ -33,15 +33,17 @@ exports.create = async function (data, userId) {
     if (!barang) {
       throw Object.assign(new Error(`Barang dengan ID ${barangId} tidak ditemukan`), { status: 400 });
     }
-    if (barang.qty < totalQty) {
-      throw Object.assign(
-        new Error(`Stok "${barang.nama_barang}" tidak cukup (tersedia: ${barang.qty}, dibutuhkan: ${totalQty})`),
-        { status: 400 }
-      );
-    }
   }
+  const warnings = [];
+  const barangRepo = require('../repositories/barang.repository');
   for (const item of items) {
     subtotal += ((parseFloat(item.harga) || 0) - (parseFloat(item.diskon) || 0)) * (parseInt(item.jumlah) || 1);
+    if (item.barang_id) {
+      const barang = await barangRepo.findById(item.barang_id);
+      if (barang && barang.qty !== null && barang.qty <= 0) {
+        warnings.push(`Pemberitahuan: Stok barang "${barang.nama_barang}" saat ini sedang kosong (0). Transaksi tetap berhasil dicatat.`);
+      }
+    }
   }
 
   const bpjsAmount = parseFloat(data.bpjs) || 0;
@@ -73,7 +75,9 @@ exports.create = async function (data, userId) {
   };
 
   const penjualan = await repo.create(penjualanData, items);
-  return exports.getById(penjualan.id);
+  const result = await exports.getById(penjualan.id);
+  result.warnings = warnings;
+  return result;
 };
 
 exports.del = function (id) { return repo.del(id); };

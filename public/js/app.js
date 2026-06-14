@@ -180,18 +180,18 @@ function printNotaData(d) {
         printerName: printerName
       }),
       success: function (res) {
-        showToast("Berhasil mencetak ke printer dot matrix", "success");
+        showToast("Sudah berhasil di print", "success");
       },
       error: function (xhr) {
-        var msg = (xhr.responseJSON && xhr.responseJSON.message) || 'Gagal mengirim ke printer';
+        var msg = (xhr.responseJSON && xhr.responseJSON.message) || 'Gagal nge-print';
         showToast(msg, "danger");
-        if (confirm("Gagal print via Backend. Mau print via Browser biasa saja?")) {
+        if (confirm("Gagal nge-print otomatis. Mau print manual lewat browser?")) {
           printNotaBrowser(lines);
         }
       }
     });
   } catch (err) {
-    alert("Error di printNotaData: " + err.message);
+    alert("Maaf, terjadi kesalahan saat mau nge-print: " + err.message);
     console.error(err);
   }
 }

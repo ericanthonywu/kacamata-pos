@@ -107,7 +107,7 @@ exports.create = async function (penjualanData, detailItems) {
       });
       if (item.barang_id) {
         const brg = await trx('barang').select('qty').where('id', item.barang_id).first();
-        if (brg && brg.qty !== null) {
+        if (brg && brg.qty !== null && brg.qty > 0) {
           await trx('barang').where('id', item.barang_id).decrement('qty', item.jumlah || 1);
         }
       }
@@ -164,12 +164,35 @@ exports.create = async function (penjualanData, detailItems) {
 
 exports.del = async function (id) {
   return db.transaction(async (trx) => {
+    // 1. Revert and delete retur
+    const returs = await trx('penjualan_retur').where('penjualan_id', id);
+    for (const retur of returs) {
+      const returDetails = await trx('penjualan_retur_detail').where('penjualan_retur_id', retur.id);
+      for (const item of returDetails) {
+        if (item.barang_id) {
+          await trx('barang').where('id', item.barang_id).decrement('qty', item.jumlah);
+        }
+      }
+      await trx('penjualan_retur_detail').where('penjualan_retur_id', retur.id).del();
+      await trx('penjualan_retur').where('id', retur.id).del();
+    }
+
+    // 2. Revert and delete penjualan details
     const details = await trx('penjualan_detail').where('penjualan_id', id);
     for (const item of details) {
       if (item.barang_id) {
         await trx('barang').where('id', item.barang_id).increment('qty', item.jumlah);
       }
     }
+    await trx('penjualan_detail').where('penjualan_id', id).del();
+
+    // 3. Delete komisi sales
+    await trx('komisi_sales').where('penjualan_id', id).del();
+
+    // 4. Delete pembayaran
+    await trx('pembayaran_penjualan').where('penjualan_id', id).del();
+
+    // 5. Delete main record
     await trx('penjualan').where('id', id).del();
   });
 };

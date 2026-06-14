@@ -426,6 +426,9 @@
           $.ajax({
             url: '/penjualan', method: 'POST', contentType: 'application/json', data: JSON.stringify(payload),
             success: function (res) {
+              if (res.data && res.data.warnings && res.data.warnings.length > 0) {
+                sessionStorage.setItem('penjualan_warnings', JSON.stringify(res.data.warnings));
+              }
               if (res.success && withPrint) printNotaData(res.data);
               window.location.href = '/penjualan';
             },

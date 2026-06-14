@@ -44,6 +44,14 @@
 
     <script>
       $(function () {
+        var warnings = sessionStorage.getItem('penjualan_warnings');
+        if (warnings) {
+          try {
+            JSON.parse(warnings).forEach(function(w) { showToast(w, 'warning'); });
+          } catch(e) {}
+          sessionStorage.removeItem('penjualan_warnings');
+        }
+
         var d = new Date();
         var y = d.getFullYear();
         var m = String(d.getMonth() + 1).padStart(2, '0');
