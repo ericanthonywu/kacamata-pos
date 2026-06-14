@@ -26,6 +26,7 @@ exports.datatables = async function (req, res) {
       recordsTotal: result.recordsTotal,
       recordsFiltered: result.recordsFiltered,
       totalQty: result.totalQty,
+      outOfStock: result.outOfStock,
       data: result.data
     });
   } catch (err) {
