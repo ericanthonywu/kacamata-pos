@@ -27,7 +27,7 @@ exports.findAll = function (filters = {}) {
 };
 
 exports.getDatatablesData = async function (params) {
-  const { start, length, search, order, kategori_id } = params;
+  const { start, length, search, order, kategori_id, columns: dtColumns } = params;
   
   let baseQuery = db(TABLE)
     .leftJoin('kategori', 'barang.kategori_id', 'kategori.id')
@@ -55,14 +55,23 @@ exports.getDatatablesData = async function (params) {
   const totalQty = parseInt(filteredCountRes.total_qty) || 0;
 
   // Apply ordering
-  const columns = ['nama_barang', 'kategori_nama', 'qty', 'harga_jual', 'barcode_id'];
   if (order && order.length > 0) {
     const colIndex = parseInt(order[0].column);
     const dir = order[0].dir === 'desc' ? 'desc' : 'asc';
-    if (columns[colIndex]) {
-      const orderCol = columns[colIndex] === 'kategori_nama' ? 'kategori.nama' : `barang.${columns[colIndex]}`;
+    
+    const hardcodedColumns = ['nama_barang', 'kategori_nama', 'qty', 'harga_jual', 'barcode_id'];
+    let colName = '';
+    
+    if (dtColumns && dtColumns[colIndex] && dtColumns[colIndex].data) {
+      colName = dtColumns[colIndex].data;
+    } else {
+      colName = hardcodedColumns[colIndex];
+    }
+
+    if (colName) {
+      const orderCol = colName === 'kategori_nama' ? 'kategori.nama' : `barang.${colName}`;
       baseQuery = baseQuery.orderBy(orderCol, dir);
-      if (columns[colIndex] === 'nama_barang') {
+      if (colName === 'nama_barang') {
         baseQuery = applyOpticalSort(baseQuery);
       }
     } else {
