@@ -188,7 +188,7 @@
                 if (row.status_bayar !== 'lunas') {
                   html += '<a href="/pembayaran-penjualan/bayar/' + row.id + '" class="btn btn-sm btn-outline-success me-1" title="Bayar"><i class="bi bi-wallet2"></i></a>';
                 }
-                <% if (currentUser && currentUser.role === 'admin') { %>
+                <% if (currentUser && currentUser.hak_akses === 'admin') { %>
                 html += '<a href="/penjualan-retur/baru?penjualan_id=' + row.id + '" class="btn btn-sm btn-outline-warning me-1" title="Retur"><i class="bi bi-arrow-return-left"></i></a>';
                 html += '<button class="btn btn-sm btn-outline-danger btn-del" data-id="' + row.id + '" data-url="/penjualan/' + row.id + '" title="Hapus"><i class="bi bi-trash"></i></button>';
                 <% } %>
