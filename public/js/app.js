@@ -168,42 +168,28 @@ function printNotaData(d) {
 
     var textData = lines.join('\r\n') + '\r\n\r\n'; // Minimal form feed to prevent second page spill
 
-    var useBackendPrint = localStorage.getItem('use_backend_print') === 'true';
+    var printerName = localStorage.getItem('raw_printer_name') || 'LX310';
 
-    if (useBackendPrint) {
-      var printerName = localStorage.getItem('raw_printer_name') || 'LX310';
-      if (!localStorage.getItem('raw_printer_name')) {
-        localStorage.setItem('raw_printer_name', printerName);
-      }
-
-      // Send raw text to local backend Node.js
-      $.ajax({
-        url: '/api/print/raw',
-        method: 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify({
-          textData: textData,
-          printerName: printerName
-        }),
-        success: function (res) {
-          showToast("Berhasil mencetak ke printer dot matrix", "success");
-        },
-        error: function (xhr) {
-          var msg = (xhr.responseJSON && xhr.responseJSON.message) || 'Gagal mengirim ke printer';
-          showToast(msg, "danger");
-          if (confirm("Gagal print via Backend. Mau print via Browser biasa saja?")) {
-            printNotaBrowser(lines);
-          }
+    // Send raw text to local backend Node.js
+    $.ajax({
+      url: '/api/print/raw',
+      method: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify({
+        textData: textData,
+        printerName: printerName
+      }),
+      success: function (res) {
+        showToast("Berhasil mencetak ke printer dot matrix", "success");
+      },
+      error: function (xhr) {
+        var msg = (xhr.responseJSON && xhr.responseJSON.message) || 'Gagal mengirim ke printer';
+        showToast(msg, "danger");
+        if (confirm("Gagal print via Backend. Mau print via Browser biasa saja?")) {
+          printNotaBrowser(lines);
         }
-      });
-    } else {
-      if (confirm("Mulai mencetak Nota secara langsung dengan Printer Dot Matrix (Raw Print via Backend)? Pastikan printer sudah di-share.")) {
-        localStorage.setItem('use_backend_print', 'true');
-        printNotaData(d); // Ulangi
-        return;
       }
-      printNotaBrowser(lines);
-    }
+    });
   } catch (err) {
     alert("Error di printNotaData: " + err.message);
     console.error(err);
