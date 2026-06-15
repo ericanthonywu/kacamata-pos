@@ -2,18 +2,18 @@
   Date(d).toLocaleDateString('id-ID') : '-' ; } %>
   <%- include('../partials/top', { title, activePage }) %>
 
-    <form class="row g-2 mb-3 align-items-end" method="GET" action="/laporan/kas">
+    <div class="row g-2 mb-3 align-items-end">
       <div class="col-auto">
         <label class="form-label small">Dari</label>
-        <input type="date" name="from" class="form-control form-control-sm" value="<%= filters.from || '' %>">
+        <input type="date" id="filterFrom" class="form-control form-control-sm" value="<%= filters.from || '' %>">
       </div>
       <div class="col-auto">
         <label class="form-label small">Sampai</label>
-        <input type="date" name="to" class="form-control form-control-sm" value="<%= filters.to || '' %>">
+        <input type="date" id="filterTo" class="form-control form-control-sm" value="<%= filters.to || '' %>">
       </div>
       <div class="col-auto">
         <label class="form-label small">Sales</label>
-        <select name="sales_id" class="form-select form-select-sm">
+        <select id="filterSales" class="form-select form-select-sm">
           <option value="">Semua</option>
           <% salesList.forEach(function(s) { %>
             <option value="<%= s.id %>" <%=String(filters.sales_id)===String(s.id) ? 'selected' : '' %>><%= s.nama %>
@@ -23,7 +23,7 @@
       </div>
       <div class="col-auto">
         <label class="form-label small">Kategori</label>
-        <select name="kategori_id" class="form-select form-select-sm">
+        <select id="filterKategori" class="form-select form-select-sm">
           <option value="">Semua</option>
           <% kategoriList.forEach(function(k) { %>
             <option value="<%= k.id %>" <%=String(filters.kategori_id)===String(k.id) ? 'selected' : '' %>><%= k.nama %>
@@ -34,14 +34,17 @@
       </div>
       <div class="col-auto">
         <label class="form-label small">Status</label>
-        <select name="status_bayar" class="form-select form-select-sm">
+        <select id="filterStatus" class="form-select form-select-sm">
           <option value="">Semua</option>
           <option value="lunas" <%=filters.status_bayar==='lunas' ? 'selected' : '' %>>Lunas</option>
           <option value="dp" <%=filters.status_bayar==='dp' ? 'selected' : '' %>>DP (Belum Lunas)</option>
         </select>
       </div>
-      <div class="col-auto"><button type="submit" class="btn btn-primary btn-sm">Tampilkan</button></div>
-    </form>
+      <div class="col-auto">
+        <button type="button" class="btn btn-primary btn-sm" onclick="reloadKas()"><i class="bi bi-search"></i> Tampilkan</button>
+        <button type="button" class="btn btn-outline-danger btn-sm" onclick="resetFilter()"><i class="bi bi-x-circle"></i> Reset</button>
+      </div>
+    </div>
 
     <div class="row g-3 mb-4 row-cols-2 row-cols-md-5">
       <div class="col">
@@ -103,42 +106,7 @@
             <th>Aksi</th>
           </tr>
         </thead>
-        <tbody>
-          <% transactions.forEach(function(t) { %>
-            <tr>
-              <td class="font-monospace text-info">
-                <%= t.no_nota %>
-              </td>
-              <td>
-                <%= fmtDate(t.order_date) %>
-              </td>
-              <td>
-                <%= t.pelanggan_nama || '-' %>
-              </td>
-              <td>
-                <%= t.sales_nama || '-' %>
-              </td>
-              <td>
-                <%= fmtRp(t.subtotal) %>
-              </td>
-              <td>
-                <%= t.dp> 0 ? fmtRp(t.dp) : '-' %>
-              </td>
-              <td>
-                <%= t.bpjs> 0 ? fmtRp(t.bpjs) : '-' %>
-              </td>
-              <% var sisa=t.status_bayar==='lunas' ? 0 : (t.subtotal - (t.dp || 0) - (t.bpjs || 0)); %>
-                <td class="fw-bold <%= sisa === 0 ? 'text-success' : 'text-danger' %>">
-                  <%= fmtRp(sisa) %>
-                    <%= sisa===0 ? '(sudah lunas DP)' : '' %>
-                </td>
-                <td>
-                  <button class="btn btn-sm btn-outline-info" onclick="showDetail(<%= t.id %>)" title="Detail"><i
-                      class="bi bi-eye"></i></button>
-                </td>
-            </tr>
-            <% }); %>
-        </tbody>
+        <tbody></tbody>
       </table>
     </div>
 
@@ -160,10 +128,47 @@
 
     <script>
 $(function() {
+  function newExportAction(e, dt, button, config) {
+    var self = this;
+    var oldStart = dt.settings()[0]._iDisplayStart;
+    dt.one('preXhr', function (e, s, data) {
+      data.start = 0;
+      data.length = -1;
+      dt.one('preDraw', function (e, settings) {
+        if (button[0].className.indexOf('buttons-excel') >= 0) {
+          $.fn.dataTable.ext.buttons.excelHtml5.available(dt, config) ?
+            $.fn.dataTable.ext.buttons.excelHtml5.action.call(self, e, dt, button, config) : null;
+        } else if (button[0].className.indexOf('buttons-csv') >= 0) {
+          $.fn.dataTable.ext.buttons.csvHtml5.available(dt, config) ?
+            $.fn.dataTable.ext.buttons.csvHtml5.action.call(self, e, dt, button, config) : null;
+        } else if (button[0].className.indexOf('buttons-print') >= 0) {
+          $.fn.dataTable.ext.buttons.print.action.call(self, e, dt, button, config);
+        }
+        dt.one('preXhr', function (e, s, data) {
+          settings._iDisplayStart = oldStart;
+          data.start = oldStart;
+        });
+        setTimeout(dt.ajax.reload, 0);
+        return false;
+      });
+    });
+    dt.ajax.reload();
+  }
+
   $('#tblKas').DataTable({
-    order: [],
-    language: dtLanguageID,
-    columnDefs: [ { orderable: false, targets: 8 } ],
+    serverSide: true,
+    processing: true,
+    ajax: {
+      url: '/laporan/kas/dt',
+      data: function (d) {
+        d.from = $('#filterFrom').val();
+        d.to = $('#filterTo').val();
+        d.sales_id = $('#filterSales').val();
+        d.kategori_id = $('#filterKategori').val();
+        d.status_bayar = $('#filterStatus').val();
+      }
+    },
+    order: [[1, 'desc']],
     lengthMenu: [[10, 50, 100, -1], [10, 50, 100, "All"]],
     layout: {
       topStart: {
@@ -179,12 +184,14 @@ $(function() {
         extend: 'excelHtml5',
         text: '<i class="bi bi-file-earmark-excel"></i> Excel',
         className: 'btn btn-success btn-sm',
+        action: newExportAction,
         exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7], orthogonal: 'export' }
       },
       {
         extend: 'csvHtml5',
         text: '<i class="bi bi-filetype-csv"></i> CSV',
         className: 'btn btn-info btn-sm',
+        action: newExportAction,
         exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7], orthogonal: 'export' }
       },
       {
@@ -193,15 +200,80 @@ $(function() {
         className: 'btn btn-secondary btn-sm',
         exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7], orthogonal: 'export' }
       }
-    ]
+    ],
+    columns: [
+      {
+        data: 'no_nota',
+        render: function (data) { return '<span class="font-monospace text-info">' + escapeHtml(data) + '</span>'; }
+      },
+      {
+        data: 'order_date',
+        render: function (data) { return data ? new Date(data).toLocaleDateString('id-ID') : '-'; }
+      },
+      {
+        data: 'pelanggan_nama',
+        render: function (data) { return escapeHtml(data || '-'); }
+      },
+      {
+        data: 'sales_nama',
+        render: function (data) { return escapeHtml(data || '-'); }
+      },
+      {
+        data: 'subtotal',
+        render: function (data) { return fmtRp(data); }
+      },
+      {
+        data: 'dp',
+        render: function (data) { return parseFloat(data) > 0 ? fmtRp(data) : '-'; }
+      },
+      {
+        data: 'bpjs',
+        render: function (data) { return parseFloat(data) > 0 ? fmtRp(data) : '-'; }
+      },
+      {
+        data: null,
+        orderable: false,
+        render: function (data, type, row) {
+          var sisa = row.status_bayar === 'lunas' ? 0 : (parseFloat(row.subtotal) - parseFloat(row.dp || 0) - parseFloat(row.bpjs || 0));
+          var cls = sisa === 0 ? 'text-success' : 'text-danger';
+          var txt = fmtRp(sisa) + (sisa === 0 ? ' (sudah lunas DP)' : '');
+          return '<span class="fw-bold ' + cls + '">' + txt + '</span>';
+        }
+      },
+      {
+        data: null,
+        orderable: false,
+        render: function (data, type, row) {
+          return '<button class="btn btn-sm btn-outline-info" onclick="showDetail(' + row.id + ')" title="Detail"><i class="bi bi-eye"></i></button>';
+        }
+      }
+    ],
+    language: dtLanguageID
   });
 });
+
+function reloadKas() {
+  // Also reload summary by navigating with filters
+  var params = new URLSearchParams();
+  if ($('#filterFrom').val()) params.set('from', $('#filterFrom').val());
+  if ($('#filterTo').val()) params.set('to', $('#filterTo').val());
+  if ($('#filterSales').val()) params.set('sales_id', $('#filterSales').val());
+  if ($('#filterKategori').val()) params.set('kategori_id', $('#filterKategori').val());
+  if ($('#filterStatus').val()) params.set('status_bayar', $('#filterStatus').val());
+  window.location.href = '/laporan/kas?' + params.toString();
+}
+
+function resetFilter() {
+  window.location.href = '/laporan/kas';
+}
+
+function fmtRp(v) { return 'Rp ' + Number(v || 0).toLocaleString('id-ID'); }
 
 function showDetail(id) {
   var myModal = new bootstrap.Modal(document.getElementById('detailModal'));
   myModal.show();
   $('#detailBody').html('<div class="text-center"><div class="spinner-border text-primary" role="status"></div></div>');
-  
+
   $.get('/penjualan/' + id, function(res) {
     if (!res.success) {
       $('#detailBody').html('<div class="alert alert-danger">Gagal memuat detail.</div>');

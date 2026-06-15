@@ -18,20 +18,34 @@ exports.kas = async function (req, res, next) {
       kategori_id: req.query.kategori_id || null,
       status_bayar: req.query.status_bayar || null,
     };
-    const [report, salesList, kategoriList] = await Promise.all([
+    const [summary, salesList, kategoriList] = await Promise.all([
       laporanService.getKasReport(filters),
       salesService.getAll(),
       kategoriService.getAll(),
     ]);
     res.render('laporan/kas', {
       title: 'Laporan Kas',
-      ...report,
+      summary: summary.summary,
       salesList,
       kategoriList,
       filters,
       activePage: 'laporan-kas',
     });
   } catch (err) { next(err); }
+};
+
+exports.kasDatatables = async function (req, res) {
+  try {
+    const result = await laporanService.getKasDatatablesData(req.query);
+    res.json({
+      draw: parseInt(req.query.draw),
+      recordsTotal: result.recordsTotal,
+      recordsFiltered: result.recordsFiltered,
+      data: result.data,
+    });
+  } catch (err) {
+    res.json({ error: err.message });
+  }
 };
 
 exports.komisi = async function (req, res, next) {
