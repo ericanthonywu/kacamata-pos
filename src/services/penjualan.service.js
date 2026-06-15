@@ -35,7 +35,6 @@ exports.create = async function (data, userId) {
     }
   }
   const warnings = [];
-  const barangRepo = require('../repositories/barang.repository');
   for (const item of items) {
     subtotal += ((parseFloat(item.harga) || 0) - (parseFloat(item.diskon) || 0)) * (parseInt(item.jumlah) || 1);
     if (item.barang_id) {
