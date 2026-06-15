@@ -134,26 +134,28 @@ function printNotaData(d) {
     var frameText = 'Frame     : ' + (frameItem ? frameItem.nama_barang || '-' : '-');
     lines.push(makeRow(frameText, 'No.           : ' + no));
 
-    var rResep = [d.sph_r ? 'SPH: ' + d.sph_r : '', d.cyl_r ? 'CYL: ' + d.cyl_r : '', d.add_r ? 'ADD: ' + d.add_r : ''].filter(Boolean).join(' ');
+    var rResep = [d.sph_r ? 'SPH: ' + d.sph_r : '', d.cyl_r ? 'CYL: ' + d.cyl_r : '', d.axis_r ? 'AXIS: ' + d.axis_r : '', d.add_r ? 'ADD: ' + d.add_r : ''].filter(Boolean).join(' ');
     var lensaRText = 'Lensa (R) : ' + (lensaRItem ? lensaRItem.nama_barang || '-' : '-') + (rResep ? ' (' + rResep + ')' : '');
     lines.push(makeRow(lensaRText, 'Sales         : ' + sales));
 
-    var lResep = [d.sph_l ? 'SPH: ' + d.sph_l : '', d.cyl_l ? 'CYL: ' + d.cyl_l : '', d.add_l ? 'ADD: ' + d.add_l : ''].filter(Boolean).join(' ');
+    var lResep = [d.sph_l ? 'SPH: ' + d.sph_l : '', d.cyl_l ? 'CYL: ' + d.cyl_l : '', d.axis_l ? 'AXIS: ' + d.axis_l : '', d.add_l ? 'ADD: ' + d.add_l : ''].filter(Boolean).join(' ');
     var lensaLText = 'Lensa (L) : ' + (lensaLItem ? lensaLItem.nama_barang || '-' : '-') + (lResep ? ' (' + lResep + ')' : '');
     lines.push(makeRow(lensaLText, 'Tgl. Selesai  : ' + tglSelesai));
 
     var rSphStr = d.sph_r ? d.sph_r : '      ';
     var rCylStr = d.cyl_r ? d.cyl_r : '      ';
+    var rAxisStr = d.axis_r ? d.axis_r : '      ';
     var rAddStr = d.add_r ? d.add_r : '      ';
     var lSphStr = d.sph_l ? d.sph_l : '      ';
     var lCylStr = d.cyl_l ? d.cyl_l : '      ';
+    var lAxisStr = d.axis_l ? d.axis_l : '      ';
     var lAddStr = d.add_l ? d.add_l : '      ';
 
-    if (d.sph_r || d.add_r || d.cyl_r || d.sph_l || d.add_l || d.cyl_l || d.pd) {
-      if (d.sph_r || d.add_r || d.cyl_r || d.sph_l || d.add_l || d.cyl_l) {
+    if (d.sph_r || d.add_r || d.cyl_r || d.axis_r || d.sph_l || d.add_l || d.cyl_l || d.axis_l || d.pd) {
+      if (d.sph_r || d.add_r || d.cyl_r || d.axis_r || d.sph_l || d.add_l || d.cyl_l || d.axis_l) {
         var pdStr = d.pd ? 'PD: ' + d.pd : '';
-        lines.push('SPHR: ' + padRight(rSphStr, 12) + ' CYLR: ' + padRight(rCylStr, 12) + ' ADDR: ' + padRight(rAddStr, 12) + pdStr);
-        lines.push('SPHL: ' + padRight(lSphStr, 12) + ' CYLL: ' + padRight(lCylStr, 12) + ' ADDL: ' + lAddStr);
+        lines.push('SPHR: ' + padRight(rSphStr, 10) + ' CYLR: ' + padRight(rCylStr, 10) + ' AXISR: ' + padRight(rAxisStr, 10) + ' ADDR: ' + padRight(rAddStr, 10) + pdStr);
+        lines.push('SPHL: ' + padRight(lSphStr, 10) + ' CYLL: ' + padRight(lCylStr, 10) + ' AXISL: ' + padRight(lAxisStr, 10) + ' ADDL: ' + lAddStr);
       } else if (d.pd) {
         lines.push('PD  : ' + d.pd);
       }
