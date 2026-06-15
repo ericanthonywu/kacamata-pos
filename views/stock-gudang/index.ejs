@@ -54,6 +54,33 @@
 
   <script>
 $(function() { 
+  function newExportAction(e, dt, button, config) {
+    var self = this;
+    var oldStart = dt.settings()[0]._iDisplayStart;
+    dt.one('preXhr', function (e, s, data) {
+      data.start = 0;
+      data.length = -1;
+      dt.one('preDraw', function (e, settings) {
+        if (button[0].className.indexOf('buttons-excel') >= 0) {
+          $.fn.dataTable.ext.buttons.excelHtml5.available(dt, config) ?
+            $.fn.dataTable.ext.buttons.excelHtml5.action.call(self, e, dt, button, config) : null;
+        } else if (button[0].className.indexOf('buttons-csv') >= 0) {
+          $.fn.dataTable.ext.buttons.csvHtml5.available(dt, config) ?
+            $.fn.dataTable.ext.buttons.csvHtml5.action.call(self, e, dt, button, config) : null;
+        } else if (button[0].className.indexOf('buttons-print') >= 0) {
+          $.fn.dataTable.ext.buttons.print.action.call(self, e, dt, button, config);
+        }
+        dt.one('preXhr', function (e, s, data) {
+          settings._iDisplayStart = oldStart;
+          data.start = oldStart;
+        });
+        setTimeout(dt.ajax.reload, 0);
+        return false;
+      });
+    });
+    dt.ajax.reload();
+  }
+
   var table = $('#tblStock').DataTable({ 
     processing: true,
     serverSide: true,
@@ -65,6 +92,38 @@ $(function() {
     },
     order: [[3, 'asc']], 
     language: dtLanguageID,
+    lengthMenu: [[10, 50, 100, -1], [10, 50, 100, "All"]],
+    layout: {
+      topStart: {
+        pageLength: {},
+        buttons: {}
+      },
+      topEnd: 'search',
+      bottomStart: 'info',
+      bottomEnd: 'paging'
+    },
+    buttons: [
+      {
+        extend: 'excelHtml5',
+        text: '<i class="bi bi-file-earmark-excel"></i> Excel',
+        className: 'btn btn-success btn-sm',
+        action: newExportAction,
+        exportOptions: { columns: [0, 1, 2, 3, 4], orthogonal: 'export' }
+      },
+      {
+        extend: 'csvHtml5',
+        text: '<i class="bi bi-filetype-csv"></i> CSV',
+        className: 'btn btn-info btn-sm',
+        action: newExportAction,
+        exportOptions: { columns: [0, 1, 2, 3, 4], orthogonal: 'export' }
+      },
+      {
+        extend: 'print',
+        text: '<i class="bi bi-printer"></i> Print',
+        className: 'btn btn-secondary btn-sm',
+        exportOptions: { columns: [0, 1, 2, 3, 4], orthogonal: 'export' }
+      }
+    ],
     columns: [
       { data: 'nama_barang', render: function(d, type, row) {
           var t = d;

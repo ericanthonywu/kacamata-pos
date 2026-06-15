@@ -163,7 +163,37 @@ $(function() {
   $('#tblKas').DataTable({
     order: [],
     language: dtLanguageID,
-    columnDefs: [ { orderable: false, targets: 8 } ]
+    columnDefs: [ { orderable: false, targets: 8 } ],
+    lengthMenu: [[10, 50, 100, -1], [10, 50, 100, "All"]],
+    layout: {
+      topStart: {
+        pageLength: {},
+        buttons: {}
+      },
+      topEnd: 'search',
+      bottomStart: 'info',
+      bottomEnd: 'paging'
+    },
+    buttons: [
+      {
+        extend: 'excelHtml5',
+        text: '<i class="bi bi-file-earmark-excel"></i> Excel',
+        className: 'btn btn-success btn-sm',
+        exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7], orthogonal: 'export' }
+      },
+      {
+        extend: 'csvHtml5',
+        text: '<i class="bi bi-filetype-csv"></i> CSV',
+        className: 'btn btn-info btn-sm',
+        exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7], orthogonal: 'export' }
+      },
+      {
+        extend: 'print',
+        text: '<i class="bi bi-printer"></i> Print',
+        className: 'btn btn-secondary btn-sm',
+        exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7], orthogonal: 'export' }
+      }
+    ]
   });
 });
 
