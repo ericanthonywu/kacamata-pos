@@ -77,6 +77,90 @@ exports.getSummary = function ({ from, to, sales_id, kategori_id, status_bayar }
   return query.first();
 };
 
+exports.getKasDatatablesData = async function (params) {
+  const { start, length, search, order, from, to, sales_id, kategori_id, status_bayar } = params;
+
+  function applyFilters(query) {
+    if (from) query = query.where('penjualan.order_date', '>=', from);
+    if (to) query = query.where('penjualan.order_date', '<=', to);
+    if (sales_id) query = query.where('penjualan.sales_id', sales_id);
+    if (status_bayar) query = query.where('penjualan.status_bayar', status_bayar);
+    if (kategori_id) {
+      if (kategori_id === 'both') {
+        query = query.whereExists(function() {
+          this.select('*').from('penjualan_detail')
+            .innerJoin('barang', 'penjualan_detail.barang_id', 'barang.id')
+            .innerJoin('kategori', 'barang.kategori_id', 'kategori.id')
+            .whereRaw('penjualan_detail.penjualan_id = penjualan.id')
+            .andWhereRaw('LOWER(kategori.nama) = ?', ['frame']);
+        }).whereExists(function() {
+          this.select('*').from('penjualan_detail')
+            .innerJoin('barang', 'penjualan_detail.barang_id', 'barang.id')
+            .innerJoin('kategori', 'barang.kategori_id', 'kategori.id')
+            .whereRaw('penjualan_detail.penjualan_id = penjualan.id')
+            .andWhereRaw('LOWER(kategori.nama) = ?', ['lensa']);
+        });
+      } else {
+        query = query.whereExists(function() {
+          this.select('*').from('penjualan_detail')
+            .innerJoin('barang', 'penjualan_detail.barang_id', 'barang.id')
+            .whereRaw('penjualan_detail.penjualan_id = penjualan.id')
+            .andWhere('barang.kategori_id', kategori_id);
+        });
+      }
+    }
+    return query;
+  }
+
+  let baseQuery = db('penjualan')
+    .leftJoin('pelanggan', 'penjualan.pelanggan_id', 'pelanggan.id')
+    .leftJoin('sales', 'penjualan.sales_id', 'sales.id');
+
+  baseQuery = applyFilters(baseQuery);
+
+  const totalCountRes = await baseQuery.clone().count('penjualan.id as count').first();
+  const recordsTotal = parseInt(totalCountRes.count);
+
+  if (search && search.value) {
+    baseQuery = baseQuery.where(function () {
+      this.where('penjualan.no_nota', 'ilike', `%${search.value}%`)
+        .orWhere('pelanggan.nama', 'ilike', `%${search.value}%`)
+        .orWhere('sales.nama', 'ilike', `%${search.value}%`);
+    });
+  }
+
+  const filteredCountRes = await baseQuery.clone().count('penjualan.id as count').first();
+  const recordsFiltered = parseInt(filteredCountRes.count);
+
+  const columns = ['no_nota', 'order_date', 'pelanggan_nama', 'sales_nama', 'subtotal', 'dp', 'bpjs', null, null];
+  if (order && order.length > 0) {
+    const colIndex = parseInt(order[0].column);
+    const dir = order[0].dir === 'desc' ? 'desc' : 'asc';
+    if (columns[colIndex]) {
+      let orderCol = `penjualan.${columns[colIndex]}`;
+      if (columns[colIndex] === 'pelanggan_nama') orderCol = 'pelanggan.nama';
+      if (columns[colIndex] === 'sales_nama') orderCol = 'sales.nama';
+      baseQuery = baseQuery.orderBy(orderCol, dir);
+    } else {
+      baseQuery = baseQuery.orderBy('penjualan.order_date', 'desc');
+    }
+  } else {
+    baseQuery = baseQuery.orderBy('penjualan.order_date', 'desc');
+  }
+
+  if (length > 0) {
+    baseQuery = baseQuery.limit(length).offset(start);
+  }
+
+  const data = await baseQuery.select(
+    'penjualan.id', 'penjualan.no_nota', 'penjualan.order_date',
+    'penjualan.subtotal', 'penjualan.bpjs', 'penjualan.dp', 'penjualan.status_bayar',
+    'pelanggan.nama as pelanggan_nama', 'sales.nama as sales_nama'
+  );
+
+  return { recordsTotal, recordsFiltered, data };
+};
+
 exports.getKomisiReport = async function ({ from, to, sales_id, tipe } = {}) {
   let pQuery = db('penjualan')
     .select('penjualan.*', 'sales.nama as sales_nama', 'sales.komisi_frame', 'sales.komisi_lensa')

@@ -4,6 +4,7 @@ const c = require('../controllers/laporan.controller');
 const { requireAdmin } = require('../middleware/rbac');
 
 router.get('/kas', auth, c.kas);
+router.get('/kas/dt', auth, c.kasDatatables);
 router.get('/komisi', auth, requireAdmin, c.komisi);
 
 module.exports = router;
