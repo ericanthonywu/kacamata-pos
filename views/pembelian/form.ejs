@@ -143,7 +143,7 @@
           var total = 0;
           $('.item-row').each(function () {
             var idx = $(this).data('idx');
-            var h = parseFloat($('.item-harga[data-idx=' + idx + ']').data('raw-value') || $('.item-harga[data-idx=' + idx + ']').val().replace(/[^0-9]/g, '')) || 0;
+            var h = parseFloat($('.item-harga[data-idx=' + idx + ']').val().replace(/[^0-9]/g, '')) || 0;
             var j = parseInt($('.item-jumlah[data-idx=' + idx + ']').val()) || 1;
             var sub = h * j;
             total += sub;
@@ -166,7 +166,7 @@
             items.push({
               barang_id: parseInt(bid),
               jumlah: parseInt($('.item-jumlah[data-idx=' + idx + ']').val()) || 1,
-              harga_beli: parseFloat($('.item-harga[data-idx=' + idx + ']').data('raw-value') || $('.item-harga[data-idx=' + idx + ']').val().replace(/[^0-9]/g, '')) || 0,
+              harga_beli: parseFloat($('.item-harga[data-idx=' + idx + ']').val().replace(/[^0-9]/g, '')) || 0,
             });
           });
 

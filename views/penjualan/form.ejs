@@ -354,14 +354,14 @@
           var subtotal = 0;
           ['frame', 'lensa_r', 'lensa_l', 'aksesoris'].forEach(function (type) {
             if ($('#' + type + '_barang_id').val()) {
-              var h = parseInt($('#' + type + '_harga').data('raw-value') || $('#' + type + '_harga').val().replace(/[^0-9]/g, '')) || 0;
+              var h = parseInt($('#' + type + '_harga').val().replace(/[^0-9]/g, '')) || 0;
               var q = parseInt($('#' + type + '_jumlah').val()) || 1;
               subtotal += (h * q);
             }
           });
           
           if ($('#lain_keterangan').val().trim()) {
-            var lh = parseInt($('#lain_harga').data('raw-value') || $('#lain_harga').val().replace(/[^0-9]/g, '')) || 0;
+            var lh = parseInt($('#lain_harga').val().replace(/[^0-9]/g, '')) || 0;
             var lq = parseInt($('#lain_jumlah').val()) || 1;
             subtotal += (lh * lq);
           }
@@ -385,7 +385,7 @@
           if (!bid) return null;
           return {
             tipe: tipe, barang_id: parseInt(bid),
-            harga: parseFloat($('#' + tipe + '_harga').data('raw-value') || $('#' + tipe + '_harga').val().replace(/[^0-9]/g, '')) || 0,
+            harga: parseFloat($('#' + tipe + '_harga').val().replace(/[^0-9]/g, '')) || 0,
             jumlah: parseInt($('#' + tipe + '_jumlah').val()) || 1
           };
         }
@@ -398,7 +398,7 @@
               tipe: 'lain_lain',
               barang_id: null,
               keterangan: $('#lain_keterangan').val().trim(),
-              harga: parseFloat($('#lain_harga').data('raw-value') || $('#lain_harga').val().replace(/[^0-9]/g, '')) || 0,
+              harga: parseFloat($('#lain_harga').val().replace(/[^0-9]/g, '')) || 0,
               jumlah: parseInt($('#lain_jumlah').val()) || 1
             });
           }
@@ -415,9 +415,9 @@
             sales_id: salesId,
             order_date: $('#order_date').val(),
             tanggal_selesai: $('#tanggal_selesai').val() || null,
-            bpjs: parseFloat($('#bpjs').data('raw-value') || $('#bpjs').val().replace(/[^0-9]/g, '')) || 0,
+            bpjs: parseFloat($('#bpjs').val().replace(/[^0-9]/g, '')) || 0,
             status_bayar: $('#status_bayar').val(),
-            dp: parseInt($('#dp_amount').data('raw-value') || $('#dp_amount').val().replace(/[^0-9]/g, '')) || 0,
+            dp: parseInt($('#dp_amount').val().replace(/[^0-9]/g, '')) || 0,
             sph_r: $('#sph_r').val(), cyl_r: $('#cyl_r').val(), axis_r: $('#axis_r').val(), add_r: $('#add_r').val(),
             sph_l: $('#sph_l').val(), cyl_l: $('#cyl_l').val(), axis_l: $('#axis_l').val(), add_l: $('#add_l').val(),
             pd: $('#pd').val(),
