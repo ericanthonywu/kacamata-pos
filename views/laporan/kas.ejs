@@ -282,12 +282,13 @@ function showDetail(id) {
     var d = res.data;
     var html = '<table class="table table-sm table-bordered"><thead><tr><th>Barang</th><th>Kategori</th><th>Qty</th><th>Harga</th><th>Subtotal</th></tr></thead><tbody>';
     d.detail.forEach(function(item) {
+      var itemName = item.nama_barang || item.keterangan || '-';
       html += '<tr>';
-      html += '<td>' + (item.barang_nama || '-') + '</td>';
+      html += '<td>' + itemName + '</td>';
       html += '<td>' + (item.kategori_nama || '-') + '</td>';
-      html += '<td>' + item.qty + '</td>';
+      html += '<td>' + (item.jumlah || 0) + '</td>';
       html += '<td>' + fmtRp(item.harga) + '</td>';
-      html += '<td>' + fmtRp(item.total) + '</td>';
+      html += '<td>' + fmtRp((item.harga || 0) * (item.jumlah || 0)) + '</td>';
       html += '</tr>';
     });
     html += '</tbody></table>';
