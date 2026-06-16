@@ -28,6 +28,20 @@
               <%= item.no_telp || '-' %>
             </td>
             <td>
+              <% 
+                var waNumber = '';
+                if (item.no_telp) {
+                  waNumber = item.no_telp.replace(/\D/g, '');
+                  if (waNumber.startsWith('0')) {
+                    waNumber = '62' + waNumber.substring(1);
+                  }
+                }
+              %>
+              <% if (waNumber) { %>
+                <a href="https://wa.me/<%= waNumber %>" target="_blank" class="btn btn-sm btn-outline-success me-1" title="Chat WhatsApp">
+                  <i class="bi bi-whatsapp"></i>
+                </a>
+              <% } %>
               <button class="btn btn-sm btn-outline-secondary me-1 btn-edit" data-id="<%= item.id %>"
                 data-nama="<%= item.nama %>" data-telp="<%= item.no_telp || '' %>">
                 <i class="bi bi-pencil"></i>
