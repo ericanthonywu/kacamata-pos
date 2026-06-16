@@ -327,8 +327,20 @@ $(function () {
     initCurrencyInput($(this));
   });
 
-  // Handle dynamic inputs and typing
   $(document).on('input', '.input-currency', function () {
     updateCurrencyInput($(this));
+  });
+});
+
+// Sidebar Toggle Mobile
+$(function() {
+  $('#sidebarToggle').on('click', function() {
+    $('.sidebar').addClass('show');
+    $('#sidebarBackdrop').addClass('show');
+  });
+
+  $('#sidebarBackdrop').on('click', function() {
+    $('.sidebar').removeClass('show');
+    $('#sidebarBackdrop').removeClass('show');
   });
 });
