@@ -116,7 +116,8 @@
             <h6>✨ Lain-lain</h6>
             <div class="mb-2">
               <label class="form-label small">Nama Barang / Keterangan</label>
-              <input type="text" class="form-control form-control-sm" id="lain_keterangan" placeholder="Keterangan opsional">
+              <input type="text" class="form-control form-control-sm" id="lain_keterangan"
+                placeholder="Keterangan opsional">
             </div>
             <div class="row g-2">
               <div class="col-6"><label class="form-label small">Harga</label><input type="text"
@@ -167,7 +168,7 @@
           <!-- Summary -->
           <div class="card p-3">
             <div class="row g-2 align-items-center mb-2">
-              <div class="col-6"><strong>Subtotal</strong></div>
+              <div class="col-6"><strong>Jumlah</strong></div>
               <div class="col-6 text-end fw-bold" id="subtotalDisplay">Rp 0</div>
             </div>
             <div class="row g-2 align-items-center mb-2">
@@ -179,20 +180,20 @@
             <div class="row g-2 align-items-center mb-2">
               <div class="col-6"><label class="form-label small mb-0">Pembayaran</label></div>
               <div class="col-6">
-                <select class="form-select form-select-sm" id="status_bayar" onchange="toggleDP()">
+                <select class="form-select form-select-sm" id="status_bayar" onchange="toggleDP(); calculate();">
                   <option value="lunas">Lunas (Bayar Penuh)</option>
                   <option value="dp">DP (Uang Muka)</option>
                 </select>
               </div>
             </div>
             <div class="row g-2 align-items-center mb-2" id="dpRow" style="display:none">
-              <div class="col-6"><label class="form-label small mb-0">Jumlah DP</label></div>
-              <div class="col-6"><input type="text" class="form-control form-control-sm input-currency" id="dp_amount"
+              <div class="col-6"><label class="form-label small mb-0">Jumlah DP (Uang muka)</label></div>
+              <div class="col-6"><input type="text" class="form-control form-control-sm calc-input input-currency" id="dp_amount"
                   value="0" min="0"></div>
             </div>
             <hr>
             <div class="row g-2 align-items-center">
-              <div class="col-6"><strong class="fs-5">TOTAL</strong></div>
+              <div class="col-6"><strong class="fs-5">SISA</strong></div>
               <div class="col-6 text-end fw-bold fs-5 text-success" id="totalDisplay">Rp 0</div>
             </div>
             <div class="d-flex gap-2 mt-3">
@@ -359,7 +360,7 @@
               subtotal += (h * q);
             }
           });
-          
+
           if ($('#lain_keterangan').val().trim()) {
             var lh = parseInt($('#lain_harga').val().replace(/[^0-9]/g, '')) || 0;
             var lq = parseInt($('#lain_jumlah').val()) || 1;
@@ -367,8 +368,11 @@
           }
 
           var bpjs = parseFloat($('#bpjs').val().replace(/[^0-9]/g, '')) || 0;
+          var isDp = $('#status_bayar').val() === 'dp';
+          var dpAmount = isDp ? (parseFloat($('#dp_amount').val().replace(/[^0-9]/g, '')) || 0) : 0;
+          
           $('#subtotalDisplay').text(fmtRp(subtotal));
-          $('#totalDisplay').text(fmtRp(subtotal - bpjs));
+          $('#totalDisplay').text(fmtRp(subtotal - bpjs - dpAmount));
         }
 
         function fmtRp(v) { return 'Rp ' + Number(v || 0).toLocaleString('id-ID'); }
@@ -392,7 +396,7 @@
 
         function savePenjualan(withPrint) {
           var items = [buildItem('frame'), buildItem('lensa_l'), buildItem('lensa_r'), buildItem('aksesoris')].filter(Boolean);
-          
+
           if ($('#lain_keterangan').val().trim()) {
             items.push({
               tipe: 'lain_lain',
@@ -402,7 +406,7 @@
               jumlah: parseInt($('#lain_jumlah').val()) || 1
             });
           }
-          
+
           if (items.length === 0) { showToast('Pilih minimal satu barang atau masukkan keterangan lain-lain', 'danger'); return; }
 
           var pelangganId = $('#pelanggan_id').val();
