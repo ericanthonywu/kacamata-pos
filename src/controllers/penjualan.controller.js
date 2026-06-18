@@ -37,7 +37,8 @@ exports.pelunasanDpDatatables = async function (req, res) {
       draw: parseInt(req.query.draw),
       recordsTotal: result.recordsTotal,
       recordsFiltered: result.recordsFiltered,
-      data: result.data
+      data: result.data,
+      grandTotal: result.grandTotal
     });
   } catch (err) {
     res.json({ error: err.message });

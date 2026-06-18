@@ -212,13 +212,20 @@ exports.generateNotaNumber = async function () {
 };
 
 exports.getPelunasanDpDatatablesData = async function (params) {
-  const { start, length, search, order } = params;
+  const { start, length, search, order, start_date, end_date } = params;
 
   let baseQuery = db('penjualan')
     .leftJoin('pelanggan', 'penjualan.pelanggan_id', 'pelanggan.id')
     .leftJoin('sales', 'penjualan.sales_id', 'sales.id')
     .where('penjualan.dp', '>', 0)
     .andWhere('penjualan.status_bayar', 'lunas');
+
+  if (start_date) {
+    baseQuery = baseQuery.whereRaw('(SELECT MAX(DATE(tanggal_bayar)) FROM pembayaran_penjualan WHERE penjualan_id = penjualan.id) >= ?', [start_date]);
+  }
+  if (end_date) {
+    baseQuery = baseQuery.whereRaw('(SELECT MAX(DATE(tanggal_bayar)) FROM pembayaran_penjualan WHERE penjualan_id = penjualan.id) <= ?', [end_date]);
+  }
 
   const totalCountRes = await baseQuery.clone().count('penjualan.id as count').first();
   const recordsTotal = parseInt(totalCountRes.count);
@@ -234,7 +241,14 @@ exports.getPelunasanDpDatatablesData = async function (params) {
   const filteredCountRes = await baseQuery.clone().count('penjualan.id as count').first();
   const recordsFiltered = parseInt(filteredCountRes.count);
 
-  const columns = ['no_nota', 'tanggal_pelunasan', 'order_date', 'pelanggan_nama', 'sales_nama', 'total', 'total_bayar'];
+  const grandTotalRes = await db.from(
+    baseQuery.clone().select(
+      db.raw('((SELECT SUM(jumlah_bayar) FROM pembayaran_penjualan WHERE penjualan_id = penjualan.id) - penjualan.dp) as total_bayar')
+    ).as('t')
+  ).sum('total_bayar as grandTotal').first();
+  const grandTotal = grandTotalRes ? parseFloat(grandTotalRes.grandTotal || 0) : 0;
+
+  const columns = ['no_nota', 'tanggal_pelunasan', 'order_date', 'pelanggan_nama', 'sales_nama', 'total', 'dp', 'total_bayar'];
   
   // Create a subquery for sorting by pelunasan/bayar
   baseQuery = baseQuery.select(
@@ -244,8 +258,9 @@ exports.getPelunasanDpDatatablesData = async function (params) {
     'pelanggan.nama as pelanggan_nama',
     'sales.nama as sales_nama',
     'penjualan.total',
+    'penjualan.dp',
     db.raw('(SELECT MAX(tanggal_bayar) FROM pembayaran_penjualan WHERE penjualan_id = penjualan.id) as tanggal_pelunasan'),
-    db.raw('(SELECT SUM(jumlah_bayar) FROM pembayaran_penjualan WHERE penjualan_id = penjualan.id) as total_bayar')
+    db.raw('((SELECT SUM(jumlah_bayar) FROM pembayaran_penjualan WHERE penjualan_id = penjualan.id) - penjualan.dp) as total_bayar')
   );
 
   if (order && order.length > 0) {
@@ -272,5 +287,5 @@ exports.getPelunasanDpDatatablesData = async function (params) {
 
   const data = await baseQuery;
 
-  return { recordsTotal, recordsFiltered, data };
+  return { recordsTotal, recordsFiltered, data, grandTotal };
 };

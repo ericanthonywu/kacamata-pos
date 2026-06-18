@@ -5,6 +5,27 @@
   <h4 class="mb-0">Daftar Pelunasan DP</h4>
 </div>
 
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div class="d-flex gap-2 align-items-center">
+    <label class="mb-0 fw-bold">Filter:</label>
+    <input type="date" id="filterStartDate" class="form-control form-control-sm" style="width:130px">
+    <span>-</span>
+    <input type="date" id="filterEndDate" class="form-control form-control-sm" style="width:130px">
+    <button class="btn btn-sm btn-secondary" onclick="reloadTable()"><i class="bi bi-search"></i> Terapkan</button>
+    <button class="btn btn-sm btn-outline-danger" onclick="resetFilter()"><i class="bi bi-x-circle"></i> Reset</button>
+  </div>
+</div>
+
+<div class="row g-3 mb-4 row-cols-1 row-cols-md-4">
+  <div class="col">
+    <div class="stat-card">
+      <i class="bi bi-cash-stack stat-icon text-success"></i>
+      <div class="stat-value text-success" id="lblGrandTotal">Rp 0</div>
+      <div class="stat-label">Total Pelunasan</div>
+    </div>
+  </div>
+</div>
+
 <div class="card p-3 shadow-sm border-0">
   <div class="table-responsive">
     <table id="tblPelunasanDp" class="table table-hover align-middle mb-0" style="width:100%">
@@ -16,7 +37,8 @@
           <th>Nama Pelanggan</th>
           <th>Sales</th>
           <th class="text-end">Total Pembelian</th>
-          <th class="text-end">Total Bayar</th>
+          <th class="text-end">Total DP</th>
+          <th class="text-end">Total Pelunasan</th>
           <th class="text-center" style="width: 80px;">Aksi</th>
         </tr>
       </thead>
@@ -27,14 +49,79 @@
 
 <script>
   $(function () {
+    function newExportAction(e, dt, button, config) {
+      var self = this;
+      var oldStart = dt.settings()[0]._iDisplayStart;
+      dt.one('preXhr', function (e, s, data) {
+        data.start = 0;
+        data.length = -1;
+        dt.one('preDraw', function (e, settings) {
+          if (button[0].className.indexOf('buttons-excel') >= 0) {
+            $.fn.dataTable.ext.buttons.excelHtml5.available(dt, config) ?
+              $.fn.dataTable.ext.buttons.excelHtml5.action.call(self, e, dt, button, config) : null;
+          } else if (button[0].className.indexOf('buttons-csv') >= 0) {
+            $.fn.dataTable.ext.buttons.csvHtml5.available(dt, config) ?
+              $.fn.dataTable.ext.buttons.csvHtml5.action.call(self, e, dt, button, config) : null;
+          } else if (button[0].className.indexOf('buttons-print') >= 0) {
+            $.fn.dataTable.ext.buttons.print.action.call(self, e, dt, button, config);
+          }
+          dt.one('preXhr', function (e, s, data) {
+            settings._iDisplayStart = oldStart;
+            data.start = oldStart;
+          });
+          setTimeout(dt.ajax.reload, 0);
+          return false;
+        });
+      });
+      dt.ajax.reload();
+    }
+
     var table = $('#tblPelunasanDp').DataTable({
       serverSide: true,
       processing: true,
-      dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rt<"row"<"col-sm-12 col-md-6"i><"col-sm-12 col-md-6"p>>',
+      layout: {
+        topStart: {
+          pageLength: {},
+          buttons: {}
+        },
+        topEnd: 'search',
+        bottomStart: 'info',
+        bottomEnd: 'paging'
+      },
+      buttons: [
+        {
+          extend: 'excelHtml5',
+          text: '<i class="bi bi-file-earmark-excel"></i> Excel',
+          className: 'btn btn-success btn-sm',
+          action: newExportAction,
+          exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7], orthogonal: 'export' }
+        },
+        {
+          extend: 'csvHtml5',
+          text: '<i class="bi bi-filetype-csv"></i> CSV',
+          className: 'btn btn-info btn-sm',
+          action: newExportAction,
+          exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7], orthogonal: 'export' }
+        },
+        {
+          extend: 'print',
+          text: '<i class="bi bi-printer"></i> Print',
+          className: 'btn btn-secondary btn-sm',
+          exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7], orthogonal: 'export' }
+        }
+      ],
+      drawCallback: function (settings) {
+        var api = this.api();
+        var json = api.ajax.json();
+        if (json && json.grandTotal !== undefined) {
+          $('#lblGrandTotal').text(fmtRp(json.grandTotal));
+        }
+      },
       ajax: {
         url: '/penjualan/pelunasan-dp/dt',
         data: function (d) {
-          // You can pass additional filters here if needed
+          d.start_date = $('#filterStartDate').val();
+          d.end_date = $('#filterEndDate').val();
         }
       },
       order: [[1, 'desc']], // Sort by Tgl Pelunasan by default
@@ -66,6 +153,11 @@
           render: function (data) { return fmtRp(data); }
         },
         {
+          data: 'dp',
+          className: 'text-end fw-bold text-warning',
+          render: function (data) { return fmtRp(data); }
+        },
+        {
           data: 'total_bayar',
           className: 'text-end text-success fw-bold',
           render: function (data) { return fmtRp(data); }
@@ -84,6 +176,12 @@
   });
 
   function reloadTable() {
+    $('#tblPelunasanDp').DataTable().ajax.reload();
+  }
+
+  function resetFilter() {
+    $('#filterStartDate').val('');
+    $('#filterEndDate').val('');
     $('#tblPelunasanDp').DataTable().ajax.reload();
   }
 
