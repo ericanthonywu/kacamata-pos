@@ -102,6 +102,14 @@ exports.findDetailsByPenjualanId = function (penjualanId) {
     .orderBy('penjualan_detail.tipe', 'asc');
 };
 
+exports.findPaymentsByPenjualanId = function (penjualanId) {
+  return db('pembayaran_penjualan')
+    .select('*')
+    .where('penjualan_id', penjualanId)
+    .orderBy('tanggal_bayar', 'asc')
+    .orderBy('id', 'asc');
+};
+
 exports.create = async function (penjualanData, detailItems) {
   return db.transaction(async (trx) => {
     var penjualanArr = await trx('penjualan').insert(penjualanData).returning('*');

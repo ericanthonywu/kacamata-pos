@@ -8,8 +8,11 @@ exports.getPelunasanDpDatatables = function (params) { return repo.getPelunasanD
 exports.getById = async function (id) {
   const penjualan = await repo.findById(id);
   if (!penjualan) return null;
-  const detail = await repo.findDetailsByPenjualanId(id);
-  return { ...penjualan, detail };
+  const [detail, pembayaran] = await Promise.all([
+    repo.findDetailsByPenjualanId(id),
+    repo.findPaymentsByPenjualanId(id)
+  ]);
+  return { ...penjualan, detail, pembayaran };
 };
 
 exports.create = async function (data, userId) {
