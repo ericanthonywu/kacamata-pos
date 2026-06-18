@@ -45,7 +45,7 @@ exports.getSummary = function ({ from, to, sales_id, kategori_id, status_bayar }
     .sum('subtotal as total_subtotal')
     .select(db.raw("SUM(CASE WHEN status_bayar != 'lunas' AND (subtotal - dp - bpjs) > 0 THEN dp ELSE 0 END) as total_dp_belum_lunas"))
     .sum('bpjs as total_bpjs')
-    .sum('total as total_penjualan');
+    .select(db.raw('SUM(total - COALESCE(dp, 0)) as total_penjualan'));
   if (from) query = query.where('order_date', '>=', from);
   if (to) query = query.where('order_date', '<=', to);
   if (sales_id) query = query.where('sales_id', sales_id);
