@@ -1,0 +1,182 @@
+<% function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); } %>
+<%- include('../partials/top', { title, activePage }) %>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <h4 class="mb-0">Daftar Pelunasan DP</h4>
+</div>
+
+<div class="card p-3 shadow-sm border-0">
+  <div class="table-responsive">
+    <table id="tblPelunasanDp" class="table table-hover align-middle mb-0" style="width:100%">
+      <thead class="table-light">
+        <tr>
+          <th>No. Nota</th>
+          <th>Tgl Pelunasan</th>
+          <th>Tgl Pembelian</th>
+          <th>Nama Pelanggan</th>
+          <th>Sales</th>
+          <th class="text-end">Total Pembelian</th>
+          <th class="text-end">Total Bayar</th>
+          <th class="text-center" style="width: 80px;">Aksi</th>
+        </tr>
+      </thead>
+      <tbody></tbody>
+    </table>
+  </div>
+</div>
+
+<script>
+  $(function () {
+    var table = $('#tblPelunasanDp').DataTable({
+      serverSide: true,
+      processing: true,
+      dom: '<"row"<"col-sm-12 col-md-6"l><"col-sm-12 col-md-6"f>>rt<"row"<"col-sm-12 col-md-6"i><"col-sm-12 col-md-6"p>>',
+      ajax: {
+        url: '/penjualan/pelunasan-dp/dt',
+        data: function (d) {
+          // You can pass additional filters here if needed
+        }
+      },
+      order: [[1, 'desc']], // Sort by Tgl Pelunasan by default
+      lengthMenu: [[10, 50, 100, -1], [10, 50, 100, "All"]],
+      columns: [
+        {
+          data: 'no_nota',
+          render: function (data) { return '<span class="badge bg-secondary">' + escapeHtml(data) + '</span>'; }
+        },
+        {
+          data: 'tanggal_pelunasan',
+          render: function (data) { return data ? new Date(data).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' }) : '-'; }
+        },
+        {
+          data: 'order_date',
+          render: function (data) { return data ? new Date(data).toLocaleDateString('id-ID', { year: 'numeric', month: 'short', day: 'numeric' }) : '-'; }
+        },
+        {
+          data: 'pelanggan_nama',
+          render: function (data) { return escapeHtml(data || '-'); }
+        },
+        {
+          data: 'sales_nama',
+          render: function (data) { return escapeHtml(data || '-'); }
+        },
+        {
+          data: 'total',
+          className: 'text-end fw-bold',
+          render: function (data) { return fmtRp(data); }
+        },
+        {
+          data: 'total_bayar',
+          className: 'text-end text-success fw-bold',
+          render: function (data) { return fmtRp(data); }
+        },
+        {
+          data: null,
+          orderable: false,
+          className: 'text-center',
+          render: function (data, type, row) {
+            return '<a href="/penjualan/' + row.id + '" class="btn btn-sm btn-outline-info" onclick="showDetail(event, ' + row.id + ')" title="Lihat Detail"><i class="bi bi-eye"></i></a>';
+          }
+        }
+      ],
+      language: dtLanguageID
+    });
+  });
+
+  function reloadTable() {
+    $('#tblPelunasanDp').DataTable().ajax.reload();
+  }
+
+  function fmtRp(v) { return 'Rp ' + Number(v || 0).toLocaleString('id-ID'); }
+
+  function showDetail(e, id) {
+    e.preventDefault();
+    var myModal = new bootstrap.Modal(document.getElementById('detailModal'));
+    myModal.show();
+    $('#detailBody').html('<div class="text-center py-4"><div class="spinner-border text-primary" role="status"></div><p class="mt-2 text-muted">Memuat data...</p></div>');
+
+    $.get('/penjualan/' + id, function (res) {
+      if (!res.success) {
+        $('#detailBody').html('<div class="alert alert-danger m-3">Gagal memuat detail.</div>');
+        return;
+      }
+      var d = res.data;
+
+      // Rincian Barang
+      var html = '<div class="p-3"><h6 class="fw-bold mb-3 border-bottom pb-2">Detail Barang</h6>';
+      html += '<div class="table-responsive"><table class="table table-sm table-bordered"><thead><tr class="bg-light"><th>Barang</th><th>Barcode</th><th class="text-center">Qty</th><th class="text-end">Harga</th><th class="text-end">Subtotal</th></tr></thead><tbody>';
+      d.detail.forEach(function (item) {
+        var itemName = item.nama_barang || item.keterangan || item.barang_nama || '-';
+        var sph = item.b_sph_r || item.b_sph_l || '';
+        var cyl = item.b_cyl_r || item.b_cyl_l || '';
+        var add = item.b_add_r || item.b_add_l || '';
+        if (sph || cyl || add) {
+          itemName += ' <span class="text-muted small">(SPH : ' + sph + ' CYL : ' + cyl + ' ADD : ' + add + ')</span>';
+        }
+        var categoryName = item.kategori_nama ? ' <span class="badge bg-info bg-opacity-25 text-info">' + item.kategori_nama + '</span>' : '';
+
+        html += '<tr>';
+        html += '<td>' + itemName + categoryName + '</td>';
+        html += '<td class="font-monospace text-muted">' + (item.barcode_id || '-') + '</td>';
+        html += '<td class="text-center">' + (item.jumlah || 0) + '</td>';
+        html += '<td class="text-end">' + fmtRp(item.harga) + '</td>';
+        html += '<td class="text-end">' + fmtRp((item.harga || 0) * (item.jumlah || 0)) + '</td>';
+        html += '</tr>';
+      });
+      html += '</tbody></table></div>';
+
+      // Rincian Resep
+      var hasResepR = d.sph_r || d.cyl_r || d.axis_r || d.add_r;
+      var hasResepL = d.sph_l || d.cyl_l || d.axis_l || d.add_l;
+
+      if (hasResepR || hasResepL || d.pd) {
+        html += '<h6 class="fw-bold mt-4 mb-3 border-bottom pb-2">Resep Kacamata</h6>';
+        html += '<div class="table-responsive"><table class="table table-sm table-bordered text-center align-middle">';
+        html += '<thead class="bg-light"><tr><th>Mata</th><th>SPH</th><th>CYL</th><th>AXIS</th><th>ADD</th></tr></thead><tbody>';
+        if (hasResepR) {
+          html += '<tr><td class="bg-light"><strong>Kanan (R)</strong></td>';
+          html += '<td>' + (d.sph_r || '-') + '</td>';
+          html += '<td>' + (d.cyl_r || '-') + '</td>';
+          html += '<td>' + (d.axis_r || '-') + '</td>';
+          html += '<td>' + (d.add_r || '-') + '</td></tr>';
+        }
+        if (hasResepL) {
+          html += '<tr><td class="bg-light"><strong>Kiri (L)</strong></td>';
+          html += '<td>' + (d.sph_l || '-') + '</td>';
+          html += '<td>' + (d.cyl_l || '-') + '</td>';
+          html += '<td>' + (d.axis_l || '-') + '</td>';
+          html += '<td>' + (d.add_l || '-') + '</td></tr>';
+        }
+        html += '</tbody></table></div>';
+        
+        if (d.pd) {
+          html += '<p class="mt-2 mb-0"><span class="badge bg-secondary">PD: ' + d.pd + '</span></p>';
+        }
+      }
+      
+      html += '</div>';
+      $('#detailBody').html(html);
+    }).fail(function () {
+      $('#detailBody').html('<div class="alert alert-danger m-3">Terjadi kesalahan saat memuat data.</div>');
+    });
+  }
+</script>
+
+<!-- Detail Modal -->
+<div class="modal fade" id="detailModal" tabindex="-1">
+  <div class="modal-dialog modal-lg modal-dialog-centered">
+    <div class="modal-content border-0 shadow">
+      <div class="modal-header bg-light">
+        <h5 class="modal-title fw-bold text-primary"><i class="bi bi-receipt me-2"></i>Detail Transaksi</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body p-0" id="detailBody">
+      </div>
+      <div class="modal-footer bg-light">
+        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/bottom') %>

@@ -1,0 +1,229 @@
+<% function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); } %>
+<%- include('../partials/top', { title, activePage }) %>
+<%- include('../partials/select2') %>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div><h4 class="mb-0">Form Penjualan Toko (B2B)</h4></div>
+  <a href="/penjualan/toko" class="btn btn-secondary btn-sm"><i class="bi bi-arrow-left"></i> Kembali</a>
+</div>
+
+<div class="row g-3">
+  <!-- LEFT: Info Penjualan -->
+  <div class="col-md-4">
+    <div class="card p-3 shadow-sm border-0">
+      <h6 class="fw-bold mb-3 border-bottom pb-2">Info Penjualan Toko</h6>
+      <div class="mb-3">
+        <label class="form-label small fw-bold">Pelanggan <span class="text-danger">*</span></label>
+        <select class="form-select" id="pelanggan_id">
+          <option value="">-- Pilih Pelanggan --</option>
+          <% pelanggan.forEach(function(s) { %>
+            <option value="<%= s.id %>">
+              <%= s.nama %>
+            </option>
+          <% }); %>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label small fw-bold">Tanggal Penjualan</label>
+        <input type="date" class="form-control form-control-sm" id="order_date"
+          value="<%= new Date().toISOString().slice(0,10) %>">
+      </div>
+      <div class="mb-3">
+        <label class="form-label small fw-bold">Jatuh Tempo (Selesai)</label>
+        <input type="date" class="form-control form-control-sm" id="tanggal_selesai">
+      </div>
+    </div>
+  </div>
+
+  <!-- RIGHT: Items -->
+  <div class="col-md-8">
+    <div class="card p-3 mb-3 shadow-sm border-0">
+      <div class="d-flex justify-content-between align-items-center mb-3 border-bottom pb-2">
+        <h6 class="fw-bold mb-0"><i class="bi bi-box-seam me-2"></i>Item Penjualan Toko</h6>
+        <button class="btn btn-sm btn-outline-primary" onclick="addItem()"><i class="bi bi-plus"></i> Tambah
+          Item</button>
+      </div>
+      <div id="itemList">
+        <!-- Items will be added here dynamically -->
+      </div>
+      <div id="emptyMsg" class="text-center text-muted py-4">
+        <i class="bi bi-inbox text-secondary" style="font-size:2.5rem"></i>
+        <div class="small mt-2">Belum ada item. Klik "Tambah Item" untuk memasukkan barang.</div>
+      </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="card p-3 shadow-sm border-0">
+      <div class="row g-2 align-items-center mb-2">
+        <div class="col-6"><label class="form-label small fw-bold mb-0">Status Pembayaran</label></div>
+        <div class="col-6">
+          <select class="form-select form-select-sm" id="status_bayar" onchange="toggleDP(); calcTotal();">
+            <option value="lunas">Lunas (Bayar Penuh)</option>
+            <option value="dp">DP (Uang Muka)</option>
+            <option value="belum_lunas">Hutang (Belum Bayar)</option>
+          </select>
+        </div>
+      </div>
+      <div class="row g-2 align-items-center mb-2" id="dpRow" style="display:none">
+        <div class="col-6"><label class="form-label small fw-bold mb-0 text-muted">Jumlah DP dibayarkan</label></div>
+        <div class="col-6"><input type="text" class="form-control form-control-sm calc-input input-currency" id="dp_amount" value="0" min="0"></div>
+      </div>
+      <hr>
+      <div class="row g-2 align-items-center mb-2">
+        <div class="col-6"><strong class="fs-6 text-muted">SUBTOTAL</strong></div>
+        <div class="col-6 text-end fw-bold fs-6 text-muted" id="subtotalDisplay">Rp 0</div>
+      </div>
+      <div class="row g-2 align-items-center">
+        <div class="col-6"><strong class="fs-5">TOTAL SISA BAYAR / HUTANG</strong></div>
+        <div class="col-6 text-end fw-bold fs-5 text-success" id="totalDisplay">Rp 0</div>
+      </div>
+      <div class="d-flex gap-2 mt-4">
+        <button class="btn btn-success flex-fill" onclick="savePenjualanToko(false)"><i class="bi bi-check-lg"></i>
+          Simpan</button>
+        <button class="btn btn-primary flex-fill" onclick="savePenjualanToko(true)"><i class="bi bi-printer"></i>
+          Simpan & Print</button>
+      </div>
+    </div>
+  </div>
+</div>
+
+<script>
+  $(function () {
+    $('#pelanggan_id').select2({ theme: 'bootstrap-5', placeholder: '-- Pilih Pelanggan --', allowClear: true });
+    addItem(); // Add one row by default
+  });
+
+  var itemIndex = 0;
+
+  function addItem() {
+    var idx = itemIndex++;
+    var html = '<div class="row g-2 align-items-end mb-3 item-row bg-light p-2 rounded" data-idx="' + idx + '">' +
+      '<div class="col-md-5"><label class="form-label small fw-bold">Barang</label>' +
+      '<select class="form-select form-select-sm item-barang" data-idx="' + idx + '"><option value="">-- Cari Barang --</option></select></div>' +
+      '<div class="col-md-2"><label class="form-label small fw-bold text-center w-100">Qty</label>' +
+      '<input type="number" class="form-control form-control-sm text-center item-jumlah calc-input" data-idx="' + idx + '" value="1" min="1"></div>' +
+      '<div class="col-md-2"><label class="form-label small fw-bold">Harga Jual</label>' +
+      '<input type="text" class="form-control form-control-sm item-harga calc-input input-currency" data-idx="' + idx + '" value="0"></div>' +
+      '<div class="col-md-2"><label class="form-label small fw-bold">Subtotal</label>' +
+      '<div class="form-control-plaintext form-control-sm fw-bold text-end item-subtotal" data-idx="' + idx + '">Rp 0</div></div>' +
+      '<div class="col-md-1 text-end"><button class="btn btn-sm btn-outline-danger" title="Hapus Baris" onclick="removeItem(' + idx + ')"><i class="bi bi-trash"></i></button></div>' +
+      '</div>';
+    $('#itemList').append(html);
+
+    $('.item-barang[data-idx="' + idx + '"]').select2({
+      theme: 'bootstrap-5',
+      placeholder: '-- Ketik Nama / Barcode --',
+      allowClear: true,
+      ajax: {
+        url: '/barang/search',
+        dataType: 'json',
+        delay: 250,
+        data: function (params) {
+          return { q: params.term };
+        },
+        processResults: function (data) {
+          return {
+            results: $.map(data.data, function (item) {
+              return {
+                id: item.id,
+                text: item.nama_barang +
+                  (item.sph_r || item.sph_l || item.cyl_r || item.cyl_l || item.add_r || item.add_l ? ' (SPH: ' + (item.sph_r || item.sph_l || '') + ' CYL: ' + (item.cyl_r || item.cyl_l || '') + ' ADD: ' + (item.add_r || item.add_l || '') + ')' : '') +
+                  ' (Stok: ' + (item.qty !== null ? item.qty : '-') + ')',
+                item: item
+              }
+            })
+          };
+        },
+        cache: true
+      }
+    }).on('select2:select', function (e) {
+      var b = e.params.data.item;
+      // Gunakan harga jual
+      $('.item-harga[data-idx=' + idx + ']').val(parseInt(b.harga_jual) || 0).trigger('input');
+      calcTotal();
+    }).on('select2:unselect', function (e) {
+      $('.item-harga[data-idx=' + idx + ']').val(0).trigger('input');
+      calcTotal();
+    });
+    $('#emptyMsg').hide();
+    calcTotal();
+  }
+
+  function removeItem(idx) {
+    $('.item-row[data-idx=' + idx + ']').remove();
+    if ($('.item-row').length === 0) $('#emptyMsg').show();
+    calcTotal();
+  }
+
+  function calcTotal() {
+    var subtotal = 0;
+    $('.item-row').each(function () {
+      var idx = $(this).data('idx');
+      var h = parseFloat($('.item-harga[data-idx=' + idx + ']').val().replace(/[^0-9]/g, '')) || 0;
+      var j = parseInt($('.item-jumlah[data-idx=' + idx + ']').val()) || 1;
+      var sub = h * j;
+      subtotal += sub;
+      $('.item-subtotal[data-idx=' + idx + ']').text(fmtRp(sub));
+    });
+    
+    var isDp = $('#status_bayar').val() === 'dp';
+    var dpAmount = isDp ? (parseFloat($('#dp_amount').val().replace(/[^0-9]/g, '')) || 0) : 0;
+    
+    $('#subtotalDisplay').text(fmtRp(subtotal));
+    $('#totalDisplay').text(fmtRp(subtotal - dpAmount));
+  }
+
+  $(document).on('input', '.calc-input', calcTotal);
+
+  function toggleDP() {
+    var status = $('#status_bayar').val();
+    if (status === 'dp') { $('#dpRow').show(); } else { $('#dpRow').hide(); }
+  }
+
+  function savePenjualanToko(withPrint) {
+    var pelangganId = $('#pelanggan_id').val();
+    if (!pelangganId) { showToast('Pilih pelanggan terlebih dahulu', 'danger'); return; }
+
+    var items = [];
+    $('.item-row').each(function () {
+      var idx = $(this).data('idx');
+      var bid = $('.item-barang[data-idx=' + idx + ']').val();
+      if (!bid) return;
+      items.push({
+        tipe: 'lain_lain', // Bulk insert tanpa kategori khusus (frame/lensa)
+        barang_id: parseInt(bid),
+        jumlah: parseInt($('.item-jumlah[data-idx=' + idx + ']').val()) || 1,
+        harga: parseFloat($('.item-harga[data-idx=' + idx + ']').val().replace(/[^0-9]/g, '')) || 0,
+        diskon: 0
+      });
+    });
+
+    if (items.length === 0) { showToast('Tambah minimal satu item barang', 'danger'); return; }
+
+    var payload = {
+      is_b2b: true,
+      pelanggan_id: pelangganId,
+      sales_id: null, // B2B tanpa sales
+      order_date: $('#order_date').val(),
+      tanggal_selesai: $('#tanggal_selesai').val() || null,
+      status_bayar: $('#status_bayar').val(),
+      dp: parseInt($('#dp_amount').val().replace(/[^0-9]/g, '')) || 0,
+      bpjs: 0,
+      items: items,
+    };
+
+    $.ajax({
+      url: '/penjualan', method: 'POST', contentType: 'application/json', data: JSON.stringify(payload),
+      success: function (res) {
+        if (res.data && res.data.warnings && res.data.warnings.length > 0) {
+          sessionStorage.setItem('penjualan_warnings', JSON.stringify(res.data.warnings));
+        }
+        if (res.success && withPrint) printNotaData(res.data);
+        window.location.href = '/penjualan/toko';
+      },
+      error: function (xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal menyimpan', 'danger'); }
+    });
+  }
+</script>
+
+<%- include('../partials/bottom') %>

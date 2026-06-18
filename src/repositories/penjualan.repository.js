@@ -10,12 +10,18 @@ exports.findAll = function () {
 };
 
 exports.getDatatablesData = async function (params) {
-  const { start, length, search, order, start_date, end_date, status } = params;
+  const { start, length, search, order, start_date, end_date, status, is_toko } = params;
 
   let baseQuery = db('penjualan')
     .leftJoin('pelanggan', 'penjualan.pelanggan_id', 'pelanggan.id')
     .leftJoin('sales', 'penjualan.sales_id', 'sales.id')
     .leftJoin('pengguna', 'penjualan.created_by', 'pengguna.id');
+
+  if (is_toko === 'true' || is_toko === true) {
+    baseQuery = baseQuery.where('penjualan.is_b2b', true);
+  } else {
+    baseQuery = baseQuery.where('penjualan.is_b2b', false);
+  }
 
   if (status) {
     baseQuery = baseQuery.where('penjualan.status_bayar', status);
@@ -203,4 +209,68 @@ exports.generateNotaNumber = async function () {
   const result = await db('penjualan').where('no_nota', 'like', `${prefix}%`).count('id as cnt').first();
   const seq = (parseInt(result.cnt) || 0) + 1;
   return prefix + String(seq).padStart(4, '0');
+};
+
+exports.getPelunasanDpDatatablesData = async function (params) {
+  const { start, length, search, order } = params;
+
+  let baseQuery = db('penjualan')
+    .leftJoin('pelanggan', 'penjualan.pelanggan_id', 'pelanggan.id')
+    .leftJoin('sales', 'penjualan.sales_id', 'sales.id')
+    .where('penjualan.dp', '>', 0)
+    .andWhere('penjualan.status_bayar', 'lunas');
+
+  const totalCountRes = await baseQuery.clone().count('penjualan.id as count').first();
+  const recordsTotal = parseInt(totalCountRes.count);
+
+  if (search && search.value) {
+    baseQuery = baseQuery.where(function () {
+      this.where('penjualan.no_nota', 'ilike', `%${search.value}%`)
+        .orWhere('pelanggan.nama', 'ilike', `%${search.value}%`)
+        .orWhere('sales.nama', 'ilike', `%${search.value}%`);
+    });
+  }
+
+  const filteredCountRes = await baseQuery.clone().count('penjualan.id as count').first();
+  const recordsFiltered = parseInt(filteredCountRes.count);
+
+  const columns = ['no_nota', 'tanggal_pelunasan', 'order_date', 'pelanggan_nama', 'sales_nama', 'total', 'total_bayar'];
+  
+  // Create a subquery for sorting by pelunasan/bayar
+  baseQuery = baseQuery.select(
+    'penjualan.id',
+    'penjualan.no_nota',
+    'penjualan.order_date',
+    'pelanggan.nama as pelanggan_nama',
+    'sales.nama as sales_nama',
+    'penjualan.total',
+    db.raw('(SELECT MAX(tanggal_bayar) FROM pembayaran_penjualan WHERE penjualan_id = penjualan.id) as tanggal_pelunasan'),
+    db.raw('(SELECT SUM(jumlah_bayar) FROM pembayaran_penjualan WHERE penjualan_id = penjualan.id) as total_bayar')
+  );
+
+  if (order && order.length > 0) {
+    const colIndex = parseInt(order[0].column);
+    const dir = order[0].dir === 'desc' ? 'desc' : 'asc';
+    if (columns[colIndex]) {
+      let orderCol = `penjualan.${columns[colIndex]}`;
+      if (columns[colIndex] === 'pelanggan_nama') orderCol = 'pelanggan.nama';
+      else if (columns[colIndex] === 'sales_nama') orderCol = 'sales.nama';
+      else if (columns[colIndex] === 'tanggal_pelunasan') orderCol = db.raw('(SELECT MAX(tanggal_bayar) FROM pembayaran_penjualan WHERE penjualan_id = penjualan.id)');
+      else if (columns[colIndex] === 'total_bayar') orderCol = db.raw('(SELECT SUM(jumlah_bayar) FROM pembayaran_penjualan WHERE penjualan_id = penjualan.id)');
+      
+      baseQuery = baseQuery.orderBy(orderCol, dir);
+    } else {
+      baseQuery = baseQuery.orderBy('penjualan.created_at', 'desc');
+    }
+  } else {
+    baseQuery = baseQuery.orderBy('penjualan.created_at', 'desc');
+  }
+
+  if (length > 0) {
+    baseQuery = baseQuery.limit(length).offset(start);
+  }
+
+  const data = await baseQuery;
+
+  return { recordsTotal, recordsFiltered, data };
 };

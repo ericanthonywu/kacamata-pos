@@ -3,6 +3,7 @@ const barangRepo = require('../repositories/barang.repository');
 
 exports.getAll = function () { return repo.findAll(); };
 exports.getDatatablesData = function (params) { return repo.getDatatablesData(params); };
+exports.getPelunasanDpDatatables = function (params) { return repo.getPelunasanDpDatatablesData(params); };
 
 exports.getById = async function (id) {
   const penjualan = await repo.findById(id);
@@ -53,7 +54,7 @@ exports.create = async function (data, userId) {
     no_nota,
     pelanggan_id: data.pelanggan_id || null,
     sales_id: data.sales_id || null,
-    created_by: userId,
+    created_by: userId === 0 ? null : userId,
     order_date: data.order_date || new Date().toISOString().split('T')[0],
     tanggal_selesai: data.tanggal_selesai || null,
     biaya: 0,
@@ -71,6 +72,7 @@ exports.create = async function (data, userId) {
     add_r: data.add_r || null,
     add_l: data.add_l || null,
     pd: data.pd || null,
+    is_b2b: data.is_b2b || false,
   };
 
   const penjualan = await repo.create(penjualanData, items);

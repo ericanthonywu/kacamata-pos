@@ -24,6 +24,59 @@ exports.datatables = async function (req, res) {
   }
 };
 
+exports.pelunasanDpIndex = async function (req, res, next) {
+  try {
+    res.render('penjualan/pelunasan-dp', { title: 'Pelunasan DP', activePage: 'pelunasan_dp' });
+  } catch (err) { next(err); }
+};
+
+exports.pelunasanDpDatatables = async function (req, res) {
+  try {
+    const result = await penjualanService.getPelunasanDpDatatables(req.query);
+    res.json({
+      draw: parseInt(req.query.draw),
+      recordsTotal: result.recordsTotal,
+      recordsFiltered: result.recordsFiltered,
+      data: result.data
+    });
+  } catch (err) {
+    res.json({ error: err.message });
+  }
+};
+
+exports.tokoIndex = async function (req, res, next) {
+  try {
+    res.render('penjualan/toko-index', { title: 'Penjualan Toko (B2B)', activePage: 'penjualan-toko' });
+  } catch (err) { next(err); }
+};
+
+exports.tokoDatatables = async function (req, res) {
+  try {
+    const query = { ...req.query, is_toko: 'true' };
+    const result = await penjualanService.getDatatablesData(query);
+    res.json({
+      draw: parseInt(req.query.draw),
+      recordsTotal: result.recordsTotal,
+      recordsFiltered: result.recordsFiltered,
+      data: result.data
+    });
+  } catch (err) {
+    res.json({ error: err.message });
+  }
+};
+
+exports.tokoCreateForm = async function (req, res, next) {
+  try {
+    const pelanggan = await pelangganService.getAll();
+    const barangList = [];
+    res.render('penjualan/toko-form', {
+      title: 'Penjualan Toko Baru',
+      pelanggan, barangList,
+      activePage: 'penjualan-toko',
+    });
+  } catch (err) { next(err); }
+};
+
 exports.createForm = async function (req, res, next) {
   try {
     const [pelanggan, salesList] = await Promise.all([
