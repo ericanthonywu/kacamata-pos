@@ -177,9 +177,7 @@ $(function() {
         orderable: false,
         render: function(data, type, row) {
           var html = '<div class="d-flex flex-wrap gap-1">';
-          if (window.userRole === 'admin') {
-            html += '<button class="btn btn-sm btn-outline-info" onclick="showDetail(' + row.id + ')"><i class="bi bi-eye"></i></button>';
-          }
+          html += '<button class="btn btn-sm btn-outline-info" onclick="showDetail(' + row.id + ')"><i class="bi bi-eye"></i></button>';
           html += '<div class="dropdown d-inline-block"><button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" title="Print Barcode"><i class="bi bi-upc-scan"></i></button>';
           html += '<ul class="dropdown-menu shadow-sm"><li><h6 class="dropdown-header">Pilih Format Label</h6></li>';
           html += '<li><a class="dropdown-item" href="#" onclick="event.preventDefault(); printBarcodes(' + row.id + ', &quot;double&quot;)"><i class="bi bi-layout-split"></i> Double (Kiri & Kanan)</a></li>';
@@ -220,7 +218,11 @@ function showDetail(id) {
     html += '</table>';
     if (d.detail && d.detail.length > 0) {
       html += '<hr><h6 class="small fw-bold">Item Pembelian</h6>';
-      html += '<table class="table table-sm mb-0"><thead><tr><th>Barang</th><th>Barcode</th><th>Qty</th><th>Harga Beli</th><th>Subtotal</th></tr></thead><tbody>';
+      html += '<table class="table table-sm mb-0"><thead><tr><th>Barang</th><th>Barcode</th><th>Qty</th>';
+      if (window.userRole === 'admin') {
+        html += '<th>Harga Beli</th><th>Subtotal</th>';
+      }
+      html += '</tr></thead><tbody>';
       d.detail.forEach(function(item) {
         var sub = (item.harga_beli || 0) * (item.jumlah || 1);
         var itemDesc = item.nama_barang || '-';
@@ -236,11 +238,17 @@ function showDetail(id) {
             itemDesc += '<br><small class="text-muted">' + details.join('<br>') + '</small>';
           }
         }
-        html += '<tr><td>' + itemDesc + '</td><td class="font-monospace">' + (item.barcode_id || '-') + '</td><td>' + item.jumlah + '</td><td>' + fmtRp(item.harga_beli) + '</td><td>' + fmtRp(sub) + '</td></tr>';
+        html += '<tr><td>' + itemDesc + '</td><td class="font-monospace">' + (item.barcode_id || '-') + '</td><td>' + item.jumlah + '</td>';
+        if (window.userRole === 'admin') {
+          html += '<td>' + fmtRp(item.harga_beli) + '</td><td>' + fmtRp(sub) + '</td>';
+        }
+        html += '</tr>';
       });
       html += '</tbody></table>';
     }
-    html += '<hr><div class="d-flex justify-content-between"><strong>Total</strong><strong class="text-success">' + fmtRp(d.total_harga) + '</strong></div>';
+    if (window.userRole === 'admin') {
+      html += '<hr><div class="d-flex justify-content-between"><strong>Total</strong><strong class="text-success">' + fmtRp(d.total_harga) + '</strong></div>';
+    }
     $('#detailBody').html(html);
     new bootstrap.Modal('#detailModal').show();
   });
