@@ -248,7 +248,7 @@ function printBarcodesFromItems(items, format) {
     '.name { font-size: 6pt; font-weight: bold; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; text-transform: uppercase; text-align: left; margin-bottom: 0.5mm; }',
     '.bc-wrapper { display: flex; justify-content: center; align-items: center; overflow: hidden; height: 3mm; width: 30%; margin: 0 auto; }',
     'svg { display: block; max-height: 100%; }',
-    '.bottom-info { display: flex; justify-content: space-between; font-size: 5pt; font-weight: normal; margin-top: 0.5mm; }',
+    '.bottom-info { display: flex; justify-content: space-between; font-size: 6pt; font-weight: normal; margin-top: 0.5mm; }',
     '</style></head><body>',
     labels,
     '<script>',
