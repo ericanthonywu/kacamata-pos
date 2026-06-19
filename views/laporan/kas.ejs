@@ -153,14 +153,7 @@
             },
             {
               data: 'tanggal_bayar',
-              render: function (data, type, row) {
-                if (!data) return '-';
-                if (row.waktu_bayar) {
-                  var d = new Date(row.waktu_bayar);
-                  return d.toLocaleDateString('id-ID') + ' ' + d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
-                }
-                return new Date(data).toLocaleDateString('id-ID');
-              }
+              render: function (data) { return data ? new Date(data).toLocaleDateString('id-ID') : '-'; }
             },
             {
               data: 'pelanggan_nama',

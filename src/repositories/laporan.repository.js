@@ -68,7 +68,7 @@ exports.getKasDatatablesData = async function (params) {
   // Column index mapping: 0=no_nota, 1=tanggal+waktu, 2=pelanggan, 3=sales, 4=subtotal, 5=dp, 6=bpjs, 7=sisa(no sort), 8=pelunasan(no sort), 9=status, 10=uang_masuk(admin), 11=aksi(no sort)
   const columnMap = {
     0: 'penjualan.no_nota',
-    1: 'pembayaran_penjualan.created_at',
+    1: 'pembayaran_penjualan.tanggal_bayar',
     2: 'pelanggan.nama',
     3: 'sales.nama',
     4: 'penjualan.subtotal',
@@ -83,10 +83,10 @@ exports.getKasDatatablesData = async function (params) {
     if (columnMap[colIndex]) {
       baseQuery = baseQuery.orderBy(columnMap[colIndex], dir);
     } else {
-      baseQuery = baseQuery.orderBy('pembayaran_penjualan.created_at', 'desc');
+      baseQuery = baseQuery.orderBy('pembayaran_penjualan.tanggal_bayar', 'desc');
     }
   } else {
-    baseQuery = baseQuery.orderBy('pembayaran_penjualan.created_at', 'desc');
+    baseQuery = baseQuery.orderBy('pembayaran_penjualan.tanggal_bayar', 'desc');
   }
 
   if (length > 0) {
@@ -96,7 +96,7 @@ exports.getKasDatatablesData = async function (params) {
   const data = await baseQuery.select(
     'pembayaran_penjualan.id',
     'pembayaran_penjualan.tanggal_bayar',
-    'pembayaran_penjualan.created_at as waktu_bayar',
+    'pembayaran_penjualan.tanggal_bayar',
     'pembayaran_penjualan.jumlah_bayar',
     'pembayaran_penjualan.keterangan',
     'pembayaran_penjualan.penjualan_id',
