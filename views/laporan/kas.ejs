@@ -84,9 +84,9 @@
             <th>Sales</th>
             <th>Total</th>
             <th>DP</th>
-            <th>BPJS</th>
-            <th>Sisa</th>
             <th>Pelunasan</th>
+            <th>Sisa</th>
+            <th>BPJS</th>
             <th>Status</th>
             <% if (currentUser.hak_akses === 'admin') { %>
             <th>Uang Masuk</th>
@@ -165,23 +165,19 @@
             },
             {
               data: 'subtotal',
-              render: function (data) { return fmtRp(data); }
+              render: function (data, type, row) {
+                var isFullPayment = row.keterangan === 'Pembayaran lunas';
+                var cls = isFullPayment ? ' fw-bold text-success' : '';
+                return '<span class="' + cls + '">' + fmtRp(data) + '</span>';
+              }
             },
             {
               data: 'dp',
-              render: function (data) { return parseFloat(data) > 0 ? fmtRp(data) : '-'; }
-            },
-            {
-              data: 'bpjs',
-              render: function (data) { return parseFloat(data) > 0 ? fmtRp(data) : '-'; }
-            },
-            {
-              data: null,
-              orderable: false,
               render: function (data, type, row) {
-                var sisa = row.status_bayar === 'lunas' ? 0 : (parseFloat(row.subtotal) - parseFloat(row.dp || 0) - parseFloat(row.bpjs || 0));
-                var cls = sisa === 0 ? 'text-success' : 'text-danger';
-                return '<span class="fw-bold ' + cls + '">' + fmtRp(sisa) + '</span>';
+                if (parseFloat(data) <= 0) return '-';
+                var isDP = row.keterangan === 'Down Payment';
+                var cls = isDP ? ' fw-bold text-success' : '';
+                return '<span class="' + cls + '">' + fmtRp(data) + '</span>';
               }
             },
             {
@@ -189,17 +185,30 @@
               orderable: false,
               render: function (data, type, row) {
                 if (data !== 'Pembayaran lunas' && data !== 'Down Payment') {
-                  return '<span class="fw-bold text-info">' + fmtRp(row.jumlah_bayar) + '</span>';
+                  return '<span class="fw-bold text-success">' + fmtRp(row.jumlah_bayar) + '</span>';
                 }
                 return '-';
               }
             },
             {
+              data: null,
+              orderable: false,
+              render: function (data, type, row) {
+                var sisa = row.status_bayar === 'lunas' ? 0 : (parseFloat(row.subtotal) - parseFloat(row.dp || 0) - parseFloat(row.bpjs || 0));
+                var cls = sisa > 0 ? 'text-danger' : '';
+                return '<span class="fw-bold ' + cls + '">' + fmtRp(sisa) + '</span>';
+              }
+            },
+            {
+              data: 'bpjs',
+              render: function (data) { return parseFloat(data) > 0 ? fmtRp(data) : '-'; }
+            },
+            {
               data: 'keterangan',
               render: function (data) {
                 if (data === 'Pembayaran lunas') return '<span class="badge bg-success">Pembayaran Penuh</span>';
-                if (data === 'Down Payment') return '<span class="badge bg-warning text-dark">DP - Belum Lunas</span>';
-                return '<span class="badge bg-info">Pelunasan Hutang</span>';
+                if (data === 'Down Payment') return '<span class="badge bg-primary">DP - Belum Lunas</span>';
+                return '<span class="badge bg-teal text-white" style="background-color:#20c997">Pelunasan Hutang</span>';
               }
             }
         ];
