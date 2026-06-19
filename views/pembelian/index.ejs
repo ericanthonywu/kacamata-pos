@@ -178,6 +178,9 @@ $(function() {
         render: function(data, type, row) {
           var html = '<div class="d-flex flex-wrap gap-1">';
           html += '<button class="btn btn-sm btn-outline-info" onclick="showDetail(' + row.id + ')"><i class="bi bi-eye"></i></button>';
+          if (window.userRole === 'admin') {
+            html += '<button class="btn btn-sm btn-outline-secondary" onclick="printFaktur(' + row.id + ')" title="Print Faktur"><i class="bi bi-printer"></i></button>';
+          }
           html += '<div class="dropdown d-inline-block"><button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" title="Print Barcode"><i class="bi bi-upc-scan"></i></button>';
           html += '<ul class="dropdown-menu shadow-sm"><li><h6 class="dropdown-header">Pilih Format Label</h6></li>';
           html += '<li><a class="dropdown-item" href="#" onclick="event.preventDefault(); printBarcodes(' + row.id + ', &quot;double&quot;)"><i class="bi bi-layout-split"></i> Double (Kiri & Kanan)</a></li>';
@@ -263,6 +266,80 @@ function printBarcodes(id, format) {
     printBarcodesFromItems(items, format);
   });
 }
+
+function printFaktur(id) {
+  $.get('/pembelian/' + id, function(res) {
+    if (!res.success) return;
+    var d = res.data;
+    
+    var p = window.open('', '_blank');
+    var html = '<html><head><title>Faktur Pembelian</title>';
+    html += '<style>';
+    html += 'body { font-family: sans-serif; font-size: 14px; margin: 20px; }';
+    html += 'h3 { text-align: center; margin: 0; }';
+    html += 'h5 { text-align: center; margin: 5px 0 20px 0; font-weight: normal; }';
+    html += 'table { width: 100%; border-collapse: collapse; margin-top: 10px; }';
+    html += 'th, td { border: 1px solid #000; padding: 5px 8px; text-align: left; }';
+    html += 'th { background-color: #f0f0f0; }';
+    html += '.text-right { text-align: right; }';
+    html += '</style></head><body>';
+    
+    html += '<h3>FAKTUR PEMBELIAN</h3>';
+    html += '<h5>' + d.kode_pembelian + '</h5>';
+    
+    html += '<div>Supplier: ' + (d.supplier_nama || '-') + '</div>';
+    
+    html += '<table>';
+    html += '<thead><tr><th>Kode Barang</th><th>Nama Barang</th><th>Kategori</th><th>Kuantitas</th><th>Harga</th></tr></thead>';
+    html += '<tbody>';
+    
+    var total = 0;
+    if (d.detail && d.detail.length > 0) {
+      d.detail.forEach(function(item) {
+        var itemDesc = item.nama_barang || '-';
+        if (item.kategori_nama && item.kategori_nama.toLowerCase() === 'lensa') {
+          var details = [];
+          if (item.sph_r || item.cyl_r || item.add_r) {
+            details.push('R: SPH ' + (item.sph_r||'-') + ' CYL ' + (item.cyl_r||'-') + ' ADD ' + (item.add_r||'-'));
+          }
+          if (item.sph_l || item.cyl_l || item.add_l) {
+            details.push('L: SPH ' + (item.sph_l||'-') + ' CYL ' + (item.cyl_l||'-') + ' ADD ' + (item.add_l||'-'));
+          }
+          if (details.length > 0) {
+            itemDesc += ' <small>(' + details.join(' | ') + ')</small>';
+          }
+        }
+        
+        var sub = (item.harga_beli || 0) * (item.jumlah || 1);
+        total += sub;
+        
+        html += '<tr>';
+        html += '<td>' + (item.barcode_id || '-') + '</td>';
+        html += '<td>' + itemDesc + '</td>';
+        html += '<td>' + (item.kategori_nama || '-') + '</td>';
+        html += '<td>' + item.jumlah + '</td>';
+        html += '<td class="text-right">' + fmtRp(item.harga_beli) + '</td>';
+        html += '</tr>';
+      });
+    }
+    
+    html += '</tbody>';
+    html += '<tfoot><tr><th colspan="4" class="text-right">Total</th><th class="text-right">' + fmtRp(total) + '</th></tr></tfoot>';
+    html += '</table>';
+    
+    html += '</body></html>';
+    
+    p.document.write(html);
+    p.document.close();
+    
+    p.onload = function() {
+      p.focus();
+      p.print();
+      p.onafterprint = function() { p.close(); };
+    };
+  });
+}
+
 </script>
 
 <%- include('../partials/bottom') %>
