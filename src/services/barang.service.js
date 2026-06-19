@@ -24,8 +24,6 @@ exports.create = async function (data) {
     sph_l: data.sph_l || null,
     cyl_r: data.cyl_r || null,
     cyl_l: data.cyl_l || null,
-    axis_r: data.axis_r || null,
-    axis_l: data.axis_l || null,
     add_r: data.add_r || null,
     add_l: data.add_l || null,
     barcode_id,
@@ -43,8 +41,6 @@ exports.update = function (id, data) {
     sph_l: data.sph_l || null,
     cyl_r: data.cyl_r || null,
     cyl_l: data.cyl_l || null,
-    axis_r: data.axis_r || null,
-    axis_l: data.axis_l || null,
     add_r: data.add_r || null,
     add_l: data.add_l || null,
   });
