@@ -264,6 +264,22 @@ function printBarcodesFromItems(items, format) {
   w.document.close();
 }
 
+// Loading button helpers — prevent double-click / spam
+function setBtnLoading(btn) {
+  var $b = $(btn);
+  if ($b.prop('disabled')) return false; // already loading
+  $b.data('orig-html', $b.html());
+  $b.prop('disabled', true);
+  $b.html('<span class="spinner-border spinner-border-sm me-1" role="status" aria-hidden="true"></span>Memproses...');
+  return true;
+}
+function resetBtn(btn) {
+  var $b = $(btn);
+  var orig = $b.data('orig-html');
+  if (orig !== undefined) $b.html(orig);
+  $b.prop('disabled', false);
+}
+
 // Confirm delete — used by all CRUD pages
 var deleteUrl = null;
 function confirmDelete(id, url) {
@@ -274,15 +290,18 @@ function confirmDelete(id, url) {
 $(function () {
   $('#deleteConfirmBtn').on('click', function () {
     if (!deleteUrl) return;
+    var btn = this;
+    if (!setBtnLoading(btn)) return;
     $.ajax({
       url: deleteUrl,
       method: 'DELETE',
       success: function (res) {
         if (res.success) location.reload();
-        else showToast(res.message || 'Gagal menghapus', 'danger');
+        else { showToast(res.message || 'Gagal menghapus', 'danger'); resetBtn(btn); }
       },
       error: function (xhr) {
         showToast(xhr.responseJSON?.message || 'Gagal menghapus', 'danger');
+        resetBtn(btn);
       },
     });
   });

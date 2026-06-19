@@ -197,9 +197,9 @@
               <div class="col-6 text-end fw-bold fs-5 text-success" id="totalDisplay">Rp 0</div>
             </div>
             <div class="d-flex gap-2 mt-3">
-              <button class="btn btn-primary flex-fill" onclick="savePenjualan(true)"><i class="bi bi-printer"></i>
+              <button class="btn btn-primary flex-fill" onclick="savePenjualan(true, this)"><i class="bi bi-printer"></i>
                 Simpan & Print</button>
-              <button class="btn btn-success flex-fill" onclick="savePenjualan(false)">Simpan</button>
+              <button class="btn btn-success flex-fill" onclick="savePenjualan(false, this)">Simpan</button>
             </div>
           </div>
         </div>
@@ -226,7 +226,7 @@
                 <label class="form-label small">Alamat</label>
                 <textarea class="form-control form-control-sm" id="new_pelanggan_alamat" rows="2"></textarea>
               </div>
-              <button type="button" class="btn btn-primary btn-sm w-100" onclick="saveNewPelanggan()">Simpan</button>
+              <button type="button" class="btn btn-primary btn-sm w-100" onclick="saveNewPelanggan(this)">Simpan</button>
             </div>
           </div>
         </div>
@@ -307,11 +307,13 @@
           initSelect2Barang('#aksesoris_barang_id', 'aksesoris', 'aksesoris');
         });
 
-        function saveNewPelanggan() {
+        function saveNewPelanggan(btn) {
           var nama = $('#new_pelanggan_nama').val();
           var telp = $('#new_pelanggan_telp').val();
           var alamat = $('#new_pelanggan_alamat').val();
           if (!nama) { showToast('Nama pelanggan wajib diisi', 'danger'); return; }
+
+          if (!setBtnLoading(btn)) return;
 
           $.ajax({
             url: '/pelanggan',
@@ -336,8 +338,9 @@
                 $('#new_pelanggan_alamat').val('');
                 showToast('Pelanggan berhasil dipilih', 'success');
               }
+              resetBtn(btn);
             },
-            error: function (xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal menambahkan pelanggan', 'danger'); }
+            error: function (xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal menambahkan pelanggan', 'danger'); resetBtn(btn); }
           });
         }
 
@@ -394,7 +397,7 @@
           };
         }
 
-        function savePenjualan(withPrint) {
+        function savePenjualan(withPrint, btn) {
           var items = [buildItem('frame'), buildItem('lensa_l'), buildItem('lensa_r'), buildItem('aksesoris')].filter(Boolean);
 
           if ($('#lain_keterangan').val().trim()) {
@@ -413,6 +416,8 @@
           var salesId = $('#sales_id').val();
           if (!pelangganId) { showToast('Pelanggan wajib diisi', 'danger'); return; }
           if (!salesId) { showToast('Sales wajib diisi', 'danger'); return; }
+
+          if (!setBtnLoading(btn)) return;
 
           var payload = {
             pelanggan_id: pelangganId,
@@ -436,7 +441,7 @@
               if (res.success && withPrint) printNotaData(res.data);
               window.location.href = '/penjualan';
             },
-            error: function (xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal menyimpan', 'danger'); }
+            error: function (xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal menyimpan', 'danger'); resetBtn(btn); }
           });
         }
       </script>

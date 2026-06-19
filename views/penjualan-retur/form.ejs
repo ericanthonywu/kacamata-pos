@@ -44,7 +44,7 @@
             <div class="col-6 text-end fw-bold fs-5 text-warning" id="totalDisplay">Rp 0</div>
           </div>
           <div class="d-flex gap-2 mt-3">
-            <button class="btn btn-warning flex-fill" onclick="saveRetur()"><i class="bi bi-check-lg"></i> Simpan
+            <button class="btn btn-warning flex-fill" onclick="saveRetur(this)"><i class="bi bi-check-lg"></i> Simpan
               Retur</button>
           </div>
         </div>
@@ -97,7 +97,7 @@
 
       $(document).on('input', '.calc-input', calcTotal);
 
-      function saveRetur() {
+      function saveRetur(btn) {
         var penjualanId = $('#penjualan_id').val();
         if (!penjualanId) { showToast('Pilih penjualan', 'danger'); return; }
 
@@ -115,11 +115,13 @@
 
         if (items.length === 0) { showToast('Isi minimal satu item retur', 'danger'); return; }
 
+        if (!setBtnLoading(btn)) return;
+
         $.ajax({
           url: '/penjualan-retur', method: 'POST', contentType: 'application/json',
           data: JSON.stringify({ penjualan_id: penjualanId, tanggal_retur: $('#tanggal_retur').val(), items: items }),
-          success: function (res) { if (res.success) window.location.href = '/penjualan-retur'; },
-          error: function (xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal', 'danger'); }
+          success: function (res) { if (res.success) window.location.href = '/penjualan-retur'; else resetBtn(btn); },
+          error: function (xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal', 'danger'); resetBtn(btn); }
         });
       }
 

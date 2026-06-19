@@ -105,11 +105,13 @@ $(function() {
   });
 
   $('#btnSave').on('click', function() {
+    var btn = this;
+    if (!setBtnLoading(btn)) return;
     var id = $('#editId').val();
     $.ajax({ url: id ? '/pelanggan/' + id : '/pelanggan', method: id ? 'PUT' : 'POST',
       contentType: 'application/json', data: JSON.stringify({ nama: $('#nama').val(), no_telp: $('#no_telp').val() }),
-      success: function(r) { if (r.success) location.reload(); },
-      error: function(xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal', 'danger'); }
+      success: function(r) { if (r.success) location.reload(); else resetBtn(btn); },
+      error: function(xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal', 'danger'); resetBtn(btn); }
     });
   });
 });

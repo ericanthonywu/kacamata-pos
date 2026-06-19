@@ -78,9 +78,9 @@
         <div class="col-6 text-end fw-bold fs-5 text-success" id="totalDisplay">Rp 0</div>
       </div>
       <div class="d-flex gap-2 mt-4">
-        <button class="btn btn-success flex-fill" onclick="savePenjualanToko(false)"><i class="bi bi-check-lg"></i>
+        <button class="btn btn-success flex-fill" onclick="savePenjualanToko(false, this)"><i class="bi bi-check-lg"></i>
           Simpan</button>
-        <button class="btn btn-primary flex-fill" onclick="savePenjualanToko(true)"><i class="bi bi-printer"></i>
+        <button class="btn btn-primary flex-fill" onclick="savePenjualanToko(true, this)"><i class="bi bi-printer"></i>
           Simpan & Print</button>
       </div>
     </div>
@@ -180,7 +180,7 @@
     if (status === 'dp') { $('#dpRow').show(); } else { $('#dpRow').hide(); }
   }
 
-  function savePenjualanToko(withPrint) {
+  function savePenjualanToko(withPrint, btn) {
     var pelangganId = $('#pelanggan_id').val();
     if (!pelangganId) { showToast('Pilih pelanggan terlebih dahulu', 'danger'); return; }
 
@@ -199,6 +199,8 @@
     });
 
     if (items.length === 0) { showToast('Tambah minimal satu item barang', 'danger'); return; }
+
+    if (!setBtnLoading(btn)) return;
 
     var payload = {
       is_b2b: true,
@@ -221,7 +223,7 @@
         if (res.success && withPrint) printNotaData(res.data);
         window.location.href = '/penjualan/toko';
       },
-      error: function (xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal menyimpan', 'danger'); }
+      error: function (xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal menyimpan', 'danger'); resetBtn(btn); }
     });
   }
 </script>

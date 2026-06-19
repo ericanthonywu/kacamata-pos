@@ -69,7 +69,7 @@
               <label class="form-label small">Keterangan</label>
               <input type="text" class="form-control form-control-sm" id="keterangan" placeholder="Opsional">
             </div>
-            <button class="btn btn-success btn-sm w-100" onclick="bayar()"><i class="bi bi-check-lg"></i> Bayar</button>
+            <button class="btn btn-success btn-sm w-100" onclick="bayar(this)"><i class="bi bi-check-lg"></i> Bayar</button>
           </div>
           <% } else { %>
             <div class="card p-3 text-center text-success py-4">
@@ -107,7 +107,7 @@
                       <td class="small">
                         <%= p.keterangan || '-' %>
                       </td>
-                      <td><button class="btn btn-sm btn-outline-danger" onclick="hapusBayar(<%= p.id %>)"><i
+                      <td><button class="btn btn-sm btn-outline-danger" onclick="hapusBayar(<%= p.id %>, this)"><i
                             class="bi bi-trash"></i></button></td>
                     </tr>
                     <% }); %>
@@ -119,7 +119,7 @@
     </div>
 
     <script>
-      function bayar() {
+      function bayar(btn) {
         var payload = {
           pembelian_id: <%= pembelian.id %>,
           tanggal_bayar: $('#tanggal_bayar').val(),
@@ -127,19 +127,21 @@
           keterangan: $('#keterangan').val(),
         };
         if (payload.jumlah_bayar <= 0) { showToast('Jumlah bayar harus > 0', 'danger'); return; }
+        if (!setBtnLoading(btn)) return;
         $.ajax({
           url: '/pembayaran-pembelian', method: 'POST', contentType: 'application/json', data: JSON.stringify(payload),
           success: function () { location.reload(); },
-          error: function (xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal', 'danger'); }
+          error: function (xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal', 'danger'); resetBtn(btn); }
         });
       }
 
-      function hapusBayar(id) {
+      function hapusBayar(id, btn) {
         if (!confirm('Hapus pembayaran ini?')) return;
+        if (!setBtnLoading(btn)) return;
         $.ajax({
           url: '/pembayaran-pembelian/' + id, method: 'DELETE',
           success: function () { location.reload(); },
-          error: function (xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal', 'danger'); }
+          error: function (xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal', 'danger'); resetBtn(btn); }
         });
       }
     </script>

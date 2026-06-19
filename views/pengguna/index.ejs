@@ -108,15 +108,17 @@ $(function() {
   });
 
   $('#btnSave').on('click', function() {
+    var btn = this;
     var id = $('#editId').val();
     var payload = { nama: $('#nama').val(), username: $('#username').val(), hak_akses: $('#hak_akses').val() };
     var pwd = $('#password').val();
     if (pwd) payload.password = pwd;
     else if (!id) { showToast('Password harus diisi', 'danger'); return; }
+    if (!setBtnLoading(btn)) return;
     $.ajax({ url: id ? '/pengguna/' + id : '/pengguna', method: id ? 'PUT' : 'POST',
       contentType: 'application/json', data: JSON.stringify(payload),
-      success: function(r) { if (r.success) location.reload(); },
-      error: function(xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal', 'danger'); }
+      success: function(r) { if (r.success) location.reload(); else resetBtn(btn); },
+      error: function(xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal', 'danger'); resetBtn(btn); }
     });
   });
 });

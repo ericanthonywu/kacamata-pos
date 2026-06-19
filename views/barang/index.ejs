@@ -205,6 +205,8 @@
         });
 
         $('#btnSave').on('click', function () {
+          var btn = this;
+          if (!setBtnLoading(btn)) return;
           var id = $('#editId').val();
           var payload = {
             nama_barang: $('#nama_barang').val(),
@@ -217,8 +219,8 @@
           $.ajax({
             url: id ? '/barang/' + id : '/barang', method: id ? 'PUT' : 'POST',
             contentType: 'application/json', data: JSON.stringify(payload),
-            success: function (res) { if (res.success) location.reload(); },
-            error: function (xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal', 'danger'); }
+            success: function (res) { if (res.success) location.reload(); else resetBtn(btn); },
+            error: function (xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal', 'danger'); resetBtn(btn); }
           });
         });
       });

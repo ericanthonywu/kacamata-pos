@@ -83,11 +83,13 @@ $(function() {
   });
 
   $('#btnSave').on('click', function() {
+    var btn = this;
+    if (!setBtnLoading(btn)) return;
     var id = $('#editId').val();
     $.ajax({ url: id ? '/kategori/' + id : '/kategori', method: id ? 'PUT' : 'POST',
       contentType: 'application/json', data: JSON.stringify({ nama: $('#nama').val() }),
-      success: function(res) { if (res.success) location.reload(); },
-      error: function(xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal menyimpan', 'danger'); }
+      success: function(res) { if (res.success) location.reload(); else resetBtn(btn); },
+      error: function(xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal menyimpan', 'danger'); resetBtn(btn); }
     });
   });
 });

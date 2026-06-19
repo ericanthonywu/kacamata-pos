@@ -67,7 +67,7 @@
               <div class="col-6 text-end fw-bold fs-5 text-success" id="totalDisplay">Rp 0</div>
             </div>
             <div class="d-flex gap-2 mt-3">
-              <button class="btn btn-success flex-fill" onclick="savePembelian()"><i class="bi bi-check-lg"></i>
+              <button class="btn btn-success flex-fill" onclick="savePembelian(this)"><i class="bi bi-check-lg"></i>
                 Simpan</button>
             </div>
           </div>
@@ -159,7 +159,7 @@
 
         $(document).on('input', '.calc-input', calcTotal);
 
-        function savePembelian() {
+        function savePembelian(btn) {
           var supplierId = $('#supplier_id').val();
           if (!supplierId) { showToast('Pilih supplier terlebih dahulu', 'danger'); return; }
 
@@ -178,6 +178,8 @@
 
           if (items.length === 0) { showToast('Tambah minimal satu item barang', 'danger'); return; }
 
+          if (!setBtnLoading(btn)) return;
+
           var payload = {
             supplier_id: supplierId,
             tanggal_pembelian: $('#tanggal_pembelian').val(),
@@ -189,8 +191,9 @@
             url: '/pembelian', method: 'POST', contentType: 'application/json', data: JSON.stringify(payload),
             success: function (res) {
               if (res.success) window.location.href = '/pembelian';
+              else resetBtn(btn);
             },
-            error: function (xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal menyimpan', 'danger'); }
+            error: function (xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal menyimpan', 'danger'); resetBtn(btn); }
           });
         }
       </script>
@@ -278,6 +281,8 @@
         });
 
         $('#btnSaveBarang').on('click', function () {
+          var btn = this;
+          if (!setBtnLoading(btn)) return;
           var payload = {
             nama_barang: $('#nama_barang').val(),
             kategori_id: $('#kategori_id').val() || null,
@@ -289,13 +294,14 @@
           $.ajax({
             url: '/barang', method: 'POST',
             contentType: 'application/json', data: JSON.stringify(payload),
-            success: function (res) { 
+            success: function (res) {
               if (res.success) {
                 formModal.hide();
                 showToast('Barang berhasil ditambahkan', 'success');
-              } 
+              }
+              resetBtn(btn);
             },
-            error: function (xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal menyimpan barang', 'danger'); }
+            error: function (xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal menyimpan barang', 'danger'); resetBtn(btn); }
           });
         });
       </script>

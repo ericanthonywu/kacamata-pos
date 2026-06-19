@@ -110,9 +110,11 @@ var voidId = null;
 function confirmVoid(id) { voidId = id; new bootstrap.Modal('#voidModal').show(); }
 $('#voidBtn').on('click', function() {
   if (!voidId) return;
+  var btn = this;
+  if (!setBtnLoading(btn)) return;
   $.ajax({ url: '/pembelian-retur/' + voidId, method: 'DELETE',
     success: function() { location.reload(); },
-    error: function(xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal', 'danger'); }
+    error: function(xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal', 'danger'); resetBtn(btn); }
   });
 });
     </script>
