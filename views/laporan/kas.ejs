@@ -104,7 +104,9 @@
             <th>Total</th>
             <th>DP</th>
             <th>BPJS</th>
+            <% if (currentUser.hak_akses === 'admin') { %>
             <th>Uang Masuk</th>
+            <% } %>
             <th>Sisa</th>
             <th>Aksi</th>
           </tr>
@@ -158,6 +160,70 @@
           dt.ajax.reload();
         }
 
+        var isAdmin = <%= currentUser.hak_akses === 'admin' ? 'true' : 'false' %>;
+        var exportCols = isAdmin ? [0, 1, 2, 3, 4, 5, 6, 7, 8] : [0, 1, 2, 3, 4, 5, 6, 7];
+
+        var dtColumns = [
+            {
+              data: 'no_nota',
+              render: function (data) { return '<span class="font-monospace text-info">' + escapeHtml(data) + '</span>'; }
+            },
+            {
+              data: 'order_date',
+              render: function (data) { return data ? new Date(data).toLocaleDateString('id-ID') : '-'; }
+            },
+            {
+              data: 'pelanggan_nama',
+              render: function (data) { return escapeHtml(data || '-'); }
+            },
+            {
+              data: 'sales_nama',
+              render: function (data) { return escapeHtml(data || '-'); }
+            },
+            {
+              data: 'subtotal',
+              render: function (data) { return fmtRp(data); }
+            },
+            {
+              data: 'dp',
+              render: function (data) { return parseFloat(data) > 0 ? fmtRp(data) : '-'; }
+            },
+            {
+              data: 'bpjs',
+              render: function (data) { return parseFloat(data) > 0 ? fmtRp(data) : '-'; }
+            }
+        ];
+
+        if (isAdmin) {
+            dtColumns.push({
+              data: null,
+              render: function (data, type, row) {
+                var dp = parseFloat(row.dp || 0);
+                var total = parseFloat(row.total || 0) || (parseFloat(row.subtotal || 0) - parseFloat(row.bpjs || 0));
+                var uangMasuk = dp > 0 ? dp : total;
+                return '<span class="fw-bold text-success">' + fmtRp(uangMasuk) + '</span>';
+              }
+            });
+        }
+
+        dtColumns.push({
+            data: null,
+            orderable: false,
+            render: function (data, type, row) {
+              var sisa = row.status_bayar === 'lunas' ? 0 : (parseFloat(row.subtotal) - parseFloat(row.dp || 0) - parseFloat(row.bpjs || 0));
+              var cls = sisa === 0 ? 'text-success' : 'text-danger';
+              return '<span class="fw-bold ' + cls + '">' + fmtRp(sisa) + '</span>';
+            }
+        });
+
+        dtColumns.push({
+            data: null,
+            orderable: false,
+            render: function (data, type, row) {
+              return '<button class="btn btn-sm btn-outline-info" onclick="showDetail(' + row.id + ')" title="Detail"><i class="bi bi-eye"></i></button>';
+            }
+        });
+
         $('#tblKas').DataTable({
           serverSide: true,
           processing: true,
@@ -188,77 +254,23 @@
               text: '<i class="bi bi-file-earmark-excel"></i> Excel',
               className: 'btn btn-success btn-sm',
               action: newExportAction,
-              exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7, 8], orthogonal: 'export' }
+              exportOptions: { columns: exportCols, orthogonal: 'export' }
             },
             {
               extend: 'csvHtml5',
               text: '<i class="bi bi-filetype-csv"></i> CSV',
               className: 'btn btn-info btn-sm',
               action: newExportAction,
-              exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7, 8], orthogonal: 'export' }
+              exportOptions: { columns: exportCols, orthogonal: 'export' }
             },
             {
               extend: 'print',
               text: '<i class="bi bi-printer"></i> Print',
               className: 'btn btn-secondary btn-sm',
-              exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7, 8], orthogonal: 'export' }
+              exportOptions: { columns: exportCols, orthogonal: 'export' }
             }
           ],
-          columns: [
-            {
-              data: 'no_nota',
-              render: function (data) { return '<span class="font-monospace text-info">' + escapeHtml(data) + '</span>'; }
-            },
-            {
-              data: 'order_date',
-              render: function (data) { return data ? new Date(data).toLocaleDateString('id-ID') : '-'; }
-            },
-            {
-              data: 'pelanggan_nama',
-              render: function (data) { return escapeHtml(data || '-'); }
-            },
-            {
-              data: 'sales_nama',
-              render: function (data) { return escapeHtml(data || '-'); }
-            },
-            {
-              data: 'subtotal',
-              render: function (data) { return fmtRp(data); }
-            },
-            {
-              data: 'dp',
-              render: function (data) { return parseFloat(data) > 0 ? fmtRp(data) : '-'; }
-            },
-            {
-              data: 'bpjs',
-              render: function (data) { return parseFloat(data) > 0 ? fmtRp(data) : '-'; }
-            },
-            {
-              data: null,
-              render: function (data, type, row) {
-                var dp = parseFloat(row.dp || 0);
-                var total = parseFloat(row.total || 0) || (parseFloat(row.subtotal || 0) - parseFloat(row.bpjs || 0));
-                var uangMasuk = dp > 0 ? dp : total;
-                return '<span class="fw-bold text-success">' + fmtRp(uangMasuk) + '</span>';
-              }
-            },
-            {
-              data: null,
-              orderable: false,
-              render: function (data, type, row) {
-                var sisa = row.status_bayar === 'lunas' ? 0 : (parseFloat(row.subtotal) - parseFloat(row.dp || 0) - parseFloat(row.bpjs || 0));
-                var cls = sisa === 0 ? 'text-success' : 'text-danger';
-                return '<span class="fw-bold ' + cls + '">' + fmtRp(sisa) + '</span>';
-              }
-            },
-            {
-              data: null,
-              orderable: false,
-              render: function (data, type, row) {
-                return '<button class="btn btn-sm btn-outline-info" onclick="showDetail(' + row.id + ')" title="Detail"><i class="bi bi-eye"></i></button>';
-              }
-            }
-          ],
+          columns: dtColumns,
           language: dtLanguageID
         });
       });

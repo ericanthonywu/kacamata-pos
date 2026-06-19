@@ -156,7 +156,7 @@ exports.create = async function (penjualanData, detailItems) {
     }
 
     // Save komisi sales
-    if (penjualanData.sales_id) {
+    if (penjualanData.sales_id && penjualanData.status_bayar === 'lunas') {
       var frameTotal = 0, lensaTotal = 0;
       for (var j = 0; j < detailItems.length; j++) {
         var line = detailItems[j];
@@ -222,8 +222,17 @@ exports.del = async function (id) {
 exports.generateNotaNumber = async function () {
   const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
   const prefix = `INV-${today}-`;
-  const result = await db('penjualan').where('no_nota', 'like', `${prefix}%`).count('id as cnt').first();
-  const seq = (parseInt(result.cnt) || 0) + 1;
+  const lastNota = await db('penjualan')
+    .where('no_nota', 'like', `${prefix}%`)
+    .orderBy('no_nota', 'desc')
+    .first();
+  
+  let seq = 1;
+  if (lastNota && lastNota.no_nota) {
+    const lastSeqStr = lastNota.no_nota.replace(prefix, '');
+    const lastSeq = parseInt(lastSeqStr, 10);
+    if (!isNaN(lastSeq)) seq = lastSeq + 1;
+  }
   return prefix + String(seq).padStart(4, '0');
 };
 

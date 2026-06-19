@@ -24,6 +24,35 @@ exports.create = async function (data) {
     const newStatus = parseFloat(totalPaid.total) >= parseFloat(penjualan.total) ? 'lunas' : 'dp';
     await trx('penjualan').where('id', data.penjualan_id).update({ status_bayar: newStatus });
 
+    // Handle komisi if it just became lunas
+    if (newStatus === 'lunas' && penjualan.status_bayar !== 'lunas' && penjualan.sales_id) {
+      const detailItems = await trx('penjualan_detail').where('penjualan_id', penjualan.id);
+      var frameTotal = 0, lensaTotal = 0;
+      for (var j = 0; j < detailItems.length; j++) {
+        var line = detailItems[j];
+        var lineTotal = (parseFloat(line.harga || 0) - parseFloat(line.diskon || 0)) * parseInt(line.jumlah || 1);
+        if (line.tipe === 'frame') frameTotal += lineTotal;
+        else if (line.tipe === 'lensa_r' || line.tipe === 'lensa_l') lensaTotal += lineTotal;
+      }
+      var sales = await trx('sales').where('id', penjualan.sales_id).first();
+      if (sales) {
+        var komisiRows = [];
+        if (frameTotal > 0 && parseFloat(sales.komisi_frame) > 0) {
+          komisiRows.push({
+            penjualan_id: penjualan.id, sales_id: sales.id, tipe: 'frame',
+            persentase: sales.komisi_frame, nominal_komisi: frameTotal * parseFloat(sales.komisi_frame) / 100
+          });
+        }
+        if (lensaTotal > 0 && parseFloat(sales.komisi_lensa) > 0) {
+          komisiRows.push({
+            penjualan_id: penjualan.id, sales_id: sales.id, tipe: 'lensa',
+            persentase: sales.komisi_lensa, nominal_komisi: lensaTotal * parseFloat(sales.komisi_lensa) / 100
+          });
+        }
+        if (komisiRows.length > 0) await trx('komisi_sales').insert(komisiRows);
+      }
+    }
+
     return payment;
   });
 };
@@ -45,6 +74,11 @@ exports.del = async function (id) {
     if (paid >= parseFloat(penjualan.total)) newStatus = 'lunas';
     else if (paid === 0) newStatus = penjualan.dp > 0 ? 'dp' : 'belum_lunas';
     await trx('penjualan').where('id', payment.penjualan_id).update({ status_bayar: newStatus });
+
+    // Revert komisi if it's no longer lunas
+    if (penjualan.status_bayar === 'lunas' && newStatus !== 'lunas') {
+      await trx('komisi_sales').where('penjualan_id', penjualan.id).del();
+    }
   });
 };
 
