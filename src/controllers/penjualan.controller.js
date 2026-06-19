@@ -59,7 +59,8 @@ exports.tokoDatatables = async function (req, res) {
       draw: parseInt(req.query.draw),
       recordsTotal: result.recordsTotal,
       recordsFiltered: result.recordsFiltered,
-      data: result.data
+      data: result.data,
+      totalPenjualanKhusus: result.totalPenjualanKhusus
     });
   } catch (err) {
     res.json({ error: err.message });

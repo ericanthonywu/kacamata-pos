@@ -51,6 +51,12 @@ exports.getDatatablesData = async function (params) {
   const filteredCountRes = await baseQuery.clone().count('penjualan.id as count').first();
   const recordsFiltered = parseInt(filteredCountRes.count);
 
+  let totalPenjualanKhusus = 0;
+  if (is_toko === 'true' || is_toko === true) {
+    const sumRes = await baseQuery.clone().select(db.raw("SUM(CASE WHEN COALESCE(dp, 0) > 0 THEN dp WHEN status_bayar = 'lunas' THEN total ELSE 0 END) as total_khusus")).first();
+    totalPenjualanKhusus = sumRes && sumRes.total_khusus ? parseFloat(sumRes.total_khusus) : 0;
+  }
+
   var columns = ['order_date', 'no_nota', 'pelanggan_nama', 'total', 'dp', null, 'status_bayar', 'sales_nama'];
   var colToDb = {
     order_date: 'penjualan.order_date', no_nota: 'penjualan.no_nota',
@@ -73,7 +79,7 @@ exports.getDatatablesData = async function (params) {
 
   const data = await baseQuery.select('penjualan.*', 'pelanggan.nama as pelanggan_nama', 'sales.nama as sales_nama', 'pengguna.nama as created_by_nama');
 
-  return { recordsTotal, recordsFiltered, data };
+  return { recordsTotal, recordsFiltered, data, totalPenjualanKhusus };
 };
 
 exports.findById = function (id) {

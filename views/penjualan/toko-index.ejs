@@ -21,6 +21,16 @@
       <a href="/penjualan/toko/baru" class="btn btn-primary btn-sm"><i class="bi bi-plus"></i> Penjualan Toko Baru</a>
     </div>
 
+    <div class="row mb-3">
+      <div class="col-md-3">
+        <div class="stat-card">
+          <i class="bi bi-wallet2 stat-icon text-success"></i>
+          <div class="stat-value" id="lblTotalKhusus">Rp 0</div>
+          <div class="stat-label">Total Penjualan (Khusus Penjualan Antar Toko)</div>
+        </div>
+      </div>
+    </div>
+
     <div class="card p-3">
       <table id="tblPenjualan" class="table table-hover mb-0" style="width:100%">
         <thead>
@@ -94,6 +104,13 @@
               d.start_date = $('#filterStartDate').val();
               d.end_date = $('#filterEndDate').val();
               d.status = $('#filterStatus').val();
+            }
+          },
+          drawCallback: function (settings) {
+            var api = this.api();
+            var json = api.ajax.json();
+            if (json && json.totalPenjualanKhusus !== undefined) {
+              $('#lblTotalKhusus').text(fmtRp(json.totalPenjualanKhusus));
             }
           },
           order: [[0, 'desc']],

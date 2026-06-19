@@ -17,7 +17,9 @@ exports.datatables = async function (req, res) {
       draw: parseInt(req.query.draw),
       recordsTotal: result.recordsTotal,
       recordsFiltered: result.recordsFiltered,
-      data: result.data
+      data: result.data,
+      totalPembelianLunas: result.totalPembelianLunas,
+      totalPembelianBelumLunas: result.totalPembelianBelumLunas
     });
   } catch (err) {
     res.json({ error: err.message });

@@ -18,6 +18,25 @@ function fmtDate(d) { return d ? new Date(d).toLocaleDateString('id-ID') : '-'; 
   <% } %>
 </div>
 
+<% if (currentUser && currentUser.hak_akses === 'admin') { %>
+<div class="row mb-3">
+  <div class="col-md-3">
+    <div class="stat-card">
+      <i class="bi bi-cart-check stat-icon text-success"></i>
+      <div class="stat-value" id="lblTotalPembelianLunas">Rp 0</div>
+      <div class="stat-label">Total Pembelian (Lunas)</div>
+    </div>
+  </div>
+  <div class="col-md-3">
+    <div class="stat-card">
+      <i class="bi bi-cart-x stat-icon text-danger"></i>
+      <div class="stat-value" id="lblTotalPembelianBelumLunas">Rp 0</div>
+      <div class="stat-label">Total Pembelian (Belum Lunas)</div>
+    </div>
+  </div>
+</div>
+<% } %>
+
 <div class="card p-3">
   <table id="tblPembelian" class="table table-hover mb-0" style="width:100%">
     <thead><tr><th>Kode</th><th>Tanggal</th><th>Supplier</th><% if (currentUser.hak_akses === 'admin') { %><th>Total Harga</th><% } %><th>Status</th><th style="width:180px">Aksi</th></tr></thead>
@@ -82,6 +101,14 @@ $(function() {
         d.end_date = $('#filterEndDate').val();
       }
     },
+    drawCallback: function (settings) {
+      var api = this.api();
+      var json = api.ajax.json();
+      if (json && $('#lblTotalPembelianLunas').length) {
+        if (json.totalPembelianLunas !== undefined) $('#lblTotalPembelianLunas').text(fmtRp(json.totalPembelianLunas));
+        if (json.totalPembelianBelumLunas !== undefined) $('#lblTotalPembelianBelumLunas').text(fmtRp(json.totalPembelianBelumLunas));
+      }
+    },
     order: [[1, 'desc']],
     lengthMenu: [[10, 50, 100, -1], [10, 50, 100, "All"]],
     layout: {
@@ -99,20 +126,20 @@ $(function() {
         text: '<i class="bi bi-file-earmark-excel"></i> Excel',
         className: 'btn btn-success btn-sm',
         action: newExportAction,
-        exportOptions: { columns: expCols, orthogonal: 'export' }
+        exportOptions: { columns: ':visible:not(:last-child)', orthogonal: 'export' }
       },
       {
         extend: 'csvHtml5',
         text: '<i class="bi bi-filetype-csv"></i> CSV',
         className: 'btn btn-info btn-sm',
         action: newExportAction,
-        exportOptions: { columns: expCols, orthogonal: 'export' }
+        exportOptions: { columns: ':visible:not(:last-child)', orthogonal: 'export' }
       },
       {
         extend: 'print',
         text: '<i class="bi bi-printer"></i> Print',
         className: 'btn btn-secondary btn-sm',
-        exportOptions: { columns: expCols, orthogonal: 'export' }
+        exportOptions: { columns: ':visible:not(:last-child)', orthogonal: 'export' }
       }
     ],
     columns: [

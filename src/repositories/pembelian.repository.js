@@ -36,6 +36,12 @@ exports.getDatatablesData = async function (params) {
   const filteredCountRes = await baseQuery.clone().count('pembelian.id as count').first();
   const recordsFiltered = parseInt(filteredCountRes.count);
 
+  const sumLunasRes = await baseQuery.clone().where('status_bayar', 'lunas').select(db.raw("SUM(total_harga) as total_pembelian")).first();
+  const totalPembelianLunas = sumLunasRes && sumLunasRes.total_pembelian ? parseFloat(sumLunasRes.total_pembelian) : 0;
+
+  const sumBelumLunasRes = await baseQuery.clone().where('status_bayar', '!=', 'lunas').select(db.raw("SUM(total_harga) as total_pembelian")).first();
+  const totalPembelianBelumLunas = sumBelumLunasRes && sumBelumLunasRes.total_pembelian ? parseFloat(sumBelumLunasRes.total_pembelian) : 0;
+
   const columns = ['kode_pembelian', 'tanggal_pembelian', 'supplier_nama', 'total_harga', 'status_bayar'];
   if (order && order.length > 0) {
     const colIndex = parseInt(order[0].column);
@@ -57,7 +63,7 @@ exports.getDatatablesData = async function (params) {
 
   const data = await baseQuery.select('pembelian.*', 'supplier.nama as supplier_nama');
 
-  return { recordsTotal, recordsFiltered, data };
+  return { recordsTotal, recordsFiltered, data, totalPembelianLunas, totalPembelianBelumLunas };
 };
 
 exports.findById = function (id) {
