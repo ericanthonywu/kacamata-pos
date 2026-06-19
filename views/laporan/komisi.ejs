@@ -124,7 +124,7 @@
                   <%= fmtRp(row.total_komisi) %>
                 </td>
                 <td class="text-center">
-                  <button type="button" onclick="showDetailModal(<%= row.sales_id %>)" class="btn btn-sm btn-outline-primary" title="Detail Komisi">
+                  <button type="button" onclick="showDetailModal(<%= row.sales_id %>, <%= filters.bulan %>, <%= filters.tahun %>, '<%= filters.tipe %>')" class="btn btn-sm btn-outline-primary" title="Detail Komisi">
                     <i class="bi bi-list-check"></i> Detail
                   </button>
                 </td>
@@ -211,11 +211,10 @@
 function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
 const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
 
-function showDetailModal(sales_id) {
-  const urlParams = new URLSearchParams(window.location.search);
-  const bulan = urlParams.get('bulan') || new Date().getMonth() + 1;
-  const tahun = urlParams.get('tahun') || new Date().getFullYear();
-  const tipe = urlParams.get('tipe') || 'frame';
+function showDetailModal(sales_id, pBulan, pTahun, pTipe) {
+  const bulan = pBulan;
+  const tahun = pTahun;
+  const tipe = pTipe;
 
   fetch('/laporan/komisi/detail/' + sales_id + '?bulan=' + bulan + '&tahun=' + tahun + '&tipe=' + tipe)
     .then(res => res.json())
