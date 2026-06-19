@@ -239,3 +239,26 @@ exports.getKomisiReport = async function ({ from, to, sales_id, tipe } = {}) {
 
   return Object.values(result).sort((a, b) => b.total_komisi - a.total_komisi);
 };
+
+exports.getKomisiDetail = async function ({ from, to, sales_id, tipe } = {}) {
+  let query = db('komisi_sales')
+    .select(
+      'komisi_sales.id',
+      'komisi_sales.tipe',
+      'komisi_sales.persentase',
+      'komisi_sales.nominal_komisi',
+      'komisi_sales.created_at as tanggal_masuk',
+      'penjualan.no_nota',
+      'penjualan.total as total_penjualan',
+      'penjualan.order_date'
+    )
+    .innerJoin('penjualan', 'komisi_sales.penjualan_id', 'penjualan.id')
+    .where('penjualan.status_bayar', 'lunas');
+
+  if (sales_id) query = query.where('komisi_sales.sales_id', sales_id);
+  if (from) query = query.where('penjualan.order_date', '>=', from);
+  if (to) query = query.where('penjualan.order_date', '<=', to);
+  if (tipe && tipe !== 'semua') query = query.where('komisi_sales.tipe', tipe);
+
+  return await query.orderBy('komisi_sales.created_at', 'desc');
+};

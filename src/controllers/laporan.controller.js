@@ -80,3 +80,37 @@ exports.komisi = async function (req, res, next) {
     });
   } catch (err) { next(err); }
 };
+
+exports.komisiDetail = async function (req, res, next) {
+  try {
+    const today = new Date();
+    const currentMonth = today.getMonth() + 1;
+    const currentYear = today.getFullYear();
+    const bulan = req.query.bulan ? parseInt(req.query.bulan) : currentMonth;
+    const tahun = req.query.tahun ? parseInt(req.query.tahun) : currentYear;
+    
+    // Calculate first and last day of the month
+    const from = `${tahun}-${bulan.toString().padStart(2, '0')}-01`;
+    const lastDay = new Date(tahun, bulan, 0).getDate();
+    const to = `${tahun}-${bulan.toString().padStart(2, '0')}-${lastDay}`;
+
+    const sales_id = req.params.sales_id;
+    if (!sales_id) return res.redirect('/laporan/komisi');
+
+    const filters = {
+      from, to, bulan, tahun,
+      sales_id: sales_id,
+      tipe: req.query.tipe || 'frame',
+    };
+
+    const [details, sales] = await Promise.all([
+      laporanService.getKomisiDetail(filters),
+      salesService.getById(sales_id)
+    ]);
+
+    const grandTotal = details.reduce((s, r) => s + (parseFloat(r.nominal_komisi) || 0), 0);
+    res.json({
+      details, filters, grandTotal, sales
+    });
+  } catch (err) { res.status(500).json({ error: err.message }); }
+};

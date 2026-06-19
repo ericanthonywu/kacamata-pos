@@ -93,6 +93,7 @@
               <th>Total Frame</th>
               <th>Total Penjualan</th>
               <th>Total Komisi</th>
+              <th class="text-center">Aksi</th>
             </tr>
           </thead>
           <tbody>
@@ -122,6 +123,11 @@
                 <td class="fw-bold text-success">
                   <%= fmtRp(row.total_komisi) %>
                 </td>
+                <td class="text-center">
+                  <button type="button" onclick="showDetailModal(<%= row.sales_id %>)" class="btn btn-sm btn-outline-primary" title="Detail Komisi">
+                    <i class="bi bi-list-check"></i> Detail
+                  </button>
+                </td>
               </tr>
               <% }); %>
           </tbody>
@@ -131,12 +137,128 @@
               <td class="fw-bold text-success fs-5">
                 <%= fmtRp(grandTotal) %>
               </td>
+              <td></td>
             </tr>
           </tfoot>
         </table>
       </div>
 
+      
+      <!-- Modal Detail -->
+      <div class="modal fade" id="detailModal" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header no-print">
+              <h5 class="modal-title">Detail Komisi - <span id="mdlSalesName"></span></h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-4" id="printArea">
+              <div class="d-none d-print-block mb-3 border-bottom pb-2">
+                <h3 class="mb-1">Laporan Detail Komisi</h3>
+                <p class="mb-0">
+                  Sales: <strong id="printSalesName"></strong><br>
+                  Bulan: <strong id="printBulan"></strong><br>
+                  Kategori: <strong id="printKategori"></strong>
+                </p>
+              </div>
+              <div class="d-print-none mb-3">
+                Bulan: <strong id="mdlBulan"></strong> &nbsp;|&nbsp; 
+                Kategori: <strong id="mdlKategori"></strong>
+              </div>
+              <table class="table table-bordered table-striped" id="tblDetail">
+                <thead class="table-light">
+                  <tr>
+                    <th>No</th>
+                    <th>Nomor Invoice</th>
+                    <th>Tanggal Invoice</th>
+                    <th>Tanggal Masuk Komisi</th>
+                    <th>Tipe</th>
+                    <th class="text-end">Total Penjualan</th>
+                    <th class="text-end" id="colKomisi">Komisi</th>
+                  </tr>
+                </thead>
+                <tbody id="mdlBody"></tbody>
+                <tfoot>
+                  <tr class="table-active">
+                    <td colspan="6" class="text-end fw-bold">Total Komisi Diterima</td>
+                    <td class="text-end fw-bold text-success fs-5" id="mdlGrandTotal"></td>
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+            <div class="modal-footer no-print">
+              <button class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
+              <button class="btn btn-primary" onclick="window.print()"><i class="bi bi-printer"></i> Print</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      
+      <style>
+        @media print {
+          body.modal-open { visibility: hidden; }
+          body.modal-open #detailModal { visibility: visible; position: absolute; left: 0; top: 0; width: 100%; margin: 0; }
+          body.modal-open #detailModal * { visibility: visible; }
+          body.modal-open .modal-dialog { max-width: 100%; margin: 0; }
+          body.modal-open .modal-content { border: none; box-shadow: none; }
+          body.modal-open .no-print, body.modal-open .modal-footer { display: none !important; }
+          body.modal-open .modal-body { padding: 0 !important; }
+        }
+      </style>
+
       <script>
+
+function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
+const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];
+
+function showDetailModal(sales_id) {
+  const urlParams = new URLSearchParams(window.location.search);
+  const bulan = urlParams.get('bulan') || new Date().getMonth() + 1;
+  const tahun = urlParams.get('tahun') || new Date().getFullYear();
+  const tipe = urlParams.get('tipe') || 'frame';
+
+  fetch('/laporan/komisi/detail/' + sales_id + '?bulan=' + bulan + '&tahun=' + tahun + '&tipe=' + tipe)
+    .then(res => res.json())
+    .then(data => {
+      document.getElementById('mdlSalesName').innerText = data.sales.nama;
+      document.getElementById('printSalesName').innerText = data.sales.nama;
+      
+      const bulanStr = months[parseInt(data.filters.bulan) - 1] + ' ' + data.filters.tahun;
+      document.getElementById('mdlBulan').innerText = bulanStr;
+      document.getElementById('printBulan').innerText = bulanStr;
+      
+      const tipeStr = data.filters.tipe === 'semua' ? 'Semua Kategori' : (data.filters.tipe === 'frame' ? 'Frame' : 'Lensa');
+      document.getElementById('mdlKategori').innerText = tipeStr;
+      document.getElementById('printKategori').innerText = tipeStr;
+
+      let komisiLabel = 'Komisi';
+      if (data.filters.tipe === 'lensa') komisiLabel += ' (' + (data.sales.komisi_lensa||0) + '%)';
+      else if (data.filters.tipe === 'frame') komisiLabel += ' (' + (data.sales.komisi_frame||0) + '%)';
+      document.getElementById('colKomisi').innerText = komisiLabel;
+
+      let html = '';
+      if (data.details.length === 0) {
+        html = '<tr><td colspan="7" class="text-center text-muted">Tidak ada data komisi</td></tr>';
+      } else {
+        data.details.forEach((d, idx) => {
+          html += '<tr>' +
+            '<td>' + (idx + 1) + '</td>' +
+            '<td>' + d.no_nota + '</td>' +
+            '<td>' + new Date(d.order_date).toLocaleDateString('id-ID') + '</td>' +
+            '<td>' + new Date(d.tanggal_masuk).toLocaleDateString('id-ID') + ' ' + new Date(d.tanggal_masuk).toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) + '</td>' +
+            '<td>' + (d.tipe === 'frame' ? 'Frame' : 'Lensa') + '</td>' +
+            '<td class="text-end">' + fmtRp(d.total_penjualan) + '</td>' +
+            '<td class="text-end fw-bold text-success">' + fmtRp(d.nominal_komisi) + '</td>' +
+            '</tr>';
+        });
+      }
+      document.getElementById('mdlBody').innerHTML = html;
+      document.getElementById('mdlGrandTotal').innerText = fmtRp(data.grandTotal);
+
+      new bootstrap.Modal(document.getElementById('detailModal')).show();
+    });
+}
+
 $(function() {
   $('#tblKomisi').DataTable({ order: [], language: dtLanguageID, paging: false, info: false });
   $('select[name="sales_id"]').select2({ theme: 'bootstrap-5', placeholder: 'Semua Sales', allowClear: true });

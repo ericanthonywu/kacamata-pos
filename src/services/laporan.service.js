@@ -24,3 +24,7 @@ exports.getKasDatatablesData = function (params) {
 exports.getKomisiReport = async function (filters) {
   return repo.getKomisiReport(filters);
 };
+
+exports.getKomisiDetail = function (filters) {
+  return repo.getKomisiDetail(filters);
+};
