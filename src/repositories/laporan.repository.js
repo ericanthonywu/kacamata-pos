@@ -49,7 +49,7 @@ exports.getSummary = async function ({ from, to, sales_id, kategori_id, status_b
     .count('id as total_transaksi')
     .sum('subtotal as total_subtotal')
     .sum('bpjs as total_bpjs')
-    .select(db.raw('SUM(total - COALESCE(dp, 0)) as total_penjualan'));
+    .select(db.raw('SUM(CASE WHEN COALESCE(dp, 0) > 0 THEN dp ELSE total END) as total_penjualan'));
 
   if (from) query = query.where('order_date', '>=', from);
   if (to) query = query.where('order_date', '<=', to);
@@ -178,7 +178,7 @@ exports.getKasDatatablesData = async function (params) {
 
   const data = await baseQuery.select(
     'penjualan.id', 'penjualan.no_nota', 'penjualan.order_date',
-    'penjualan.subtotal', 'penjualan.bpjs', 'penjualan.dp', 'penjualan.status_bayar',
+    'penjualan.subtotal', 'penjualan.bpjs', 'penjualan.total', 'penjualan.dp', 'penjualan.status_bayar',
     'pelanggan.nama as pelanggan_nama', 'sales.nama as sales_nama'
   );
 

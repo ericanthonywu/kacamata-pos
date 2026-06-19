@@ -104,6 +104,7 @@
             <th>Total</th>
             <th>DP</th>
             <th>BPJS</th>
+            <th>Uang Masuk</th>
             <th>Sisa</th>
             <th>Aksi</th>
           </tr>
@@ -187,20 +188,20 @@
               text: '<i class="bi bi-file-earmark-excel"></i> Excel',
               className: 'btn btn-success btn-sm',
               action: newExportAction,
-              exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7], orthogonal: 'export' }
+              exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7, 8], orthogonal: 'export' }
             },
             {
               extend: 'csvHtml5',
               text: '<i class="bi bi-filetype-csv"></i> CSV',
               className: 'btn btn-info btn-sm',
               action: newExportAction,
-              exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7], orthogonal: 'export' }
+              exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7, 8], orthogonal: 'export' }
             },
             {
               extend: 'print',
               text: '<i class="bi bi-printer"></i> Print',
               className: 'btn btn-secondary btn-sm',
-              exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7], orthogonal: 'export' }
+              exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7, 8], orthogonal: 'export' }
             }
           ],
           columns: [
@@ -234,12 +235,20 @@
             },
             {
               data: null,
+              render: function (data, type, row) {
+                var dp = parseFloat(row.dp || 0);
+                var total = parseFloat(row.total || 0) || (parseFloat(row.subtotal || 0) - parseFloat(row.bpjs || 0));
+                var uangMasuk = dp > 0 ? dp : total;
+                return '<span class="fw-bold text-success">' + fmtRp(uangMasuk) + '</span>';
+              }
+            },
+            {
+              data: null,
               orderable: false,
               render: function (data, type, row) {
                 var sisa = row.status_bayar === 'lunas' ? 0 : (parseFloat(row.subtotal) - parseFloat(row.dp || 0) - parseFloat(row.bpjs || 0));
                 var cls = sisa === 0 ? 'text-success' : 'text-danger';
-                var txt = fmtRp(sisa) + (sisa === 0 ? ' (sudah lunas DP)' : '');
-                return '<span class="fw-bold ' + cls + '">' + txt + '</span>';
+                return '<span class="fw-bold ' + cls + '">' + fmtRp(sisa) + '</span>';
               }
             },
             {
