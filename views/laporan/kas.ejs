@@ -86,6 +86,7 @@
             <th>DP</th>
             <th>BPJS</th>
             <th>Sisa</th>
+            <th>Pelunasan</th>
             <th>Status</th>
             <% if (currentUser.hak_akses === 'admin') { %>
             <th>Uang Masuk</th>
@@ -143,7 +144,7 @@
         }
 
         var isAdmin = <%= currentUser.hak_akses === 'admin' ? 'true' : 'false' %>;
-        var exportCols = isAdmin ? [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] : [0, 1, 2, 3, 4, 5, 6, 7, 8];
+        var exportCols = isAdmin ? [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10] : [0, 1, 2, 3, 4, 5, 6, 7, 8, 9];
 
         var dtColumns = [
             {
@@ -188,6 +189,16 @@
                 var sisa = row.status_bayar === 'lunas' ? 0 : (parseFloat(row.subtotal) - parseFloat(row.dp || 0) - parseFloat(row.bpjs || 0));
                 var cls = sisa === 0 ? 'text-success' : 'text-danger';
                 return '<span class="fw-bold ' + cls + '">' + fmtRp(sisa) + '</span>';
+              }
+            },
+            {
+              data: 'keterangan',
+              orderable: false,
+              render: function (data, type, row) {
+                if (data !== 'Pembayaran lunas' && data !== 'Down Payment') {
+                  return '<span class="fw-bold text-info">' + fmtRp(row.jumlah_bayar) + '</span>';
+                }
+                return '-';
               }
             },
             {

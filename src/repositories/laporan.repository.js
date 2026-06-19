@@ -65,7 +65,7 @@ exports.getKasDatatablesData = async function (params) {
   const filteredCountRes = await baseQuery.clone().count('pembayaran_penjualan.id as count').first();
   const recordsFiltered = parseInt(filteredCountRes.count);
 
-  // Column index mapping: 0=no_nota, 1=tanggal+waktu, 2=pelanggan, 3=sales, 4=subtotal, 5=dp, 6=bpjs, 7=sisa(no sort), 8=keterangan, 9=uang_masuk(admin), 10=aksi(no sort)
+  // Column index mapping: 0=no_nota, 1=tanggal+waktu, 2=pelanggan, 3=sales, 4=subtotal, 5=dp, 6=bpjs, 7=sisa(no sort), 8=pelunasan(no sort), 9=status, 10=uang_masuk(admin), 11=aksi(no sort)
   const columnMap = {
     0: 'penjualan.no_nota',
     1: 'pembayaran_penjualan.created_at',
@@ -74,8 +74,8 @@ exports.getKasDatatablesData = async function (params) {
     4: 'penjualan.subtotal',
     5: 'penjualan.dp',
     6: 'penjualan.bpjs',
-    8: 'pembayaran_penjualan.keterangan',
-    9: 'pembayaran_penjualan.jumlah_bayar',
+    9: 'pembayaran_penjualan.keterangan',
+    10: 'pembayaran_penjualan.jumlah_bayar',
   };
   if (order && order.length > 0) {
     const colIndex = parseInt(order[0].column);
