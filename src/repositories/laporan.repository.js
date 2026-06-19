@@ -49,7 +49,7 @@ exports.getSummary = async function ({ from, to, sales_id, kategori_id, status_b
     .count('id as total_transaksi')
     .sum('subtotal as total_subtotal')
     .sum('bpjs as total_bpjs')
-    .select(db.raw('SUM(CASE WHEN COALESCE(dp, 0) > 0 THEN dp ELSE total END) as total_penjualan'));
+    .select(db.raw("SUM(CASE WHEN status_bayar = 'dp' THEN COALESCE(dp, 0) ELSE total END) as total_penjualan"));
 
   if (from) query = query.where('order_date', '>=', from);
   if (to) query = query.where('order_date', '<=', to);

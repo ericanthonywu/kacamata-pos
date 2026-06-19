@@ -84,10 +84,10 @@
         </div>
         <div class="col">
           <div class="stat-card"><i class="bi bi-graph-up stat-icon text-success"></i>
-            <div class="stat-value">
+            <div class="stat-value text-primary">
               <%= fmtRp(summary.total_penjualan) %>
             </div>
-            <div class="stat-label">Total Penjualan</div>
+            <div class="stat-label">Uang Masuk</div>
           </div>
         </div>
         <% } %>
@@ -199,8 +199,8 @@
               data: null,
               render: function (data, type, row) {
                 var dp = parseFloat(row.dp || 0);
-                var total = parseFloat(row.total || 0) || (parseFloat(row.subtotal || 0) - parseFloat(row.bpjs || 0));
-                var uangMasuk = dp > 0 ? dp : total;
+                var total = parseFloat(row.total || 0);
+                var uangMasuk = row.status_bayar === 'dp' ? dp : total;
                 return '<span class="fw-bold text-success">' + fmtRp(uangMasuk) + '</span>';
               }
             });

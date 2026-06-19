@@ -53,7 +53,7 @@ exports.getDatatablesData = async function (params) {
 
   let totalPenjualanKhusus = 0;
   if (is_toko === 'true' || is_toko === true) {
-    const sumRes = await baseQuery.clone().select(db.raw("SUM(CASE WHEN COALESCE(dp, 0) > 0 THEN dp WHEN status_bayar = 'lunas' THEN total ELSE 0 END) as total_khusus")).first();
+    const sumRes = await baseQuery.clone().select(db.raw("SUM(CASE WHEN status_bayar = 'dp' THEN COALESCE(dp, 0) ELSE total END) as total_khusus")).first();
     totalPenjualanKhusus = sumRes && sumRes.total_khusus ? parseFloat(sumRes.total_khusus) : 0;
   }
 
