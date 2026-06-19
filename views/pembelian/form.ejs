@@ -37,8 +37,11 @@
           <div class="card p-3 mb-3">
             <div class="d-flex justify-content-between align-items-center mb-3">
               <h6 class="mb-0">📦 Item Pembelian</h6>
-              <button class="btn btn-sm btn-outline-primary" onclick="addItem()"><i class="bi bi-plus"></i> Tambah
-                Item</button>
+              <div class="d-flex gap-2">
+                <button class="btn btn-sm btn-outline-secondary" type="button" onclick="showAddBarangModal()"><i class="bi bi-box-seam"></i> Buat Barang Baru</button>
+                <button class="btn btn-sm btn-outline-primary" onclick="addItem()"><i class="bi bi-plus"></i> Tambah
+                  Item</button>
+              </div>
             </div>
             <div id="itemList">
               <!-- Items will be added here dynamically -->
@@ -81,13 +84,15 @@
         function addItem() {
           var idx = itemIndex++;
           var html = '<div class="row g-2 align-items-end mb-2 item-row" data-idx="' + idx + '">' +
-            '<div class="col-md-4"><label class="form-label small">Barang</label>' +
+            '<div class="col-md-3"><label class="form-label small">Barang</label>' +
             '<select class="form-select form-select-sm item-barang" data-idx="' + idx + '"><option value="">-- Pilih Barang --</option></select></div>' +
-            '<div class="col-md-2"><label class="form-label small">Qty</label>' +
+            '<div class="col-md-1"><label class="form-label small">Qty</label>' +
             '<input type="number" class="form-control form-control-sm item-jumlah calc-input" data-idx="' + idx + '" value="1" min="1"></div>' +
-            '<div class="col-md-3"><label class="form-label small">Harga Beli</label>' +
+            '<div class="col-md-2"><label class="form-label small">Harga Beli</label>' +
             '<input type="text" class="form-control form-control-sm item-harga calc-input input-currency" data-idx="' + idx + '" value="0"></div>' +
-            '<div class="col-md-2"><label class="form-label small">Subtotal</label>' +
+            '<div class="col-md-2"><label class="form-label small">Harga Jual</label>' +
+            '<input type="text" class="form-control form-control-sm item-harga-jual input-currency" data-idx="' + idx + '" value="0"></div>' +
+            '<div class="col-md-3"><label class="form-label small">Subtotal</label>' +
             '<div class="form-control-plaintext form-control-sm fw-bold item-subtotal" data-idx="' + idx + '">Rp 0</div></div>' +
             '<div class="col-md-1"><button class="btn btn-sm btn-outline-danger" onclick="removeItem(' + idx + ')"><i class="bi bi-trash"></i></button></div>' +
             '</div>';
@@ -121,10 +126,10 @@
             }
           }).on('select2:select', function (e) {
             var b = e.params.data.item;
-            $('.item-harga[data-idx=' + idx + ']').val(parseInt(b.harga_jual) || 0).trigger('input');
+            $('.item-harga-jual[data-idx=' + idx + ']').val(parseInt(b.harga_jual) || 0).trigger('input');
             calcTotal();
           }).on('select2:unselect', function (e) {
-            $('.item-harga[data-idx=' + idx + ']').val(0).trigger('input');
+            $('.item-harga-jual[data-idx=' + idx + ']').val(0).trigger('input');
             calcTotal();
           });
           $('#emptyMsg').hide();
@@ -167,6 +172,7 @@
               barang_id: parseInt(bid),
               jumlah: parseInt($('.item-jumlah[data-idx=' + idx + ']').val()) || 1,
               harga_beli: parseFloat($('.item-harga[data-idx=' + idx + ']').val().replace(/[^0-9]/g, '')) || 0,
+              harga_jual: parseFloat($('.item-harga-jual[data-idx=' + idx + ']').val().replace(/[^0-9]/g, '')) || 0,
             });
           });
 
@@ -187,6 +193,111 @@
             error: function (xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal menyimpan', 'danger'); }
           });
         }
+      </script>
+
+      <!-- Form Modal -->
+      <div class="modal fade" id="formModal" tabindex="-1">
+        <div class="modal-dialog modal-dialog-centered">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title">Tambah Barang Baru</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body">
+              <div class="mb-3">
+                <label class="form-label small">Nama Barang</label>
+                <input type="text" class="form-control" id="nama_barang">
+              </div>
+              <div class="row">
+                <div class="col-md-6 mb-3"><label class="form-label small">Kategori</label>
+                  <select class="form-select" id="kategori_id">
+                    <option value="">-- Pilih --</option>
+                    <% kategoriList.forEach(function(k) { %>
+                      <option value="<%= k.id %>" data-nama="<%= k.nama.toLowerCase() %>">
+                        <%= k.nama %>
+                      </option>
+                      <% }); %>
+                  </select>
+                </div>
+                <div class="col-md-3 mb-3"><label class="form-label small">Qty</label><input type="text"
+                    class="form-control" id="qty" placeholder="Kosong=Non-Stok"></div>
+                <div class="col-md-3 mb-3"><label class="form-label small">Harga Jual</label><input type="text"
+                    class="form-control input-currency" id="harga_jual" min="0" value="0"></div>
+              </div>
+              <div id="resep-container" style="display: none;">
+                <div class="row g-2 mb-2">
+                  <div class="col-12">
+                    <hr class="my-1">
+                    <div class="small fw-bold text-muted mb-1">Resep Kanan (R)</div>
+                  </div>
+                  <div class="col-4"><input type="text" class="form-control form-control-sm" id="sph_r" placeholder="SPH">
+                  </div>
+                  <div class="col-4"><input type="text" class="form-control form-control-sm" id="cyl_r" placeholder="CYL">
+                  </div>
+                  <div class="col-4"><input type="text" class="form-control form-control-sm" id="add_r" placeholder="ADD">
+                  </div>
+                </div>
+                <div class="row g-2 mb-3">
+                  <div class="col-12">
+                    <div class="small fw-bold text-muted mb-1">Resep Kiri (L)</div>
+                  </div>
+                  <div class="col-4"><input type="text" class="form-control form-control-sm" id="sph_l" placeholder="SPH">
+                  </div>
+                  <div class="col-4"><input type="text" class="form-control form-control-sm" id="cyl_l" placeholder="CYL">
+                  </div>
+                  <div class="col-4"><input type="text" class="form-control form-control-sm" id="add_l" placeholder="ADD">
+                  </div>
+                </div>
+              </div>
+            </div>
+            <div class="modal-footer">
+              <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+              <button class="btn btn-primary btn-sm" id="btnSaveBarang">Simpan Barang</button>
+            </div>
+          </div>
+        </div>
+      </div>
+      <script>
+        var formModal = new bootstrap.Modal(document.getElementById('formModal'));
+        function showAddBarangModal() {
+          $('#nama_barang').val('');
+          $('#kategori_id').val('');
+          $('#qty').val('');
+          $('#harga_jual').val(0).trigger('input');
+          $('#sph_r, #cyl_r, #add_r, #sph_l, #cyl_l, #add_l').val('');
+          $('#resep-container').hide();
+          formModal.show();
+        }
+
+        $('#kategori_id').on('change', function() {
+          var selectedKategori = $(this).find('option:selected').data('nama');
+          if (selectedKategori === 'lensa') {
+            $('#resep-container').show();
+          } else {
+            $('#resep-container').hide();
+          }
+        });
+
+        $('#btnSaveBarang').on('click', function () {
+          var payload = {
+            nama_barang: $('#nama_barang').val(),
+            kategori_id: $('#kategori_id').val() || null,
+            qty: $('#qty').val() !== '' ? $('#qty').val() : null,
+            harga_jual: $('#harga_jual').data('raw-value') || $('#harga_jual').val().replace(/[^0-9]/g, ''),
+            sph_r: $('#sph_r').val(), cyl_r: $('#cyl_r').val(), add_r: $('#add_r').val(),
+            sph_l: $('#sph_l').val(), cyl_l: $('#cyl_l').val(), add_l: $('#add_l').val(),
+          };
+          $.ajax({
+            url: '/barang', method: 'POST',
+            contentType: 'application/json', data: JSON.stringify(payload),
+            success: function (res) { 
+              if (res.success) {
+                formModal.hide();
+                showToast('Barang berhasil ditambahkan', 'success');
+              } 
+            },
+            error: function (xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal menyimpan barang', 'danger'); }
+          });
+        });
       </script>
 
       <%- include('../partials/bottom') %>

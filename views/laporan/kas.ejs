@@ -75,9 +75,9 @@
         <div class="col">
           <div class="stat-card"><i class="bi bi-wallet2 stat-icon text-warning"></i>
             <div class="stat-value">
-              <%= fmtRp(summary.total_dp_belum_lunas) %>
+              <%= fmtRp(summary.total_pelunasan) %>
             </div>
-            <div class="stat-label">Total DP (Belum Lunas)</div>
+            <div class="stat-label">Total Pelunasan Hutang</div>
           </div>
         </div>
         <div class="col">
@@ -100,7 +100,7 @@
             <th>Pelanggan</th>
             <th>Sales</th>
             <th>Total</th>
-            <th>DP</th>
+            <th>Pelunasan</th>
             <th>BPJS</th>
             <th>Sisa</th>
             <th>Aksi</th>
@@ -223,7 +223,7 @@ $(function() {
         render: function (data) { return fmtRp(data); }
       },
       {
-        data: 'dp',
+        data: 'pelunasan',
         render: function (data) { return parseFloat(data) > 0 ? fmtRp(data) : '-'; }
       },
       {

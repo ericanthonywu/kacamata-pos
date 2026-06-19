@@ -1,6 +1,7 @@
 const pembelianService = require('../services/pembelian.service');
 const supplierService = require('../services/supplier.service');
 const barangService = require('../services/barang.service');
+const kategoriService = require('../services/kategori.service');
 const { ok, fail } = require('../utils/response');
 
 exports.index = async function (req, res, next) {
@@ -26,10 +27,11 @@ exports.datatables = async function (req, res) {
 exports.createForm = async function (req, res, next) {
   try {
     const supplierList = await supplierService.getAll();
+    const kategoriList = await kategoriService.getAll();
     const barangList = []; // empty array for SSR
     res.render('pembelian/form', {
       title: 'Pembelian Baru',
-      supplierList, barangList,
+      supplierList, barangList, kategoriList,
       activePage: 'pembelian',
     });
   } catch (err) { next(err); }

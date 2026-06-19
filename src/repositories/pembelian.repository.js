@@ -69,8 +69,21 @@ exports.findById = function (id) {
 
 exports.findDetailsByPembelianId = function (pembelianId) {
   return db('pembelian_detail')
-    .select('pembelian_detail.*', 'barang.nama_barang', 'barang.barcode_id', 'barang.harga_jual')
+    .select(
+      'pembelian_detail.*', 
+      'barang.nama_barang', 
+      'barang.barcode_id', 
+      'barang.harga_jual',
+      'barang.sph_r',
+      'barang.sph_l',
+      'barang.cyl_r',
+      'barang.cyl_l',
+      'barang.add_r',
+      'barang.add_l',
+      'kategori.nama as kategori_nama'
+    )
     .leftJoin('barang', 'pembelian_detail.barang_id', 'barang.id')
+    .leftJoin('kategori', 'barang.kategori_id', 'kategori.id')
     .where('pembelian_detail.pembelian_id', pembelianId)
     .orderBy('pembelian_detail.id', 'asc');
 };
@@ -85,11 +98,20 @@ exports.create = async function (pembelianData, detailItems) {
         jumlah: item.jumlah || 1,
         harga_beli: item.harga_beli || 0,
       });
-      // Increment stock
+      // Increment stock and update harga_jual
       if (item.barang_id) {
-        const brg = await trx('barang').select('qty').where('id', item.barang_id).first();
-        if (brg && brg.qty !== null) {
-          await trx('barang').where('id', item.barang_id).increment('qty', item.jumlah || 1);
+        const brg = await trx('barang').select('qty', 'harga_jual').where('id', item.barang_id).first();
+        if (brg) {
+          const updateData = {};
+          if (brg.qty !== null) {
+            updateData.qty = parseInt(brg.qty) + (item.jumlah || 1);
+          }
+          if (item.harga_jual !== undefined && item.harga_jual !== null) {
+            updateData.harga_jual = item.harga_jual;
+          }
+          if (Object.keys(updateData).length > 0) {
+            await trx('barang').where('id', item.barang_id).update(updateData);
+          }
         }
       }
     }

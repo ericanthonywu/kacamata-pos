@@ -196,7 +196,20 @@ function showDetail(id) {
       html += '<table class="table table-sm mb-0"><thead><tr><th>Barang</th><th>Barcode</th><th>Qty</th><th>Harga Beli</th><th>Subtotal</th></tr></thead><tbody>';
       d.detail.forEach(function(item) {
         var sub = (item.harga_beli || 0) * (item.jumlah || 1);
-        html += '<tr><td>' + (item.nama_barang || '-') + '</td><td class="font-monospace">' + (item.barcode_id || '-') + '</td><td>' + item.jumlah + '</td><td>' + fmtRp(item.harga_beli) + '</td><td>' + fmtRp(sub) + '</td></tr>';
+        var itemDesc = item.nama_barang || '-';
+        if (item.kategori_nama && item.kategori_nama.toLowerCase() === 'lensa') {
+          var details = [];
+          if (item.sph_r || item.cyl_r || item.add_r) {
+            details.push('R: SPH ' + (item.sph_r||'-') + ' CYL ' + (item.cyl_r||'-') + ' ADD ' + (item.add_r||'-'));
+          }
+          if (item.sph_l || item.cyl_l || item.add_l) {
+            details.push('L: SPH ' + (item.sph_l||'-') + ' CYL ' + (item.cyl_l||'-') + ' ADD ' + (item.add_l||'-'));
+          }
+          if (details.length > 0) {
+            itemDesc += '<br><small class="text-muted">' + details.join('<br>') + '</small>';
+          }
+        }
+        html += '<tr><td>' + itemDesc + '</td><td class="font-monospace">' + (item.barcode_id || '-') + '</td><td>' + item.jumlah + '</td><td>' + fmtRp(item.harga_beli) + '</td><td>' + fmtRp(sub) + '</td></tr>';
       });
       html += '</tbody></table>';
     }
