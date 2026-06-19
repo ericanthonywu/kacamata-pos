@@ -1,8 +1,6 @@
 const laporanService = require('../services/laporan.service');
 const salesService = require('../services/sales.service');
 
-const kategoriService = require('../services/kategori.service');
-
 exports.kas = async function (req, res, next) {
   try {
     const now = new Date();
@@ -15,19 +13,15 @@ exports.kas = async function (req, res, next) {
       from: req.query.from || firstDayOfMonth,
       to: req.query.to || todayStr,
       sales_id: req.query.sales_id || null,
-      kategori_id: req.query.kategori_id || null,
-      status_bayar: req.query.status_bayar || null,
     };
-    const [summary, salesList, kategoriList] = await Promise.all([
+    const [summary, salesList] = await Promise.all([
       laporanService.getKasReport(filters),
       salesService.getAll(),
-      kategoriService.getAll(),
     ]);
     res.render('laporan/kas', {
       title: 'Laporan Kas',
       summary: summary.summary,
       salesList,
-      kategoriList,
       filters,
       activePage: 'laporan-kas',
     });

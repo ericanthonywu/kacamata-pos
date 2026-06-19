@@ -1,175 +1,92 @@
 const db = require('../config/database');
 
-exports.getKasReport = function ({ from, to, sales_id, kategori_id, status_bayar } = {}) {
-  let query = db('penjualan')
-    .select('penjualan.id', 'penjualan.no_nota', 'penjualan.order_date',
-      'penjualan.subtotal', 'penjualan.biaya', 'penjualan.bpjs',
-      'penjualan.total', 'penjualan.dp', 'penjualan.status_bayar', 'penjualan.created_at',
-      'pelanggan.nama as pelanggan_nama', 'sales.nama as sales_nama')
-    .leftJoin('pelanggan', 'penjualan.pelanggan_id', 'pelanggan.id')
-    .leftJoin('sales', 'penjualan.sales_id', 'sales.id');
-  if (from) query = query.where('penjualan.order_date', '>=', from);
-  if (to) query = query.where('penjualan.order_date', '<=', to);
+exports.getSummary = async function ({ from, to, sales_id } = {}) {
+  let query = db('pembayaran_penjualan')
+    .innerJoin('penjualan', 'pembayaran_penjualan.penjualan_id', 'penjualan.id');
+
+  if (from) query = query.where('pembayaran_penjualan.tanggal_bayar', '>=', from);
+  if (to) query = query.where('pembayaran_penjualan.tanggal_bayar', '<=', to);
   if (sales_id) query = query.where('penjualan.sales_id', sales_id);
-  if (status_bayar) query = query.where('penjualan.status_bayar', status_bayar);
-  if (kategori_id) {
-    const applyKategori = (q) => {
-      if (kategori_id === 'both') {
-        return q.whereExists(function () {
-          this.select('*').from('penjualan_detail')
-            .innerJoin('barang', 'penjualan_detail.barang_id', 'barang.id')
-            .innerJoin('kategori', 'barang.kategori_id', 'kategori.id')
-            .whereRaw('penjualan_detail.penjualan_id = penjualan.id')
-            .andWhereRaw('LOWER(kategori.nama) = ?', ['frame']);
-        }).whereExists(function () {
-          this.select('*').from('penjualan_detail')
-            .innerJoin('barang', 'penjualan_detail.barang_id', 'barang.id')
-            .innerJoin('kategori', 'barang.kategori_id', 'kategori.id')
-            .whereRaw('penjualan_detail.penjualan_id = penjualan.id')
-            .andWhereRaw('LOWER(kategori.nama) = ?', ['lensa']);
-        });
-      } else {
-        return q.whereExists(function () {
-          this.select('*').from('penjualan_detail')
-            .innerJoin('barang', 'penjualan_detail.barang_id', 'barang.id')
-            .whereRaw('penjualan_detail.penjualan_id = penjualan.id')
-            .andWhere('barang.kategori_id', kategori_id);
-        });
-      }
-    };
-    query = applyKategori(query);
-    pelunasanQuery = applyKategori(pelunasanQuery);
-  }
-  return query.orderBy('penjualan.order_date', 'desc');
-};
 
-exports.getSummary = async function ({ from, to, sales_id, kategori_id, status_bayar } = {}) {
-  // Main summary for sales
-  let query = db('penjualan')
-    .count('id as total_transaksi')
-    .sum('subtotal as total_subtotal')
-    .sum('bpjs as total_bpjs')
-    .select(db.raw("SUM(CASE WHEN status_bayar = 'dp' THEN COALESCE(dp, 0) ELSE total END) as total_penjualan"));
+  const result = await query
+    .select(
+      db.raw('COUNT(pembayaran_penjualan.id) as total_pembayaran'),
+      db.raw('COALESCE(SUM(pembayaran_penjualan.jumlah_bayar), 0) as total_uang_masuk'),
+      db.raw("COALESCE(SUM(CASE WHEN pembayaran_penjualan.keterangan IN ('Pembayaran lunas', 'Down Payment') THEN pembayaran_penjualan.jumlah_bayar ELSE 0 END), 0) as uang_dari_penjualan"),
+      db.raw("COALESCE(SUM(CASE WHEN pembayaran_penjualan.keterangan NOT IN ('Pembayaran lunas', 'Down Payment') THEN pembayaran_penjualan.jumlah_bayar ELSE 0 END), 0) as uang_dari_pelunasan")
+    )
+    .first();
 
-  if (from) query = query.where('order_date', '>=', from);
-  if (to) query = query.where('order_date', '<=', to);
-  if (sales_id) query = query.where('sales_id', sales_id);
-  if (status_bayar) query = query.where('status_bayar', status_bayar);
+  // Get total BPJS from penjualan within the date range (based on distinct penjualan in pembayaran)
+  let bpjsQuery = db('penjualan')
+    .whereExists(function () {
+      this.select('*').from('pembayaran_penjualan')
+        .whereRaw('pembayaran_penjualan.penjualan_id = penjualan.id');
+      if (from) this.andWhere('pembayaran_penjualan.tanggal_bayar', '>=', from);
+      if (to) this.andWhere('pembayaran_penjualan.tanggal_bayar', '<=', to);
+    });
+  if (sales_id) bpjsQuery = bpjsQuery.where('penjualan.sales_id', sales_id);
 
-  // Pelunasan summary filtered by tanggal_bayar instead of order_date
-  let pelunasanQuery = db('penjualan')
-    .where('penjualan.dp', '>', 0)
-    .andWhere('penjualan.status_bayar', 'lunas');
+  const bpjsRes = await bpjsQuery.sum('bpjs as total_bpjs').first();
+  result.total_bpjs = bpjsRes ? parseFloat(bpjsRes.total_bpjs || 0) : 0;
 
-  if (from) pelunasanQuery = pelunasanQuery.whereRaw('(SELECT MAX(DATE(tanggal_bayar)) FROM pembayaran_penjualan WHERE penjualan_id = penjualan.id) >= ?', [from]);
-  if (to) pelunasanQuery = pelunasanQuery.whereRaw('(SELECT MAX(DATE(tanggal_bayar)) FROM pembayaran_penjualan WHERE penjualan_id = penjualan.id) <= ?', [to]);
-  if (sales_id) pelunasanQuery = pelunasanQuery.where('penjualan.sales_id', sales_id);
-
-  if (kategori_id) {
-    if (kategori_id === 'both') {
-      query = query.whereExists(function () {
-        this.select('*').from('penjualan_detail')
-          .innerJoin('barang', 'penjualan_detail.barang_id', 'barang.id')
-          .innerJoin('kategori', 'barang.kategori_id', 'kategori.id')
-          .whereRaw('penjualan_detail.penjualan_id = penjualan.id')
-          .andWhereRaw('LOWER(kategori.nama) = ?', ['frame']);
-      }).whereExists(function () {
-        this.select('*').from('penjualan_detail')
-          .innerJoin('barang', 'penjualan_detail.barang_id', 'barang.id')
-          .innerJoin('kategori', 'barang.kategori_id', 'kategori.id')
-          .whereRaw('penjualan_detail.penjualan_id = penjualan.id')
-          .andWhereRaw('LOWER(kategori.nama) = ?', ['lensa']);
-      });
-    } else {
-      query = query.whereExists(function () {
-        this.select('*').from('penjualan_detail')
-          .innerJoin('barang', 'penjualan_detail.barang_id', 'barang.id')
-          .whereRaw('penjualan_detail.penjualan_id = penjualan.id')
-          .andWhere('barang.kategori_id', kategori_id);
-      });
-    }
-  }
-
-  const mainSummary = await query.first();
-
-  const pelunasanRes = await db.from(
-    pelunasanQuery.select(db.raw('((SELECT SUM(jumlah_bayar) FROM pembayaran_penjualan WHERE penjualan_id = penjualan.id) - penjualan.dp) as total_bayar')).as('t')
-  ).sum('total_bayar as total_pelunasan').first();
-
-  mainSummary.total_pelunasan = pelunasanRes ? parseFloat(pelunasanRes.total_pelunasan || 0) : 0;
-
-  return mainSummary;
+  return result;
 };
 
 exports.getKasDatatablesData = async function (params) {
-  const { start, length, search, order, from, to, sales_id, kategori_id, status_bayar } = params;
+  const { start, length, search, order, from, to, sales_id } = params;
 
   function applyFilters(query) {
-    if (from) query = query.where('penjualan.order_date', '>=', from);
-    if (to) query = query.where('penjualan.order_date', '<=', to);
+    if (from) query = query.where('pembayaran_penjualan.tanggal_bayar', '>=', from);
+    if (to) query = query.where('pembayaran_penjualan.tanggal_bayar', '<=', to);
     if (sales_id) query = query.where('penjualan.sales_id', sales_id);
-    if (status_bayar) query = query.where('penjualan.status_bayar', status_bayar);
-    if (kategori_id) {
-      if (kategori_id === 'both') {
-        query = query.whereExists(function () {
-          this.select('*').from('penjualan_detail')
-            .innerJoin('barang', 'penjualan_detail.barang_id', 'barang.id')
-            .innerJoin('kategori', 'barang.kategori_id', 'kategori.id')
-            .whereRaw('penjualan_detail.penjualan_id = penjualan.id')
-            .andWhereRaw('LOWER(kategori.nama) = ?', ['frame']);
-        }).whereExists(function () {
-          this.select('*').from('penjualan_detail')
-            .innerJoin('barang', 'penjualan_detail.barang_id', 'barang.id')
-            .innerJoin('kategori', 'barang.kategori_id', 'kategori.id')
-            .whereRaw('penjualan_detail.penjualan_id = penjualan.id')
-            .andWhereRaw('LOWER(kategori.nama) = ?', ['lensa']);
-        });
-      } else {
-        query = query.whereExists(function () {
-          this.select('*').from('penjualan_detail')
-            .innerJoin('barang', 'penjualan_detail.barang_id', 'barang.id')
-            .whereRaw('penjualan_detail.penjualan_id = penjualan.id')
-            .andWhere('barang.kategori_id', kategori_id);
-        });
-      }
-    }
     return query;
   }
 
-  let baseQuery = db('penjualan')
+  let baseQuery = db('pembayaran_penjualan')
+    .innerJoin('penjualan', 'pembayaran_penjualan.penjualan_id', 'penjualan.id')
     .leftJoin('pelanggan', 'penjualan.pelanggan_id', 'pelanggan.id')
     .leftJoin('sales', 'penjualan.sales_id', 'sales.id');
 
   baseQuery = applyFilters(baseQuery);
 
-  const totalCountRes = await baseQuery.clone().count('penjualan.id as count').first();
+  const totalCountRes = await baseQuery.clone().count('pembayaran_penjualan.id as count').first();
   const recordsTotal = parseInt(totalCountRes.count);
 
   if (search && search.value) {
     baseQuery = baseQuery.where(function () {
       this.where('penjualan.no_nota', 'ilike', `%${search.value}%`)
         .orWhere('pelanggan.nama', 'ilike', `%${search.value}%`)
-        .orWhere('sales.nama', 'ilike', `%${search.value}%`);
+        .orWhere('sales.nama', 'ilike', `%${search.value}%`)
+        .orWhere('pembayaran_penjualan.keterangan', 'ilike', `%${search.value}%`);
     });
   }
 
-  const filteredCountRes = await baseQuery.clone().count('penjualan.id as count').first();
+  const filteredCountRes = await baseQuery.clone().count('pembayaran_penjualan.id as count').first();
   const recordsFiltered = parseInt(filteredCountRes.count);
 
-  const columns = ['no_nota', 'order_date', 'pelanggan_nama', 'sales_nama', 'subtotal', 'dp', 'bpjs', null, null];
+  // Column index mapping: 0=no_nota, 1=tanggal+waktu, 2=pelanggan, 3=sales, 4=subtotal, 5=dp, 6=bpjs, 7=sisa(no sort), 8=keterangan, 9=uang_masuk(admin), 10=aksi(no sort)
+  const columnMap = {
+    0: 'penjualan.no_nota',
+    1: 'pembayaran_penjualan.created_at',
+    2: 'pelanggan.nama',
+    3: 'sales.nama',
+    4: 'penjualan.subtotal',
+    5: 'penjualan.dp',
+    6: 'penjualan.bpjs',
+    8: 'pembayaran_penjualan.keterangan',
+    9: 'pembayaran_penjualan.jumlah_bayar',
+  };
   if (order && order.length > 0) {
     const colIndex = parseInt(order[0].column);
     const dir = order[0].dir === 'desc' ? 'desc' : 'asc';
-    if (columns[colIndex]) {
-      let orderCol = `penjualan.${columns[colIndex]}`;
-      if (columns[colIndex] === 'pelanggan_nama') orderCol = 'pelanggan.nama';
-      if (columns[colIndex] === 'sales_nama') orderCol = 'sales.nama';
-      baseQuery = baseQuery.orderBy(orderCol, dir);
+    if (columnMap[colIndex]) {
+      baseQuery = baseQuery.orderBy(columnMap[colIndex], dir);
     } else {
-      baseQuery = baseQuery.orderBy('penjualan.order_date', 'desc');
+      baseQuery = baseQuery.orderBy('pembayaran_penjualan.created_at', 'desc');
     }
   } else {
-    baseQuery = baseQuery.orderBy('penjualan.order_date', 'desc');
+    baseQuery = baseQuery.orderBy('pembayaran_penjualan.created_at', 'desc');
   }
 
   if (length > 0) {
@@ -177,9 +94,20 @@ exports.getKasDatatablesData = async function (params) {
   }
 
   const data = await baseQuery.select(
-    'penjualan.id', 'penjualan.no_nota', 'penjualan.order_date',
-    'penjualan.subtotal', 'penjualan.bpjs', 'penjualan.total', 'penjualan.dp', 'penjualan.status_bayar',
-    'pelanggan.nama as pelanggan_nama', 'sales.nama as sales_nama'
+    'pembayaran_penjualan.id',
+    'pembayaran_penjualan.tanggal_bayar',
+    'pembayaran_penjualan.created_at as waktu_bayar',
+    'pembayaran_penjualan.jumlah_bayar',
+    'pembayaran_penjualan.keterangan',
+    'pembayaran_penjualan.penjualan_id',
+    'penjualan.no_nota',
+    'penjualan.subtotal',
+    'penjualan.dp',
+    'penjualan.bpjs',
+    'penjualan.total',
+    'penjualan.status_bayar',
+    'pelanggan.nama as pelanggan_nama',
+    'sales.nama as sales_nama'
   );
 
   return { recordsTotal, recordsFiltered, data };

@@ -22,25 +22,6 @@
         </select>
       </div>
       <div class="col-auto">
-        <label class="form-label small">Kategori</label>
-        <select id="filterKategori" class="form-select form-select-sm">
-          <option value="">Semua</option>
-          <% kategoriList.forEach(function(k) { %>
-            <option value="<%= k.id %>" <%=String(filters.kategori_id)===String(k.id) ? 'selected' : '' %>><%= k.nama %>
-            </option>
-            <% }); %>
-              <option value="both" <%=filters.kategori_id==='both' ? 'selected' : '' %>>Frame + Lensa</option>
-        </select>
-      </div>
-      <div class="col-auto">
-        <label class="form-label small">Status</label>
-        <select id="filterStatus" class="form-select form-select-sm">
-          <option value="">Semua</option>
-          <option value="lunas" <%=filters.status_bayar==='lunas' ? 'selected' : '' %>>Lunas</option>
-          <option value="dp" <%=filters.status_bayar==='dp' ? 'selected' : '' %>>DP (Belum Lunas)</option>
-        </select>
-      </div>
-      <div class="col-auto">
         <button type="button" class="btn btn-primary btn-sm" onclick="reloadKas()"><i class="bi bi-search"></i>
           Tampilkan</button>
         <button type="button" class="btn btn-outline-danger btn-sm" onclick="resetFilter()"><i
@@ -52,9 +33,9 @@
       <div class="col">
         <div class="stat-card"><i class="bi bi-receipt stat-icon text-info"></i>
           <div class="stat-value">
-            <%= summary.total_transaksi %>
+            <%= summary.total_pembayaran %>
           </div>
-          <div class="stat-label">Transaksi</div>
+          <div class="stat-label">Total Transaksi</div>
         </div>
       </div>
       <div class="col">
@@ -65,32 +46,32 @@
           <div class="stat-label">Total BPJS</div>
         </div>
       </div>
-      <% if (currentUser.hak_akses==='admin' ) { %>
-        <div class="col">
-          <div class="stat-card"><i class="bi bi-cash stat-icon text-primary"></i>
-            <div class="stat-value">
-              <%= fmtRp(summary.total_subtotal) %>
-            </div>
-            <div class="stat-label">Total Keseluruhan</div>
+      <% if (currentUser.hak_akses === 'admin') { %>
+      <div class="col">
+        <div class="stat-card"><i class="bi bi-wallet2 stat-icon text-warning"></i>
+          <div class="stat-value">
+            <%= fmtRp(summary.uang_dari_pelunasan) %>
           </div>
+          <div class="stat-label">Total Pelunasan</div>
         </div>
-        <div class="col">
-          <div class="stat-card"><i class="bi bi-wallet2 stat-icon text-warning"></i>
-            <div class="stat-value">
-              <%= fmtRp(summary.total_pelunasan) %>
-            </div>
-            <div class="stat-label">Total Pelunasan Hutang</div>
+      </div>
+      <div class="col">
+        <div class="stat-card"><i class="bi bi-cart-check stat-icon text-primary"></i>
+          <div class="stat-value">
+            <%= fmtRp(summary.uang_dari_penjualan) %>
           </div>
+          <div class="stat-label">Total Uang Masuk (Tanpa Pelunasan)</div>
         </div>
-        <div class="col">
-          <div class="stat-card"><i class="bi bi-graph-up stat-icon text-success"></i>
-            <div class="stat-value text-primary">
-              <%= fmtRp(summary.total_penjualan) %>
-            </div>
-            <div class="stat-label">Uang Masuk</div>
+      </div>
+      <div class="col">
+        <div class="stat-card"><i class="bi bi-cash-stack stat-icon text-success"></i>
+          <div class="stat-value text-success">
+            <%= fmtRp(summary.total_uang_masuk) %>
           </div>
+          <div class="stat-label">Total Uang Masuk</div>
         </div>
-        <% } %>
+      </div>
+      <% } %>
     </div>
 
     <div class="card p-3">
@@ -104,10 +85,11 @@
             <th>Total</th>
             <th>DP</th>
             <th>BPJS</th>
+            <th>Sisa</th>
+            <th>Status</th>
             <% if (currentUser.hak_akses === 'admin') { %>
             <th>Uang Masuk</th>
             <% } %>
-            <th>Sisa</th>
             <th>Aksi</th>
           </tr>
         </thead>
@@ -161,16 +143,23 @@
         }
 
         var isAdmin = <%= currentUser.hak_akses === 'admin' ? 'true' : 'false' %>;
-        var exportCols = isAdmin ? [0, 1, 2, 3, 4, 5, 6, 7, 8] : [0, 1, 2, 3, 4, 5, 6, 7];
+        var exportCols = isAdmin ? [0, 1, 2, 3, 4, 5, 6, 7, 8, 9] : [0, 1, 2, 3, 4, 5, 6, 7, 8];
 
         var dtColumns = [
             {
               data: 'no_nota',
-              render: function (data) { return '<span class="font-monospace text-info">' + escapeHtml(data) + '</span>'; }
+              render: function (data) { return '<span class="font-monospace text-info">' + escapeHtml(data || '-') + '</span>'; }
             },
             {
-              data: 'order_date',
-              render: function (data) { return data ? new Date(data).toLocaleDateString('id-ID') : '-'; }
+              data: 'tanggal_bayar',
+              render: function (data, type, row) {
+                if (!data) return '-';
+                if (row.waktu_bayar) {
+                  var d = new Date(row.waktu_bayar);
+                  return d.toLocaleDateString('id-ID') + ' ' + d.toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit' });
+                }
+                return new Date(data).toLocaleDateString('id-ID');
+              }
             },
             {
               data: 'pelanggan_nama',
@@ -191,17 +180,31 @@
             {
               data: 'bpjs',
               render: function (data) { return parseFloat(data) > 0 ? fmtRp(data) : '-'; }
+            },
+            {
+              data: null,
+              orderable: false,
+              render: function (data, type, row) {
+                var sisa = row.status_bayar === 'lunas' ? 0 : (parseFloat(row.subtotal) - parseFloat(row.dp || 0) - parseFloat(row.bpjs || 0));
+                var cls = sisa === 0 ? 'text-success' : 'text-danger';
+                return '<span class="fw-bold ' + cls + '">' + fmtRp(sisa) + '</span>';
+              }
+            },
+            {
+              data: 'keterangan',
+              render: function (data) {
+                if (data === 'Pembayaran lunas') return '<span class="badge bg-success">Pembayaran Penuh</span>';
+                if (data === 'Down Payment') return '<span class="badge bg-warning text-dark">DP - Belum Lunas</span>';
+                return '<span class="badge bg-info">Pelunasan Hutang</span>';
+              }
             }
         ];
 
         if (isAdmin) {
             dtColumns.push({
-              data: null,
-              render: function (data, type, row) {
-                var dp = parseFloat(row.dp || 0);
-                var total = parseFloat(row.total || 0);
-                var uangMasuk = row.status_bayar === 'dp' ? dp : total;
-                return '<span class="fw-bold text-success">' + fmtRp(uangMasuk) + '</span>';
+              data: 'jumlah_bayar',
+              render: function (data) {
+                return '<span class="fw-bold text-success">' + fmtRp(data) + '</span>';
               }
             });
         }
@@ -210,17 +213,7 @@
             data: null,
             orderable: false,
             render: function (data, type, row) {
-              var sisa = row.status_bayar === 'lunas' ? 0 : (parseFloat(row.subtotal) - parseFloat(row.dp || 0) - parseFloat(row.bpjs || 0));
-              var cls = sisa === 0 ? 'text-success' : 'text-danger';
-              return '<span class="fw-bold ' + cls + '">' + fmtRp(sisa) + '</span>';
-            }
-        });
-
-        dtColumns.push({
-            data: null,
-            orderable: false,
-            render: function (data, type, row) {
-              return '<button class="btn btn-sm btn-outline-info" onclick="showDetail(' + row.id + ')" title="Detail"><i class="bi bi-eye"></i></button>';
+              return '<button class="btn btn-sm btn-outline-info" onclick="showDetail(' + row.penjualan_id + ')" title="Detail"><i class="bi bi-eye"></i></button>';
             }
         });
 
@@ -233,8 +226,6 @@
               d.from = $('#filterFrom').val();
               d.to = $('#filterTo').val();
               d.sales_id = $('#filterSales').val();
-              d.kategori_id = $('#filterKategori').val();
-              d.status_bayar = $('#filterStatus').val();
             }
           },
           order: [[1, 'desc']],
@@ -276,13 +267,10 @@
       });
 
       function reloadKas() {
-        // Also reload summary by navigating with filters
         var params = new URLSearchParams();
         if ($('#filterFrom').val()) params.set('from', $('#filterFrom').val());
         if ($('#filterTo').val()) params.set('to', $('#filterTo').val());
         if ($('#filterSales').val()) params.set('sales_id', $('#filterSales').val());
-        if ($('#filterKategori').val()) params.set('kategori_id', $('#filterKategori').val());
-        if ($('#filterStatus').val()) params.set('status_bayar', $('#filterStatus').val());
         window.location.href = '/laporan/kas?' + params.toString();
       }
 
