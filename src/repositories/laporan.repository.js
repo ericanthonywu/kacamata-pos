@@ -177,6 +177,17 @@ exports.getKomisiDetail = async function ({ from, to, sales_id, tipe } = {}) {
       'komisi_sales.nominal_komisi',
       'komisi_sales.created_at as tanggal_masuk',
       'penjualan.no_nota',
+      'penjualan.subtotal',
+      db.raw(`(
+        SELECT COALESCE(SUM((pd.harga - pd.diskon) * pd.jumlah), 0)
+        FROM penjualan_detail pd
+        WHERE pd.penjualan_id = komisi_sales.penjualan_id
+        AND (
+          (komisi_sales.tipe = 'frame' AND pd.tipe = 'frame')
+          OR
+          (komisi_sales.tipe = 'lensa' AND pd.tipe IN ('lensa_r', 'lensa_l'))
+        )
+      ) as subtotal_kategori`),
       'penjualan.total as total_penjualan',
       'penjualan.order_date'
     )

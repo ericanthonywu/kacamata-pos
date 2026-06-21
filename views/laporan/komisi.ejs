@@ -173,7 +173,7 @@
                     <th>Tanggal Invoice</th>
                     <th>Tanggal Masuk Komisi</th>
                     <th>Tipe</th>
-                    <th class="text-end">Total Penjualan</th>
+                    <th class="text-end">Subtotal Penjualan (Kategori)</th>
                     <th class="text-end" id="colKomisi">Komisi</th>
                   </tr>
                 </thead>
@@ -246,7 +246,7 @@ function showDetailModal(sales_id, pBulan, pTahun, pTipe) {
             '<td>' + new Date(d.order_date).toLocaleDateString('id-ID') + '</td>' +
             '<td>' + new Date(d.tanggal_masuk).toLocaleDateString('id-ID') + ' ' + new Date(d.tanggal_masuk).toLocaleTimeString('id-ID', {hour: '2-digit', minute:'2-digit'}) + '</td>' +
             '<td>' + (d.tipe === 'frame' ? 'Frame' : 'Lensa') + '</td>' +
-            '<td class="text-end">' + fmtRp(d.total_penjualan) + '</td>' +
+            '<td class="text-end">' + fmtRp(d.subtotal_kategori) + '</td>' +
             '<td class="text-end fw-bold text-success">' + fmtRp(d.nominal_komisi) + '</td>' +
             '</tr>';
         });
