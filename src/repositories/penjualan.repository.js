@@ -57,10 +57,11 @@ exports.getDatatablesData = async function (params) {
     totalPenjualanKhusus = sumRes && sumRes.total_khusus ? parseFloat(sumRes.total_khusus) : 0;
   }
 
-  var columns = ['order_date', 'no_nota', 'pelanggan_nama', 'total', 'dp', null, 'status_bayar', 'sales_nama'];
+  var columns = ['order_date', 'no_nota', 'pelanggan_nama', 'total', 'bpjs', 'dp', null, 'status_bayar', 'sales_nama'];
   var colToDb = {
     order_date: 'penjualan.order_date', no_nota: 'penjualan.no_nota',
     pelanggan_nama: 'pelanggan.nama', total: 'penjualan.total',
+    bpjs: 'penjualan.bpjs',
     dp: 'penjualan.dp', status_bayar: 'penjualan.status_bayar',
     sales_nama: 'sales.nama',
   };

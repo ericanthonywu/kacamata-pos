@@ -29,6 +29,7 @@
             <th>No. Nota</th>
             <th>Pelanggan</th>
             <th>Total</th>
+            <th>BPJS</th>
             <th>DP</th>
             <th>Sisa Bayar</th>
             <th>Status</th>
@@ -114,20 +115,20 @@
               text: '<i class="bi bi-file-earmark-excel"></i> Excel',
               className: 'btn btn-success btn-sm',
               action: newExportAction,
-              exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7], orthogonal: 'export' }
+              exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7, 8], orthogonal: 'export' }
             },
             {
               extend: 'csvHtml5',
               text: '<i class="bi bi-filetype-csv"></i> CSV',
               className: 'btn btn-info btn-sm',
               action: newExportAction,
-              exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7], orthogonal: 'export' }
+              exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7, 8], orthogonal: 'export' }
             },
             {
               extend: 'print',
               text: '<i class="bi bi-printer"></i> Print',
               className: 'btn btn-secondary btn-sm',
-              exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7], orthogonal: 'export' }
+              exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6, 7, 8], orthogonal: 'export' }
             }
           ],
           columns: [
@@ -146,6 +147,10 @@
             {
               data: 'total',
               className: 'fw-bold',
+              render: function (data) { return fmtRp(data); }
+            },
+            {
+              data: 'bpjs',
               render: function (data) { return fmtRp(data); }
             },
             {
