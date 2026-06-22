@@ -24,6 +24,22 @@ exports.create = async function (data) {
     const newStatus = parseFloat(totalPaid.total) >= parseFloat(penjualan.total) ? 'lunas' : 'dp';
     await trx('penjualan').where('id', data.penjualan_id).update({ status_bayar: newStatus });
 
+    // Record in kas ledger
+    let kategori = 'pelunasan';
+    if (payment.keterangan === 'Pembayaran lunas') kategori = 'pembayaran_lunas';
+    else if (payment.keterangan === 'Down Payment') kategori = 'down_payment';
+    await trx('kas').insert({
+      tipe: 'masuk',
+      kategori,
+      jumlah: payment.jumlah_bayar,
+      tanggal: payment.tanggal_bayar,
+      referensi_id: payment.id,
+      referensi_tipe: 'pembayaran_penjualan',
+      penjualan_id: data.penjualan_id,
+      no_referensi: penjualan.no_nota,
+      keterangan: payment.keterangan || '',
+    });
+
     // Handle komisi if it just became lunas
     if (newStatus === 'lunas' && penjualan.status_bayar !== 'lunas' && penjualan.sales_id) {
       const detailItems = await trx('penjualan_detail').where('penjualan_id', penjualan.id);
@@ -62,6 +78,12 @@ exports.del = async function (id) {
     const payment = await trx('pembayaran_penjualan').where('id', id).first();
     if (!payment) return;
     await trx('pembayaran_penjualan').where('id', id).del();
+
+    // Remove from kas ledger
+    await trx('kas')
+      .where('referensi_id', id)
+      .where('referensi_tipe', 'pembayaran_penjualan')
+      .del();
 
     // Recalculate status
     const totalPaid = await trx('pembayaran_penjualan')

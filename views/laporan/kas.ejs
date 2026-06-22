@@ -29,7 +29,7 @@
       </div>
     </div>
 
-    <div class="row g-3 mb-4 row-cols-2 row-cols-md-5">
+    <div class="row g-3 mb-4 row-cols-2 row-cols-md-3">
       <div class="col">
         <div class="stat-card"><i class="bi bi-receipt stat-icon text-info"></i>
           <div class="stat-value">
@@ -61,6 +61,14 @@
             <%= fmtRp(summary.uang_dari_penjualan) %>
           </div>
           <div class="stat-label">Total Uang Masuk (Tanpa Pelunasan)</div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="stat-card"><i class="bi bi-arrow-return-left stat-icon text-danger"></i>
+          <div class="stat-value text-danger">
+            <%= fmtRp(summary.total_retur) %>
+          </div>
+          <div class="stat-label">Total Retur (Cash Out)</div>
         </div>
       </div>
       <div class="col">
@@ -149,7 +157,12 @@
         var dtColumns = [
             {
               data: 'no_nota',
-              render: function (data) { return '<span class="font-monospace text-info">' + escapeHtml(data || '-') + '</span>'; }
+              render: function (data, type, row) {
+                if (row.tipe === 'keluar') {
+                  return '<span class="font-monospace text-danger">' + escapeHtml(data || '-') + '</span>';
+                }
+                return '<span class="font-monospace text-info">' + escapeHtml(data || '-') + '</span>';
+              }
             },
             {
               data: 'tanggal_bayar',
@@ -166,7 +179,10 @@
             {
               data: 'subtotal',
               render: function (data, type, row) {
-                var isFullPayment = row.keterangan === 'Pembayaran lunas';
+                if (row.tipe === 'keluar') {
+                  return '<span class="fw-bold text-danger">- ' + fmtRp(row.jumlah) + '</span>';
+                }
+                var isFullPayment = row.kategori === 'pembayaran_lunas';
                 var cls = isFullPayment ? ' fw-bold text-success' : '';
                 return '<span class="' + cls + '">' + fmtRp(data) + '</span>';
               }
@@ -174,18 +190,20 @@
             {
               data: 'dp',
               render: function (data, type, row) {
+                if (row.tipe === 'keluar') return '-';
                 if (parseFloat(data) <= 0) return '-';
-                var isDP = row.keterangan === 'Down Payment';
+                var isDP = row.kategori === 'down_payment';
                 var cls = isDP ? ' fw-bold text-success' : '';
                 return '<span class="' + cls + '">' + fmtRp(data) + '</span>';
               }
             },
             {
-              data: 'keterangan',
+              data: 'kategori',
               orderable: false,
               render: function (data, type, row) {
-                if (data !== 'Pembayaran lunas' && data !== 'Down Payment') {
-                  return '<span class="fw-bold text-success">' + fmtRp(row.jumlah_bayar) + '</span>';
+                if (row.tipe === 'keluar') return '-';
+                if (data === 'pelunasan') {
+                  return '<span class="fw-bold text-success">' + fmtRp(row.jumlah) + '</span>';
                 }
                 return '-';
               }
@@ -194,20 +212,25 @@
               data: null,
               orderable: false,
               render: function (data, type, row) {
+                if (row.tipe === 'keluar') return '-';
                 var sisa = row.status_bayar === 'lunas' ? 0 : (parseFloat(row.subtotal) - parseFloat(row.dp || 0) - parseFloat(row.bpjs || 0));
-                var cls = sisa > 0 ? 'text-danger' : '';
-                return '<span class="fw-bold ' + cls + '">' + fmtRp(sisa) + '</span>';
+                var style = sisa > 0 ? ' style="color: #fd7e14"' : '';
+                return '<span class="fw-bold"' + style + '>' + fmtRp(sisa) + '</span>';
               }
             },
             {
               data: 'bpjs',
-              render: function (data) { return parseFloat(data) > 0 ? fmtRp(data) : '-'; }
+              render: function (data, type, row) {
+                if (row.tipe === 'keluar') return '-';
+                return parseFloat(data) > 0 ? fmtRp(data) : '-';
+              }
             },
             {
-              data: 'keterangan',
+              data: 'kategori',
               render: function (data) {
-                if (data === 'Pembayaran lunas') return '<span class="badge bg-success">Pembayaran Penuh</span>';
-                if (data === 'Down Payment') return '<span class="badge bg-primary">DP - Belum Lunas</span>';
+                if (data === 'retur_penjualan') return '<span class="badge bg-danger">Retur</span>';
+                if (data === 'pembayaran_lunas') return '<span class="badge bg-success">Pembayaran Penuh</span>';
+                if (data === 'down_payment') return '<span class="badge bg-primary">DP - Belum Lunas</span>';
                 return '<span class="badge bg-teal text-white" style="background-color:#20c997">Pelunasan Hutang</span>';
               }
             }
@@ -215,8 +238,11 @@
 
         if (isAdmin) {
             dtColumns.push({
-              data: 'jumlah_bayar',
-              render: function (data) {
+              data: 'jumlah',
+              render: function (data, type, row) {
+                if (row.tipe === 'keluar') {
+                  return '<span class="fw-bold text-danger">- ' + fmtRp(data) + '</span>';
+                }
                 return '<span class="fw-bold text-success">' + fmtRp(data) + '</span>';
               }
             });
@@ -226,6 +252,9 @@
             data: null,
             orderable: false,
             render: function (data, type, row) {
+              if (row.referensi_tipe === 'penjualan_retur') {
+                return '<button class="btn btn-sm btn-outline-danger" onclick="showReturDetail(' + row.referensi_id + ')" title="Detail Retur"><i class="bi bi-eye"></i></button>';
+              }
               return '<button class="btn btn-sm btn-outline-info" onclick="showDetail(' + row.penjualan_id + ')" title="Detail"><i class="bi bi-eye"></i></button>';
             }
         });
@@ -294,6 +323,7 @@
       function fmtRp(v) { return 'Rp ' + Number(v || 0).toLocaleString('id-ID'); }
 
       function showDetail(id) {
+        document.querySelector('#detailModal .modal-title').textContent = 'Detail Penjualan';
         var myModal = new bootstrap.Modal(document.getElementById('detailModal'));
         myModal.show();
         $('#detailBody').html('<div class="text-center"><div class="spinner-border text-primary" role="status"></div></div>');
@@ -316,6 +346,39 @@
             html += '</tr>';
           });
           html += '</tbody></table>';
+          $('#detailBody').html(html);
+        }).fail(function () {
+          $('#detailBody').html('<div class="alert alert-danger">Terjadi kesalahan.</div>');
+        });
+      }
+
+      function showReturDetail(id) {
+        document.querySelector('#detailModal .modal-title').textContent = 'Detail Retur Penjualan';
+        var myModal = new bootstrap.Modal(document.getElementById('detailModal'));
+        myModal.show();
+        $('#detailBody').html('<div class="text-center"><div class="spinner-border text-primary" role="status"></div></div>');
+
+        $.get('/penjualan-retur/' + id, function (res) {
+          if (!res.success) {
+            $('#detailBody').html('<div class="alert alert-danger">Gagal memuat detail.</div>');
+            return;
+          }
+          var d = res.data;
+          var html = '<table class="table table-sm mb-0">';
+          html += '<tr><td class="text-muted">Kode Retur</td><td class="font-monospace text-danger">' + d.kode_retur + '</td></tr>';
+          html += '<tr><td class="text-muted">No Nota Asal</td><td class="font-monospace">' + (d.no_nota || '-') + '</td></tr>';
+          html += '<tr><td class="text-muted">Tanggal Retur</td><td>' + new Date(d.tanggal_retur).toLocaleDateString('id-ID') + '</td></tr>';
+          html += '</table>';
+          if (d.detail && d.detail.length > 0) {
+            html += '<hr><h6 class="small fw-bold">Item Retur</h6>';
+            html += '<table class="table table-sm table-bordered"><thead><tr><th>Tipe</th><th>Barang</th><th>Qty</th><th>Harga</th></tr></thead><tbody>';
+            d.detail.forEach(function (item) {
+              var tipe = item.tipe === 'frame' ? 'Frame' : item.tipe === 'lensa_l' ? 'Lensa L' : 'Lensa R';
+              html += '<tr><td>' + tipe + '</td><td>' + (item.nama_barang || '-') + '</td><td>' + item.jumlah + '</td><td>' + fmtRp(item.harga) + '</td></tr>';
+            });
+            html += '</tbody></table>';
+          }
+          html += '<hr><div class="d-flex justify-content-between"><strong>Total Retur</strong><strong class="text-danger">' + fmtRp(d.total_retur) + '</strong></div>';
           $('#detailBody').html(html);
         }).fail(function () {
           $('#detailBody').html('<div class="alert alert-danger">Terjadi kesalahan.</div>');

@@ -40,6 +40,20 @@ exports.create = async function (returData, detailItems) {
         await trx('barang').where('id', item.barang_id).increment('qty', item.jumlah || 1);
       }
     }
+
+    // Record in kas ledger (cash out)
+    await trx('kas').insert({
+      tipe: 'keluar',
+      kategori: 'retur_penjualan',
+      jumlah: retur.total_retur,
+      tanggal: retur.tanggal_retur,
+      referensi_id: retur.id,
+      referensi_tipe: 'penjualan_retur',
+      penjualan_id: returData.penjualan_id,
+      no_referensi: retur.kode_retur,
+      keterangan: 'Retur Penjualan',
+    });
+
     return retur;
   });
 };
@@ -52,6 +66,13 @@ exports.del = async function (id) {
         await trx('barang').where('id', item.barang_id).decrement('qty', item.jumlah);
       }
     }
+
+    // Remove from kas ledger
+    await trx('kas')
+      .where('referensi_id', id)
+      .where('referensi_tipe', 'penjualan_retur')
+      .del();
+
     await trx('penjualan_retur').where('id', id).del();
   });
 };
