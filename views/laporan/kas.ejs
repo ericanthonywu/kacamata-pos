@@ -29,7 +29,36 @@
       </div>
     </div>
 
-    <div class="row g-3 mb-4 row-cols-2 row-cols-md-3">
+    <% if (currentUser.hak_akses === 'admin') { %>
+    <div class="row g-3 mb-4 row-cols-1 row-cols-md-3">
+      <div class="col">
+        <div class="stat-card"><i class="bi bi-cash-stack stat-icon text-success"></i>
+          <div class="stat-value text-success">
+            <%= fmtRp(summary.total_uang_masuk) %>
+          </div>
+          <div class="stat-label fw-bold text-success">Total Uang Masuk</div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="stat-card"><i class="bi bi-cash stat-icon text-success"></i>
+          <div class="stat-value text-success">
+            <%= fmtRp(summary.total_cash) %>
+          </div>
+          <div class="stat-label text-success">Total Metode Cash</div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="stat-card"><i class="bi bi-bank stat-icon text-success"></i>
+          <div class="stat-value text-success">
+            <%= fmtRp(summary.total_transfer) %>
+          </div>
+          <div class="stat-label text-success">Total Metode Transfer</div>
+        </div>
+      </div>
+    </div>
+    <% } %>
+
+    <div class="row g-3 mb-4 row-cols-2 row-cols-md-<%= currentUser.hak_akses === 'admin' ? '5' : '2' %>">
       <div class="col">
         <div class="stat-card"><i class="bi bi-receipt stat-icon text-info"></i>
           <div class="stat-value">
@@ -60,7 +89,7 @@
           <div class="stat-value">
             <%= fmtRp(summary.uang_dari_penjualan) %>
           </div>
-          <div class="stat-label">Total Uang Masuk (Tanpa Pelunasan)</div>
+          <div class="stat-label">Jual Non-Pelunasan</div>
         </div>
       </div>
       <div class="col">
@@ -68,31 +97,7 @@
           <div class="stat-value text-danger">
             <%= fmtRp(summary.total_retur) %>
           </div>
-          <div class="stat-label">Total Retur (Cash Out)</div>
-        </div>
-      </div>
-      <div class="col">
-        <div class="stat-card"><i class="bi bi-cash-stack stat-icon text-success"></i>
-          <div class="stat-value text-success">
-            <%= fmtRp(summary.total_uang_masuk) %>
-          </div>
-          <div class="stat-label">Total Uang Masuk</div>
-        </div>
-      </div>
-      <div class="col">
-        <div class="stat-card"><i class="bi bi-cash stat-icon text-success"></i>
-          <div class="stat-value text-success">
-            <%= fmtRp(summary.total_cash) %>
-          </div>
-          <div class="stat-label">Total Metode Cash</div>
-        </div>
-      </div>
-      <div class="col">
-        <div class="stat-card"><i class="bi bi-bank stat-icon text-success"></i>
-          <div class="stat-value text-success">
-            <%= fmtRp(summary.total_transfer) %>
-          </div>
-          <div class="stat-label">Total Metode Transfer</div>
+          <div class="stat-label">Total Retur</div>
         </div>
       </div>
       <% } %>
