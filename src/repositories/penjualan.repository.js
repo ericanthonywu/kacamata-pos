@@ -15,7 +15,8 @@ exports.getDatatablesData = async function (params) {
   let baseQuery = db('penjualan')
     .leftJoin('pelanggan', 'penjualan.pelanggan_id', 'pelanggan.id')
     .leftJoin('sales', 'penjualan.sales_id', 'sales.id')
-    .leftJoin('pengguna', 'penjualan.created_by', 'pengguna.id');
+    .leftJoin('pengguna', 'penjualan.created_by', 'pengguna.id')
+    .leftJoin('metode_pembayaran', 'penjualan.metode_bayar_id', 'metode_pembayaran.id');
 
   if (is_toko === 'true' || is_toko === true) {
     baseQuery = baseQuery.where('penjualan.is_b2b', true);
@@ -78,7 +79,7 @@ exports.getDatatablesData = async function (params) {
     baseQuery = baseQuery.limit(length).offset(start);
   }
 
-  const data = await baseQuery.select('penjualan.*', 'pelanggan.nama as pelanggan_nama', 'sales.nama as sales_nama', 'pengguna.nama as created_by_nama');
+  const data = await baseQuery.select('penjualan.*', 'pelanggan.nama as pelanggan_nama', 'sales.nama as sales_nama', 'pengguna.nama as created_by_nama', 'metode_pembayaran.nama as metode_bayar');
 
   return { recordsTotal, recordsFiltered, data, totalPenjualanKhusus };
 };

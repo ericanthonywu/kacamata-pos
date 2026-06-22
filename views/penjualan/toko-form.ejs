@@ -73,8 +73,9 @@
         <div class="col-6">
           <select class="form-select form-select-sm" id="metode_bayar">
             <option value="">-- Pilih --</option>
-            <option value="cash">Cash</option>
-            <option value="transfer">Transfer</option>
+            <% metodePembayaran.forEach(function(m) { %>
+              <option value="<%= m.id %>"><%= m.nama %></option>
+            <% }); %>
           </select>
         </div>
       </div>

@@ -43,6 +43,7 @@ router.get('/stock-gudang', auth, async (req, res, next) => {
 
 // Application Routes
 router.use('/kategori', requireAdmin, require('./kategori.routes'));
+router.use('/metode-pembayaran', auth, require('./metode-pembayaran.routes'));
 router.use('/barang', require('./barang.routes')); 
 router.use('/supplier', requireAdmin, require('./supplier.routes'));
 router.use('/pelanggan', require('./pelanggan.routes')); 

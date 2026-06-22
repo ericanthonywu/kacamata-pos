@@ -124,6 +124,9 @@ function printNotaData(d) {
     }
     lines.push(padRight('', W - 45) + padRight('Uang Muka', 22) + ': ' + padLeft('Rp ' + Number(dp).toLocaleString('id-ID'), 21));
     lines.push(padRight('', W - 45) + padRight('Sisa', 22) + ': ' + padLeft('Rp ' + Number(sisa).toLocaleString('id-ID'), 21));
+    if (d.metode_bayar) {
+      lines.push(padRight('', W - 45) + padRight('Metode Bayar', 22) + ': ' + padLeft(d.metode_bayar.toUpperCase(), 21));
+    }
     lines.push(separator('-'));
 
     // Detail section: left = frame/lensa info, right = no/sales/tgl

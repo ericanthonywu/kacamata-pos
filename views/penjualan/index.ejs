@@ -32,6 +32,7 @@
             <th>BPJS</th>
             <th>DP</th>
             <th>Metode Bayar</th>
+            <th>Sisa Bayar</th>
             <th>Status</th>
             <th>Sales</th>
             <th style="width:150px">Aksi</th>
@@ -161,8 +162,18 @@
               data: 'metode_bayar',
               render: function (data, type, row) {
                 if (!data) return '<span class="text-muted">-</span>';
-                if (data === 'cash') return '<span class="badge bg-success">Cash</span>';
-                return '<span class="badge bg-primary">Transfer</span>';
+                var isCash = data.toLowerCase() === 'cash';
+                return '<span class="badge ' + (isCash ? 'bg-success' : 'bg-primary') + '">' + escapeHtml(data) + '</span>';
+              }
+            },
+            {
+              data: null,
+              className: 'text-danger fw-bold',
+              render: function (data, type, row) {
+                if (row.status_bayar === 'dp') {
+                  return fmtRp(parseFloat(row.total || 0) - parseFloat(row.dp || 0));
+                }
+                return '-';
               }
             },
             {
@@ -239,8 +250,9 @@
           // Rincian Barang
           var html = '<h6 class="fw-bold mb-3">Detail Barang</h6>';
           if (d.metode_bayar) {
-            var badgeCls = d.metode_bayar === 'cash' ? 'bg-success' : 'bg-primary';
-            html += '<p class="mb-2"><strong>Metode Bayar:</strong> <span class="badge ' + badgeCls + '">' + d.metode_bayar.toUpperCase() + '</span></p>';
+            var isCash = d.metode_bayar.toLowerCase() === 'cash';
+            var badgeCls = isCash ? 'bg-success' : 'bg-primary';
+            html += '<p class="mb-2"><strong>Metode Bayar:</strong> <span class="badge ' + badgeCls + '">' + escapeHtml(d.metode_bayar.toUpperCase()) + '</span></p>';
           }
           html += '<table class="table table-sm table-bordered"><thead><tr class="bg-light"><th>Barang (Kategori)</th><th>Barcode</th><th>Qty</th><th>Harga</th><th>Subtotal</th></tr></thead><tbody>';
           d.detail.forEach(function (item) {

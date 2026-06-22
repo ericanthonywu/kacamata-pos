@@ -2,6 +2,7 @@ const penjualanService = require('../services/penjualan.service');
 const pelangganService = require('../services/pelanggan.service');
 const salesService = require('../services/sales.service');
 const barangService = require('../services/barang.service');
+const metodePembayaranService = require('../services/metode-pembayaran.service');
 const { ok, fail } = require('../utils/response');
 
 exports.index = async function (req, res, next) {
@@ -69,11 +70,14 @@ exports.tokoDatatables = async function (req, res) {
 
 exports.tokoCreateForm = async function (req, res, next) {
   try {
-    const pelanggan = await pelangganService.getAll();
+    const [pelanggan, metodePembayaran] = await Promise.all([
+      pelangganService.getAll(),
+      metodePembayaranService.getAll()
+    ]);
     const barangList = [];
     res.render('penjualan/toko-form', {
       title: 'Penjualan Toko Baru',
-      pelanggan, barangList,
+      pelanggan, barangList, metodePembayaran,
       activePage: 'penjualan-toko',
     });
   } catch (err) { next(err); }
@@ -81,14 +85,15 @@ exports.tokoCreateForm = async function (req, res, next) {
 
 exports.createForm = async function (req, res, next) {
   try {
-    const [pelanggan, salesList] = await Promise.all([
+    const [pelanggan, salesList, metodePembayaran] = await Promise.all([
       pelangganService.getAll(),
       salesService.getActive(),
+      metodePembayaranService.getAll()
     ]);
     const barangList = []; // empty array for SSR
     res.render('penjualan/form', {
       title: 'Penjualan Baru',
-      pelanggan, salesList, barangList,
+      pelanggan, salesList, barangList, metodePembayaran,
       activePage: 'penjualan',
     });
   } catch (err) { next(err); }

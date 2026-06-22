@@ -213,8 +213,8 @@
               orderable: false,
               render: function (data, type, row) {
                 if (!data) return '<span class="text-muted">-</span>';
-                if (data === 'cash') return '<span class="badge bg-success">Cash</span>';
-                return '<span class="badge bg-primary">Transfer</span>';
+                var isCash = data.toLowerCase() === 'cash';
+                return '<span class="badge ' + (isCash ? 'bg-success' : 'bg-primary') + '">' + escapeHtml(data) + '</span>';
               }
             },
             {
@@ -335,8 +335,9 @@
           var d = res.data;
           var html = '';
           if (d.metode_bayar) {
-            var badgeCls = d.metode_bayar === 'cash' ? 'bg-success' : 'bg-primary';
-            html += '<p class="mb-2"><strong>Metode Bayar:</strong> <span class="badge ' + badgeCls + '">' + d.metode_bayar.toUpperCase() + '</span></p>';
+            var isCash = d.metode_bayar.toLowerCase() === 'cash';
+            var badgeCls = isCash ? 'bg-success' : 'bg-primary';
+            html += '<p class="mb-2"><strong>Metode Bayar:</strong> <span class="badge ' + badgeCls + '">' + escapeHtml(d.metode_bayar.toUpperCase()) + '</span></p>';
           }
           html += '<table class="table table-sm table-bordered"><thead><tr><th>Barang</th><th>Kategori</th><th>Qty</th><th>Harga</th><th>Subtotal</th></tr></thead><tbody>';
           d.detail.forEach(function (item) {

@@ -76,7 +76,7 @@ exports.create = async function (data, userId) {
     add_l: data.add_l || null,
     pd: data.pd || null,
     is_b2b: data.is_b2b || false,
-    metode_bayar: data.metode_bayar || null,
+    metode_bayar_id: data.metode_bayar || null,
   };
 
   const penjualan = await repo.create(penjualanData, items);

@@ -52,6 +52,7 @@ exports.getKasDatatablesData = async function (params) {
     .innerJoin('penjualan', 'kas.penjualan_id', 'penjualan.id')
     .leftJoin('pelanggan', 'penjualan.pelanggan_id', 'pelanggan.id')
     .leftJoin('sales', 'penjualan.sales_id', 'sales.id')
+    .leftJoin('metode_pembayaran', 'penjualan.metode_bayar_id', 'metode_pembayaran.id')
     .where('penjualan.is_b2b', false);
 
   baseQuery = applyFilters(baseQuery);
@@ -119,7 +120,7 @@ exports.getKasDatatablesData = async function (params) {
     'penjualan.bpjs',
     'penjualan.total',
     'penjualan.status_bayar',
-    'penjualan.metode_bayar',
+    'metode_pembayaran.nama as metode_bayar',
     'pelanggan.nama as pelanggan_nama',
     'sales.nama as sales_nama'
   );
