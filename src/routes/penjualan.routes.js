@@ -13,6 +13,7 @@ router.get('/dt', auth, c.datatables);
 router.get('/baru', auth, c.createForm);
 router.post('/', auth, c.store);
 router.get('/:id', auth, c.show);
+router.put('/:id/metode-pembayaran', auth, c.updateMetodePembayaran);
 router.delete('/:id', auth, requireAdmin, c.destroy);
 
 module.exports = router;

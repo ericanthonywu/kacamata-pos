@@ -85,4 +85,10 @@ exports.create = async function (data, userId) {
   return result;
 };
 
-exports.del = function (id) { return repo.del(id); };
+exports.del = async function (id) {
+  return repo.del(id);
+};
+
+exports.updateMetodePembayaran = async function (id, metode_bayar_id) {
+  return repo.updateMetodePembayaran(id, metode_bayar_id);
+};

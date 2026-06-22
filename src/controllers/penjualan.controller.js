@@ -7,7 +7,8 @@ const { ok, fail } = require('../utils/response');
 
 exports.index = async function (req, res, next) {
   try {
-    res.render('penjualan/index', { title: 'Penjualan', activePage: 'penjualan' });
+    const metodePembayaran = await metodePembayaranService.getAll();
+    res.render('penjualan/index', { title: 'Penjualan', activePage: 'penjualan', metodePembayaran });
   } catch (err) { next(err); }
 };
 
@@ -117,6 +118,13 @@ exports.show = async function (req, res) {
 exports.destroy = async function (req, res) {
   try {
     await penjualanService.del(req.params.id);
+    ok(res);
+  } catch (err) { fail(res, err); }
+};
+
+exports.updateMetodePembayaran = async function (req, res) {
+  try {
+    await penjualanService.updateMetodePembayaran(req.params.id, req.body.metode_bayar_id);
     ok(res);
   } catch (err) { fail(res, err); }
 };

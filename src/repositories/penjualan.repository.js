@@ -254,6 +254,15 @@ exports.generateNotaNumber = async function (is_b2b) {
   return prefix + String(seq).padStart(4, '0');
 };
 
+exports.updateMetodePembayaran = async function (id, metode_bayar_id) {
+  return db.transaction(async (trx) => {
+    const val = metode_bayar_id || null;
+    await trx('penjualan').where('id', id).update({ metode_bayar_id: val });
+    await trx('pembayaran_penjualan').where('penjualan_id', id).whereNull('metode_bayar_id').update({ metode_bayar_id: val });
+    await trx('kas').where('penjualan_id', id).whereNull('metode_bayar_id').update({ metode_bayar_id: val });
+  });
+};
+
 exports.getPelunasanDpDatatablesData = async function (params) {
   const { start, length, search, order, start_date, end_date } = params;
 

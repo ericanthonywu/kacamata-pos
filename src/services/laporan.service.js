@@ -8,6 +8,8 @@ exports.getKasReport = async function (filters) {
     summary: {
       total_pembayaran: parseInt(summary.total_pembayaran) || 0,
       total_uang_masuk: rawUangMasuk - totalRetur,
+      total_cash: parseFloat(summary.total_cash) || 0,
+      total_transfer: parseFloat(summary.total_transfer) || 0,
       uang_dari_penjualan: parseFloat(summary.uang_dari_penjualan) || 0,
       uang_dari_pelunasan: parseFloat(summary.uang_dari_pelunasan) || 0,
       total_bpjs: parseFloat(summary.total_bpjs) || 0,
