@@ -24,6 +24,43 @@ exports.findDetailsByReturId = function (returId) {
     .orderBy('penjualan_retur_detail.id', 'asc');
 };
 
+/**
+ * Recalculate and restore komisi_sales for a penjualan (used when retur is deleted).
+ */
+async function restoreKomisi(trx, penjualanId) {
+  const penjualan = await trx('penjualan').where('id', penjualanId).first();
+  if (!penjualan || penjualan.status_bayar !== 'lunas' || !penjualan.sales_id) return;
+
+  const sales = await trx('sales').where('id', penjualan.sales_id).first();
+  if (!sales) return;
+
+  const detailItems = await trx('penjualan_detail').where('penjualan_id', penjualanId);
+  var frameTotal = 0, lensaTotal = 0;
+  for (var i = 0; i < detailItems.length; i++) {
+    var line = detailItems[i];
+    var lineTotal = (parseFloat(line.harga || 0) - parseFloat(line.diskon || 0)) * parseInt(line.jumlah || 1);
+    if (line.tipe === 'frame') frameTotal += lineTotal;
+    else if (line.tipe === 'lensa_r' || line.tipe === 'lensa_l') lensaTotal += lineTotal;
+  }
+
+  await trx('komisi_sales').where('penjualan_id', penjualanId).del();
+
+  var komisiRows = [];
+  if (frameTotal > 0 && parseFloat(sales.komisi_frame) > 0) {
+    komisiRows.push({
+      penjualan_id: penjualanId, sales_id: sales.id, tipe: 'frame',
+      persentase: sales.komisi_frame, nominal_komisi: frameTotal * parseFloat(sales.komisi_frame) / 100
+    });
+  }
+  if (lensaTotal > 0 && parseFloat(sales.komisi_lensa) > 0) {
+    komisiRows.push({
+      penjualan_id: penjualanId, sales_id: sales.id, tipe: 'lensa',
+      persentase: sales.komisi_lensa, nominal_komisi: lensaTotal * parseFloat(sales.komisi_lensa) / 100
+    });
+  }
+  if (komisiRows.length > 0) await trx('komisi_sales').insert(komisiRows);
+}
+
 exports.create = async function (returData, detailItems) {
   return db.transaction(async (trx) => {
     const [retur] = await trx('penjualan_retur').insert(returData).returning('*');
@@ -54,12 +91,19 @@ exports.create = async function (returData, detailItems) {
       keterangan: 'Retur Penjualan',
     });
 
+    // Hapus komisi sales karena penjualan diretur
+    await trx('komisi_sales').where('penjualan_id', returData.penjualan_id).del();
+
     return retur;
   });
 };
 
 exports.del = async function (id) {
   return db.transaction(async (trx) => {
+    // Get penjualan_id before deleting the retur
+    const retur = await trx('penjualan_retur').where('id', id).first();
+    const penjualanId = retur ? retur.penjualan_id : null;
+
     const details = await trx('penjualan_retur_detail').where('penjualan_retur_id', id);
     for (const item of details) {
       if (item.barang_id) {
@@ -73,7 +117,13 @@ exports.del = async function (id) {
       .where('referensi_tipe', 'penjualan_retur')
       .del();
 
+    await trx('penjualan_retur_detail').where('penjualan_retur_id', id).del();
     await trx('penjualan_retur').where('id', id).del();
+
+    // Restore komisi sales setelah retur dihapus
+    if (penjualanId) {
+      await restoreKomisi(trx, penjualanId);
+    }
   });
 };
 
