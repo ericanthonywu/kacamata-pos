@@ -79,6 +79,22 @@
           <div class="stat-label">Total Uang Masuk</div>
         </div>
       </div>
+      <div class="col">
+        <div class="stat-card"><i class="bi bi-cash stat-icon text-success"></i>
+          <div class="stat-value text-success">
+            <%= fmtRp(summary.total_cash) %>
+          </div>
+          <div class="stat-label">Total Metode Cash</div>
+        </div>
+      </div>
+      <div class="col">
+        <div class="stat-card"><i class="bi bi-bank stat-icon text-success"></i>
+          <div class="stat-value text-success">
+            <%= fmtRp(summary.total_transfer) %>
+          </div>
+          <div class="stat-label">Total Metode Transfer</div>
+        </div>
+      </div>
       <% } %>
     </div>
 

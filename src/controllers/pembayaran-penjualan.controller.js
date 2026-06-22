@@ -1,5 +1,6 @@
 const service = require('../services/pembayaran-penjualan.service');
 const penjualanService = require('../services/penjualan.service');
+const metodeService = require('../services/metode-pembayaran.service');
 const { ok, fail } = require('../utils/response');
 
 // Page 1: List of all unpaid penjualan (DP/Belum Lunas)
@@ -21,9 +22,10 @@ exports.bayarForm = async function (req, res, next) {
     const penjualan = await penjualanService.getById(req.params.id);
     if (!penjualan) { req.flash('error', 'Penjualan tidak ditemukan'); return res.redirect('/pembayaran-penjualan'); }
     const payments = await service.getByPenjualanId(req.params.id);
+    const metodePembayaran = await metodeService.getAll();
     res.render('pembayaran-penjualan/form', {
       title: 'Pelunasan Hutang Penjualan',
-      penjualan, payments,
+      penjualan, payments, metodePembayaran,
       activePage: 'hutang-penjualan',
     });
   } catch (err) { next(err); }

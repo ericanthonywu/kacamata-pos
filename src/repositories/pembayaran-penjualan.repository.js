@@ -2,6 +2,8 @@ const db = require('../config/database');
 
 exports.findByPenjualanId = function (penjualanId) {
   return db('pembayaran_penjualan')
+    .select('pembayaran_penjualan.*', 'metode_pembayaran.nama as metode_pembayaran_nama')
+    .leftJoin('metode_pembayaran', 'pembayaran_penjualan.metode_bayar_id', 'metode_pembayaran.id')
     .where('penjualan_id', penjualanId)
     .orderBy('tanggal_bayar', 'asc');
 };
@@ -13,6 +15,7 @@ exports.create = async function (data) {
       tanggal_bayar: data.tanggal_bayar || new Date().toISOString().split('T')[0],
       jumlah_bayar: data.jumlah_bayar,
       keterangan: data.keterangan || '',
+      metode_bayar_id: data.metode_bayar_id || null
     }).returning('*');
 
     // Check total paid and update status
@@ -38,6 +41,7 @@ exports.create = async function (data) {
       penjualan_id: data.penjualan_id,
       no_referensi: penjualan.no_nota,
       keterangan: payment.keterangan || '',
+      metode_bayar_id: data.metode_bayar_id || null
     });
 
     // Handle komisi if it just became lunas

@@ -62,7 +62,16 @@
                 value="<%= new Date().toISOString().slice(0,10) %>">
             </div>
             <div class="mb-2">
-              <label class="form-label small">Jumlah Bayar</label>
+              <label class="form-label small">Metode Pembayaran <span class="text-danger">*</span></label>
+              <select class="form-select form-select-sm" id="metode_bayar_id">
+                <option value="" disabled selected>Pilih Metode</option>
+                <% metodePembayaran.forEach(m => { %>
+                  <option value="<%= m.id %>"><%= m.nama %> (<%= m.tipe === 'cash' ? 'Cash' : 'Transfer' %>)</option>
+                <% }) %>
+              </select>
+            </div>
+            <div class="mb-2">
+              <label class="form-label small">Jumlah Bayar <span class="text-danger">*</span></label>
               <input type="number" class="form-control form-control-sm" id="jumlah_bayar" value="<%= sisa %>" min="1">
             </div>
             <div class="mb-3">
@@ -92,6 +101,7 @@
                   <tr>
                     <th>Tanggal</th>
                     <th>Jumlah</th>
+                    <th>Metode</th>
                     <th>Keterangan</th>
                     <th></th>
                   </tr>
@@ -104,6 +114,9 @@
                       </td>
                       <td class="text-success fw-bold">
                         <%= fmtRp(p.jumlah_bayar) %>
+                      </td>
+                      <td>
+                        <%= p.metode_pembayaran_nama || '-' %>
                       </td>
                       <td class="small">
                         <%= p.keterangan || '-' %>
@@ -121,14 +134,26 @@
 
     <script>
       function bayar(btn) {
+        var tanggal = $('#tanggal_bayar').val();
+        var jumlah = parseFloat($('#jumlah_bayar').val()) || 0;
+        var keterangan = $('#keterangan').val();
+        var metode_bayar_id = $('#metode_bayar_id').val();
+
+        if (!tanggal || jumlah <= 0 || !metode_bayar_id) {
+          showToast('Tanggal, Jumlah Bayar, dan Metode Pembayaran harus diisi dengan benar', 'warning');
+          return;
+        }
+
+        if (!setBtnLoading(btn)) return;
+
         var payload = {
           penjualan_id: <%= penjualan.id %>,
-          tanggal_bayar: $('#tanggal_bayar').val(),
-          jumlah_bayar: parseFloat($('#jumlah_bayar').val()) || 0,
-          keterangan: $('#keterangan').val(),
+          tanggal_bayar: tanggal,
+          jumlah_bayar: jumlah,
+          keterangan: keterangan,
+          metode_bayar_id: metode_bayar_id
         };
-        if (payload.jumlah_bayar <= 0) { showToast('Jumlah bayar harus > 0', 'danger'); return; }
-        if (!setBtnLoading(btn)) return;
+
         $.ajax({
           url: '/pembayaran-penjualan', method: 'POST', contentType: 'application/json', data: JSON.stringify(payload),
           success: function () { location.reload(); },

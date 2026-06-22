@@ -112,10 +112,11 @@ exports.findDetailsByPenjualanId = function (penjualanId) {
 
 exports.findPaymentsByPenjualanId = function (penjualanId) {
   return db('pembayaran_penjualan')
-    .select('*')
+    .select('pembayaran_penjualan.*', 'metode_pembayaran.nama as metode_pembayaran_nama')
+    .leftJoin('metode_pembayaran', 'pembayaran_penjualan.metode_bayar_id', 'metode_pembayaran.id')
     .where('penjualan_id', penjualanId)
     .orderBy('tanggal_bayar', 'asc')
-    .orderBy('id', 'asc');
+    .orderBy('pembayaran_penjualan.id', 'asc');
 };
 
 exports.create = async function (penjualanData, detailItems) {
@@ -146,14 +147,28 @@ exports.create = async function (penjualanData, detailItems) {
 
     // Auto-create first payment record
     if (penjualanData.status_bayar === 'lunas') {
-      await trx('pembayaran_penjualan').insert({
+      const [pp] = await trx('pembayaran_penjualan').insert({
         penjualan_id: penjualan.id, tanggal_bayar: penjualanData.order_date,
         jumlah_bayar: penjualanData.total, keterangan: 'Pembayaran lunas',
+        metode_bayar_id: penjualanData.metode_bayar_id
+      }).returning('*');
+      await trx('kas').insert({
+        tipe: 'masuk', kategori: 'pembayaran_lunas', jumlah: penjualanData.total,
+        tanggal: penjualanData.order_date, referensi_id: pp.id, referensi_tipe: 'pembayaran_penjualan',
+        penjualan_id: penjualan.id, no_referensi: penjualanData.no_nota, keterangan: 'Pembayaran lunas',
+        metode_bayar_id: penjualanData.metode_bayar_id
       });
     } else if (penjualanData.status_bayar === 'dp' && penjualanData.dp > 0) {
-      await trx('pembayaran_penjualan').insert({
+      const [pp] = await trx('pembayaran_penjualan').insert({
         penjualan_id: penjualan.id, tanggal_bayar: penjualanData.order_date,
         jumlah_bayar: penjualanData.dp, keterangan: 'Down Payment',
+        metode_bayar_id: penjualanData.metode_bayar_id
+      }).returning('*');
+      await trx('kas').insert({
+        tipe: 'masuk', kategori: 'down_payment', jumlah: penjualanData.dp,
+        tanggal: penjualanData.order_date, referensi_id: pp.id, referensi_tipe: 'pembayaran_penjualan',
+        penjualan_id: penjualan.id, no_referensi: penjualanData.no_nota, keterangan: 'Down Payment',
+        metode_bayar_id: penjualanData.metode_bayar_id
       });
     }
 

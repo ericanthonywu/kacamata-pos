@@ -3,6 +3,7 @@ const db = require('../config/database');
 exports.getSummary = async function ({ from, to, sales_id } = {}) {
   let query = db('kas')
     .innerJoin('penjualan', 'kas.penjualan_id', 'penjualan.id')
+    .leftJoin('metode_pembayaran', 'kas.metode_bayar_id', 'metode_pembayaran.id')
     .where('penjualan.is_b2b', false);
 
   if (from) query = query.where('kas.tanggal', '>=', from);
@@ -13,6 +14,8 @@ exports.getSummary = async function ({ from, to, sales_id } = {}) {
     .select(
       db.raw("COUNT(CASE WHEN kas.tipe = 'masuk' THEN 1 END) as total_pembayaran"),
       db.raw("COALESCE(SUM(CASE WHEN kas.tipe = 'masuk' THEN kas.jumlah ELSE 0 END), 0) as total_uang_masuk"),
+      db.raw("COALESCE(SUM(CASE WHEN kas.tipe = 'masuk' AND metode_pembayaran.tipe = 'cash' THEN kas.jumlah ELSE 0 END), 0) as total_cash"),
+      db.raw("COALESCE(SUM(CASE WHEN kas.tipe = 'masuk' AND metode_pembayaran.tipe = 'transfer' THEN kas.jumlah ELSE 0 END), 0) as total_transfer"),
       db.raw("COALESCE(SUM(CASE WHEN kas.kategori IN ('pembayaran_lunas', 'down_payment') THEN kas.jumlah ELSE 0 END), 0) as uang_dari_penjualan"),
       db.raw("COALESCE(SUM(CASE WHEN kas.kategori = 'pelunasan' THEN kas.jumlah ELSE 0 END), 0) as uang_dari_pelunasan"),
       db.raw("COALESCE(SUM(CASE WHEN kas.tipe = 'keluar' THEN kas.jumlah ELSE 0 END), 0) as total_retur"),
@@ -52,7 +55,7 @@ exports.getKasDatatablesData = async function (params) {
     .innerJoin('penjualan', 'kas.penjualan_id', 'penjualan.id')
     .leftJoin('pelanggan', 'penjualan.pelanggan_id', 'pelanggan.id')
     .leftJoin('sales', 'penjualan.sales_id', 'sales.id')
-    .leftJoin('metode_pembayaran', 'penjualan.metode_bayar_id', 'metode_pembayaran.id')
+    .leftJoin('metode_pembayaran', 'kas.metode_bayar_id', 'metode_pembayaran.id')
     .where('penjualan.is_b2b', false);
 
   baseQuery = applyFilters(baseQuery);
