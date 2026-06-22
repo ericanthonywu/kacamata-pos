@@ -51,7 +51,7 @@ exports.create = async function (data, userId) {
 
   const bpjsAmount = parseFloat(data.bpjs) || 0;
   const total = subtotal - bpjsAmount;
-  const no_nota = await repo.generateNotaNumber();
+  const no_nota = await repo.generateNotaNumber(data.is_b2b);
 
   const penjualanData = {
     no_nota,
@@ -76,6 +76,7 @@ exports.create = async function (data, userId) {
     add_l: data.add_l || null,
     pd: data.pd || null,
     is_b2b: data.is_b2b || false,
+    metode_bayar: data.metode_bayar || null,
   };
 
   const penjualan = await repo.create(penjualanData, items);

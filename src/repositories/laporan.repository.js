@@ -2,7 +2,8 @@ const db = require('../config/database');
 
 exports.getSummary = async function ({ from, to, sales_id } = {}) {
   let query = db('kas')
-    .innerJoin('penjualan', 'kas.penjualan_id', 'penjualan.id');
+    .innerJoin('penjualan', 'kas.penjualan_id', 'penjualan.id')
+    .where('penjualan.is_b2b', false);
 
   if (from) query = query.where('kas.tanggal', '>=', from);
   if (to) query = query.where('kas.tanggal', '<=', to);
@@ -29,6 +30,7 @@ exports.getSummary = async function ({ from, to, sales_id } = {}) {
       if (to) this.andWhere('kas.tanggal', '<=', to);
     });
   if (sales_id) bpjsQuery = bpjsQuery.where('penjualan.sales_id', sales_id);
+  bpjsQuery = bpjsQuery.where('penjualan.is_b2b', false);
 
   const bpjsRes = await bpjsQuery.sum('bpjs as total_bpjs').first();
   result.total_bpjs = bpjsRes ? parseFloat(bpjsRes.total_bpjs || 0) : 0;
@@ -49,7 +51,8 @@ exports.getKasDatatablesData = async function (params) {
   let baseQuery = db('kas')
     .innerJoin('penjualan', 'kas.penjualan_id', 'penjualan.id')
     .leftJoin('pelanggan', 'penjualan.pelanggan_id', 'pelanggan.id')
-    .leftJoin('sales', 'penjualan.sales_id', 'sales.id');
+    .leftJoin('sales', 'penjualan.sales_id', 'sales.id')
+    .where('penjualan.is_b2b', false);
 
   baseQuery = applyFilters(baseQuery);
 
@@ -116,6 +119,7 @@ exports.getKasDatatablesData = async function (params) {
     'penjualan.bpjs',
     'penjualan.total',
     'penjualan.status_bayar',
+    'penjualan.metode_bayar',
     'pelanggan.nama as pelanggan_nama',
     'sales.nama as sales_nama'
   );

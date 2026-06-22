@@ -93,7 +93,7 @@
             <th>Total</th>
             <th>DP</th>
             <th>Pelunasan</th>
-            <th>Sisa</th>
+            <th>Metode Bayar</th>
             <th>BPJS</th>
             <th>Status</th>
             <% if (currentUser.hak_akses === 'admin') { %>
@@ -209,13 +209,12 @@
               }
             },
             {
-              data: null,
+              data: 'metode_bayar',
               orderable: false,
               render: function (data, type, row) {
-                if (row.tipe === 'keluar') return '-';
-                var sisa = row.status_bayar === 'lunas' ? 0 : (parseFloat(row.subtotal) - parseFloat(row.dp || 0) - parseFloat(row.bpjs || 0));
-                var style = sisa > 0 ? ' style="color: #fd7e14"' : '';
-                return '<span class="fw-bold"' + style + '>' + fmtRp(sisa) + '</span>';
+                if (!data) return '<span class="text-muted">-</span>';
+                if (data === 'cash') return '<span class="badge bg-success">Cash</span>';
+                return '<span class="badge bg-primary">Transfer</span>';
               }
             },
             {
@@ -334,7 +333,12 @@
             return;
           }
           var d = res.data;
-          var html = '<table class="table table-sm table-bordered"><thead><tr><th>Barang</th><th>Kategori</th><th>Qty</th><th>Harga</th><th>Subtotal</th></tr></thead><tbody>';
+          var html = '';
+          if (d.metode_bayar) {
+            var badgeCls = d.metode_bayar === 'cash' ? 'bg-success' : 'bg-primary';
+            html += '<p class="mb-2"><strong>Metode Bayar:</strong> <span class="badge ' + badgeCls + '">' + d.metode_bayar.toUpperCase() + '</span></p>';
+          }
+          html += '<table class="table table-sm table-bordered"><thead><tr><th>Barang</th><th>Kategori</th><th>Qty</th><th>Harga</th><th>Subtotal</th></tr></thead><tbody>';
           d.detail.forEach(function (item) {
             var itemName = item.nama_barang || item.keterangan || '-';
             html += '<tr>';

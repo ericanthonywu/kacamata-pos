@@ -191,6 +191,16 @@
               <div class="col-6"><input type="text" class="form-control form-control-sm calc-input input-currency" id="dp_amount"
                   value="0" min="0"></div>
             </div>
+            <div class="row g-2 align-items-center mb-2">
+              <div class="col-6"><label class="form-label small mb-0">Metode Bayar <span class="text-danger">*</span></label></div>
+              <div class="col-6">
+                <select class="form-select form-select-sm" id="metode_bayar">
+                  <option value="">-- Pilih --</option>
+                  <option value="cash">Cash</option>
+                  <option value="transfer">Transfer</option>
+                </select>
+              </div>
+            </div>
             <hr>
             <div class="row g-2 align-items-center">
               <div class="col-6"><strong class="fs-5">SISA</strong></div>
@@ -417,6 +427,9 @@
           if (!pelangganId) { showToast('Pelanggan wajib diisi', 'danger'); return; }
           if (!salesId) { showToast('Sales wajib diisi', 'danger'); return; }
 
+          var metodeBayar = $('#metode_bayar').val();
+          if (!metodeBayar) { showToast('Metode bayar wajib dipilih', 'danger'); return; }
+
           if (!setBtnLoading(btn)) return;
 
           var payload = {
@@ -426,6 +439,7 @@
             tanggal_selesai: $('#tanggal_selesai').val() || null,
             bpjs: parseFloat($('#bpjs').val().replace(/[^0-9]/g, '')) || 0,
             status_bayar: $('#status_bayar').val(),
+            metode_bayar: metodeBayar,
             dp: parseInt($('#dp_amount').val().replace(/[^0-9]/g, '')) || 0,
             sph_r: $('#sph_r').val(), cyl_r: $('#cyl_r').val(), axis_r: $('#axis_r').val(), add_r: $('#add_r').val(),
             sph_l: $('#sph_l').val(), cyl_l: $('#cyl_l').val(), axis_l: $('#axis_l').val(), add_l: $('#add_l').val(),

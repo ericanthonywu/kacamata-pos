@@ -220,9 +220,10 @@ exports.del = async function (id) {
   });
 };
 
-exports.generateNotaNumber = async function () {
+exports.generateNotaNumber = async function (is_b2b) {
   const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
-  const prefix = `INV-${today}-`;
+  const tag = is_b2b ? 'B2B' : 'INV';
+  const prefix = `${tag}-${today}-`;
   const lastNota = await db('penjualan')
     .where('no_nota', 'like', `${prefix}%`)
     .orderBy('no_nota', 'desc')
