@@ -109,9 +109,15 @@ $(function () {
         html += '<button class="btn btn-sm btn-outline-info" onclick="showDetail(' + row.id + ')"><i class="bi bi-eye"></i></button>';
       }
       html += '<div class="dropdown d-inline-block"><button class="btn btn-sm btn-outline-primary dropdown-toggle" type="button" data-bs-toggle="dropdown" title="Print Barcode"><i class="bi bi-upc-scan"></i></button>';
-      html += '<ul class="dropdown-menu shadow-sm"><li><h6 class="dropdown-header">Pilih Format Label</h6></li>';
-      html += '<li><a class="dropdown-item" href="#" onclick="event.preventDefault(); printBarcodes(' + row.id + ', &quot;double&quot;)"><i class="bi bi-layout-split"></i> Double (Kiri & Kanan)</a></li>';
-      html += '<li><a class="dropdown-item" href="#" onclick="event.preventDefault(); printBarcodes(' + row.id + ', &quot;single&quot;)"><i class="bi bi-layout-sidebar"></i> Single (Kiri saja)</a></li></ul></div>';
+      html += '<ul class="dropdown-menu shadow-sm">';
+      html += '<li><h6 class="dropdown-header">Label Lensa</h6></li>';
+      html += '<li><a class="dropdown-item" href="#" onclick="event.preventDefault(); printBarcodes(' + row.id + ', &quot;double&quot;)"><i class="bi bi-layout-split me-2"></i>Double (Kiri & Kanan)</a></li>';
+      html += '<li><a class="dropdown-item" href="#" onclick="event.preventDefault(); printBarcodes(' + row.id + ', &quot;single&quot;)"><i class="bi bi-layout-sidebar me-2"></i>Single (Kiri saja)</a></li>';
+      html += '<li><hr class="dropdown-divider"></li>';
+      html += '<li><h6 class="dropdown-header">Label Biasa</h6></li>';
+      html += '<li><a class="dropdown-item" href="#" onclick="event.preventDefault(); printBarcodesRegular(' + row.id + ', &quot;normal_double&quot;)"><i class="bi bi-grid me-2"></i>Normal (Kiri & Kanan)</a></li>';
+      html += '<li><a class="dropdown-item" href="#" onclick="event.preventDefault(); printBarcodesRegular(' + row.id + ', &quot;normal_single&quot;)"><i class="bi bi-layout-sidebar me-2"></i>Normal (Kiri saja)</a></li>';
+      html += '</ul></div>';
       if (window.userRole === 'admin') {
         if (row.status_bayar !== 'lunas') {
           html += '<a href="/pembayaran-pembelian/bayar/' + row.id + '" class="btn btn-sm btn-outline-success" title="Bayar"><i class="bi bi-wallet2"></i></a>';
@@ -167,6 +173,16 @@ function printBarcodes(id, format) {
     var items = res.data.detail.filter(function (i) { return i.barcode_id; });
     if (items.length === 0) { showToast('Tidak ada item dengan barcode', 'warning'); return; }
     printBarcodesFromItems(items, format);
+  });
+}
+
+function printBarcodesRegular(id, format) {
+  format = format || 'normal_double';
+  $.get('/pembelian/' + id, function (res) {
+    if (!res.success || !res.data.detail) return;
+    var items = res.data.detail.filter(function (i) { return i.barcode_id; });
+    if (items.length === 0) { showToast('Tidak ada item dengan barcode', 'warning'); return; }
+    printBarcodesNormal(items, format);
   });
 }
 </script >
