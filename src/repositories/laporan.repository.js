@@ -131,6 +131,55 @@ exports.getKasDatatablesData = async function (params) {
   return { recordsTotal, recordsFiltered, data };
 };
 
+exports.getKasChartData = async function ({ from, to, sales_id, group_by } = {}) {
+  group_by = group_by || 'day';
+
+  let dateExpr;
+  switch (group_by) {
+    case 'week':
+      dateExpr = db.raw("to_char(date_trunc('week', kas.tanggal), 'YYYY-MM-DD')");
+      break;
+    case 'month':
+      dateExpr = db.raw("to_char(kas.tanggal, 'YYYY-MM')");
+      break;
+    case 'year':
+      dateExpr = db.raw("to_char(kas.tanggal, 'YYYY')");
+      break;
+    default: // day
+      dateExpr = db.raw("to_char(kas.tanggal, 'YYYY-MM-DD')");
+      break;
+  }
+
+  let query = db('kas')
+    .innerJoin('penjualan', 'kas.penjualan_id', 'penjualan.id')
+    .leftJoin('metode_pembayaran', 'kas.metode_bayar_id', 'metode_pembayaran.id')
+    .where('penjualan.is_b2b', false);
+
+  if (from) query = query.where('kas.tanggal', '>=', from);
+  if (to) query = query.where('kas.tanggal', '<=', to);
+  if (sales_id) query = query.where('penjualan.sales_id', sales_id);
+
+  const data = await query
+    .select(
+      dateExpr.wrap('(', ') as period'),
+      db.raw("COALESCE(SUM(CASE WHEN kas.tipe = 'masuk' THEN kas.jumlah ELSE 0 END), 0) as total_masuk"),
+      db.raw("COALESCE(SUM(CASE WHEN kas.tipe = 'keluar' THEN kas.jumlah ELSE 0 END), 0) as total_keluar"),
+      db.raw("COALESCE(SUM(CASE WHEN kas.tipe = 'masuk' AND metode_pembayaran.tipe = 'cash' THEN kas.jumlah ELSE 0 END), 0) as total_cash"),
+      db.raw("COALESCE(SUM(CASE WHEN kas.tipe = 'masuk' AND metode_pembayaran.tipe = 'transfer' THEN kas.jumlah ELSE 0 END), 0) as total_transfer")
+    )
+    .groupByRaw('1')
+    .orderByRaw('1 ASC');
+
+  return data.map(row => ({
+    period: row.period,
+    total_masuk: parseFloat(row.total_masuk) || 0,
+    total_keluar: parseFloat(row.total_keluar) || 0,
+    total_cash: parseFloat(row.total_cash) || 0,
+    total_transfer: parseFloat(row.total_transfer) || 0,
+    net: (parseFloat(row.total_masuk) || 0) - (parseFloat(row.total_keluar) || 0),
+  }));
+};
+
 exports.getKomisiReport = async function ({ from, to, sales_id, tipe } = {}) {
   let pQuery = db('penjualan')
     .select('penjualan.*', 'sales.nama as sales_nama', 'sales.komisi_frame', 'sales.komisi_lensa')

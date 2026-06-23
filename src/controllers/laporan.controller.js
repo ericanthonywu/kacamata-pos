@@ -42,6 +42,20 @@ exports.kasDatatables = async function (req, res) {
   }
 };
 
+exports.kasChart = async function (req, res) {
+  try {
+    const data = await laporanService.getKasChartData({
+      from: req.query.from,
+      to: req.query.to,
+      sales_id: req.query.sales_id,
+      group_by: req.query.group_by || 'day',
+    });
+    res.json({ success: true, data });
+  } catch (err) {
+    res.status(500).json({ success: false, error: err.message });
+  }
+};
+
 exports.komisi = async function (req, res, next) {
   try {
     const today = new Date();

@@ -5,6 +5,7 @@ const { requireAdmin } = require('../middleware/rbac');
 
 router.get('/kas', auth, c.kas);
 router.get('/kas/dt', auth, c.kasDatatables);
+router.get('/kas/chart', auth, c.kasChart);
 router.get('/komisi', auth, requireAdmin, c.komisi);
 router.get('/komisi/detail/:sales_id', auth, requireAdmin, c.komisiDetail);
 

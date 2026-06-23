@@ -23,6 +23,10 @@ exports.getKasDatatablesData = function (params) {
   return repo.getKasDatatablesData(params);
 };
 
+exports.getKasChartData = function (params) {
+  return repo.getKasChartData(params);
+};
+
 exports.getKomisiReport = async function (filters) {
   return repo.getKomisiReport(filters);
 };
