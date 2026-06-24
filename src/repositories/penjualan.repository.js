@@ -273,8 +273,12 @@ exports.getPelunasanDpDatatablesData = async function (params) {
   let baseQuery = db('penjualan')
     .leftJoin('pelanggan', 'penjualan.pelanggan_id', 'pelanggan.id')
     .leftJoin('sales', 'penjualan.sales_id', 'sales.id')
-    .where('penjualan.dp', '>', 0)
-    .andWhere('penjualan.status_bayar', 'lunas');
+    .where('penjualan.status_bayar', 'lunas')
+    .whereExists(function () {
+      this.select('*').from('kas')
+        .whereRaw('kas.penjualan_id = penjualan.id')
+        .andWhere('kas.kategori', 'pelunasan');
+    });
 
   if (start_date) baseQuery = baseQuery.whereRaw('(SELECT MAX(DATE(tanggal_bayar)) FROM pembayaran_penjualan WHERE penjualan_id = penjualan.id) >= ?', [start_date]);
   if (end_date) baseQuery = baseQuery.whereRaw('(SELECT MAX(DATE(tanggal_bayar)) FROM pembayaran_penjualan WHERE penjualan_id = penjualan.id) <= ?', [end_date]);
