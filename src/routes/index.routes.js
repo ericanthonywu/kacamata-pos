@@ -64,7 +64,7 @@ router.post('/api/print/raw', auth, (req, res) => {
   if (!textData || !printerName) {
     return res.status(400).json({ success: false, message: 'Data teks dan nama printer harus diisi' });
   }
-  console.log("text data", textData)
+
   const tempFile = path.join(os.tmpdir(), 'nota_temp.txt');
   fs.writeFileSync(tempFile, textData, 'utf8');
 
