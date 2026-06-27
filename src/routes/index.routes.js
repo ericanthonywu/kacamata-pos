@@ -44,18 +44,18 @@ router.get('/stock-gudang', auth, async (req, res, next) => {
 // Application Routes
 router.use('/kategori', requireAdmin, require('./kategori.routes'));
 router.use('/metode-pembayaran', auth, require('./metode-pembayaran.routes'));
-router.use('/barang', require('./barang.routes')); 
+router.use('/barang', require('./barang.routes'));
 router.use('/supplier', requireAdmin, require('./supplier.routes'));
-router.use('/pelanggan', require('./pelanggan.routes')); 
+router.use('/pelanggan', require('./pelanggan.routes'));
 router.use('/sales', requireAdmin, require('./sales.routes'));
 router.use('/pengguna', requireAdmin, require('./pengguna.routes'));
-router.use('/penjualan', require('./penjualan.routes')); 
-router.use('/pembelian', require('./pembelian.routes')); 
+router.use('/penjualan', require('./penjualan.routes'));
+router.use('/pembelian', require('./pembelian.routes'));
 router.use('/pembelian-retur', requireAdmin, require('./pembelian-retur.routes'));
 router.use('/penjualan-retur', requireAdmin, require('./penjualan-retur.routes'));
 router.use('/pembayaran-pembelian', requireAdmin, require('./pembayaran-pembelian.routes'));
 router.use('/pembayaran-penjualan', require('./pembayaran-penjualan.routes'));
-router.use('/laporan', require('./laporan.routes')); 
+router.use('/laporan', require('./laporan.routes'));
 router.use('/bukti-hitung-fisik', require('./bukti-hitung-fisik.routes'));
 
 // Print API
@@ -73,6 +73,7 @@ router.post('/api/print/raw', auth, (req, res) => {
   const printCommand = `copy /b "${tempFile}" "\\\\${host}\\${printerName}"`;
 
   exec(printCommand, (error, stdout, stderr) => {
+    fs.unlink(tempFile, () => { });
     if (error) {
       console.error('Print Error:', error);
       return res.status(500).json({ success: false, message: 'Gagal nge-print. Pastikan printer sudah di-share dengan nama: ' + printerName });
