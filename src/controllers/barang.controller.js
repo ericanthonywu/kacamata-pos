@@ -43,7 +43,11 @@ exports.store = async function (req, res) {
 
 exports.update = async function (req, res) {
   try {
-    const result = await service.update(req.params.id, req.body);
+    const options = {
+      log_hitung_fisik: req.body.log_hitung_fisik === true || req.body.log_hitung_fisik === 'true',
+      user_nama: req.session.user ? req.session.user.nama : '',
+    };
+    const result = await service.update(req.params.id, req.body, options);
     ok(res, result);
   } catch (err) { fail(res, err); }
 };

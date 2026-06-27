@@ -75,6 +75,9 @@
     <a href="/stock-gudang" class="sidebar-link <%= activePage === 'stock-gudang' ? 'active' : '' %>">
       <i class="bi bi-house-gear"></i> Stock Gudang
     </a>
+    <a href="/bukti-hitung-fisik" class="sidebar-link <%= activePage === 'bukti-hitung-fisik' ? 'active' : '' %>">
+      <i class="bi bi-journal-check"></i> Bukti Hitung Fisik
+    </a>
     <% if (currentUser.hak_akses === 'admin') { %>
     <a href="/supplier" class="sidebar-link <%= activePage === 'supplier' ? 'active' : '' %>">
       <i class="bi bi-truck"></i> Supplier

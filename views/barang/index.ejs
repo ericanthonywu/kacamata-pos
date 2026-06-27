@@ -89,6 +89,16 @@
               </div>
             </div>
           </div>
+          <div id="bhf-container" style="display: none;">
+            <div class="mt-3 p-3 rounded-3 border border-info border-opacity-25" style="background: rgba(13,202,240,0.06);">
+              <div class="form-check form-switch mb-0">
+                <input class="form-check-input" type="checkbox" role="switch" id="log_hitung_fisik" style="cursor:pointer;">
+                <label class="form-check-label small fw-semibold" for="log_hitung_fisik" style="cursor:pointer;">
+                  <i class="bi bi-journal-check me-1 text-info"></i>Masukan ke bukti hitung fisik
+                </label>
+              </div>
+            </div>
+          </div>
           <div class="modal-footer">
             <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
             <button class="btn btn-primary btn-sm" id="btnSave">Simpan</button>
@@ -171,10 +181,12 @@
 
         $(document).on('click', '.btn-edit', function () {
           var $b = $(this);
+          var origQty = $b.data('qty') !== '' ? parseInt($b.data('qty')) : '';
           $('#editId').val($b.data('id'));
           $('#nama_barang').val($b.data('nama'));
           $('#kategori_id').val($b.data('kategori')).trigger('change');
-          $('#qty').val($b.data('qty') !== '' ? parseInt($b.data('qty')) : '');
+          $('#qty').val(origQty !== '' ? origQty : '');
+          $('#qty').data('original-qty', origQty);
           $('#harga_jual').val(parseInt($b.data('harga')) || 0).trigger('input');
           $('#sph_r').val($b.data('sph_r'));
           $('#cyl_r').val($b.data('cyl_r'));
@@ -182,8 +194,27 @@
           $('#sph_l').val($b.data('sph_l'));
           $('#cyl_l').val($b.data('cyl_l'));
           $('#add_l').val($b.data('add_l'));
+          // Reset checkbox and hide bhf container
+          $('#log_hitung_fisik').prop('checked', false);
+          $('#bhf-container').hide();
           $('.modal-title').text('Edit Barang');
           formModal.show();
+        });
+
+        // Show/hide bhf checkbox when qty changes during edit
+        $('#qty').on('input change', function () {
+          var editId = $('#editId').val();
+          if (!editId) { $('#bhf-container').hide(); return; }
+          var origQty = $('#qty').data('original-qty');
+          var currentQty = $(this).val();
+          // Compare: both as strings to handle empty vs number
+          var changed = String(origQty) !== String(currentQty);
+          if (changed) {
+            $('#bhf-container').show();
+          } else {
+            $('#bhf-container').hide();
+            $('#log_hitung_fisik').prop('checked', false);
+          }
         });
 
         $('#kategori_id').on('change', function() {
@@ -216,6 +247,9 @@
             sph_r: $('#sph_r').val(), cyl_r: $('#cyl_r').val(), add_r: $('#add_r').val(),
             sph_l: $('#sph_l').val(), cyl_l: $('#cyl_l').val(), add_l: $('#add_l').val(),
           };
+          if (id && $('#log_hitung_fisik').is(':checked')) {
+            payload.log_hitung_fisik = true;
+          }
           $.ajax({
             url: id ? '/barang/' + id : '/barang', method: id ? 'PUT' : 'POST',
             contentType: 'application/json', data: JSON.stringify(payload),

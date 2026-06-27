@@ -56,6 +56,7 @@ router.use('/penjualan-retur', requireAdmin, require('./penjualan-retur.routes')
 router.use('/pembayaran-pembelian', requireAdmin, require('./pembayaran-pembelian.routes'));
 router.use('/pembayaran-penjualan', require('./pembayaran-penjualan.routes'));
 router.use('/laporan', require('./laporan.routes')); 
+router.use('/bukti-hitung-fisik', require('./bukti-hitung-fisik.routes'));
 
 // Print API
 router.post('/api/print/raw', auth, (req, res) => {
