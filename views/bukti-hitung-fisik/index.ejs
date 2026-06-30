@@ -33,7 +33,7 @@
             <th>Selisih</th>
             <th>Diubah Oleh</th>
             <th>Tanggal</th>
-            <th style="width:80px">Aksi</th>
+            <th style="width:80px" class="no-export">Aksi</th>
           </tr>
         </thead>
         <tbody>
@@ -132,20 +132,20 @@
               text: '<i class="bi bi-file-earmark-excel"></i> Excel',
               className: 'btn btn-success btn-sm',
               action: newExportAction,
-              exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6], orthogonal: 'export' }
+              exportOptions: { columns: ':not(.no-export)', orthogonal: 'export' }
             },
             {
               extend: 'csvHtml5',
               text: '<i class="bi bi-filetype-csv"></i> CSV',
               className: 'btn btn-info btn-sm',
               action: newExportAction,
-              exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6], orthogonal: 'export' }
+              exportOptions: { columns: ':not(.no-export)', orthogonal: 'export' }
             },
             {
               extend: 'print',
               text: '<i class="bi bi-printer"></i> Print',
               className: 'btn btn-secondary btn-sm',
-              exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6], orthogonal: 'export' }
+              exportOptions: { columns: ':not(.no-export)', orthogonal: 'export' }
             }
           ],
           language: dtLanguageID,
@@ -175,7 +175,7 @@
               }
             },
             {
-              data: 'id', orderable: false, render: function (d) {
+              data: 'id', orderable: false, className: 'no-export', render: function (d) {
                 if (window.userRole === 'admin') {
                   return '<button class="btn btn-sm btn-outline-danger btn-del" data-id="' + d + '" data-url="/bukti-hitung-fisik/' + d + '"><i class="bi bi-trash"></i></button>';
                 }
