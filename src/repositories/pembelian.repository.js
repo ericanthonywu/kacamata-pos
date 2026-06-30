@@ -1,7 +1,9 @@
 const db = require('../config/database');
+const { todayCompact } = require('../utils/date.helper');
+const TABLE = 'pembelian';
 
 exports.findAll = function () {
-  return db('pembelian')
+  return db(TABLE)
     .select('pembelian.*', 'supplier.nama as supplier_nama')
     .leftJoin('supplier', 'pembelian.supplier_id', 'supplier.id')
     .orderBy('pembelian.created_at', 'desc');
@@ -10,7 +12,7 @@ exports.findAll = function () {
 exports.getDatatablesData = async function (params) {
   const { start, length, search, order, start_date, end_date } = params;
 
-  let baseQuery = db('pembelian')
+  let baseQuery = db(TABLE)
     .leftJoin('supplier', 'pembelian.supplier_id', 'supplier.id');
 
   const totalCountRes = await baseQuery.clone().count('pembelian.id as count').first();
@@ -20,16 +22,16 @@ exports.getDatatablesData = async function (params) {
   if (end_date) baseQuery = baseQuery.where('pembelian.tanggal_pembelian', '<=', end_date);
 
   if (search && search.value) {
-    baseQuery = baseQuery.where(function() {
+    baseQuery = baseQuery.where(function () {
       this.where('pembelian.kode_pembelian', 'ilike', `%${search.value}%`)
-          .orWhere('supplier.nama', 'ilike', `%${search.value}%`)
-          .orWhereExists(function() {
-            this.select('*')
-                .from('pembelian_detail')
-                .join('barang', 'pembelian_detail.barang_id', 'barang.id')
-                .whereRaw('pembelian_detail.pembelian_id = pembelian.id')
-                .andWhere('barang.barcode_id', 'ilike', `%${search.value}%`);
-          });
+        .orWhere('supplier.nama', 'ilike', `%${search.value}%`)
+        .orWhereExists(function () {
+          this.select('*')
+            .from('pembelian_detail')
+            .join('barang', 'pembelian_detail.barang_id', 'barang.id')
+            .whereRaw('pembelian_detail.pembelian_id = pembelian.id')
+            .andWhere('barang.barcode_id', 'ilike', `%${search.value}%`);
+        });
     });
   }
 
@@ -67,93 +69,32 @@ exports.getDatatablesData = async function (params) {
 };
 
 exports.findById = function (id) {
-  return db('pembelian')
+  return db(TABLE)
     .select('pembelian.*', 'supplier.nama as supplier_nama')
     .leftJoin('supplier', 'pembelian.supplier_id', 'supplier.id')
     .where('pembelian.id', id).first();
 };
 
-exports.findDetailsByPembelianId = function (pembelianId) {
-  return db('pembelian_detail')
-    .select(
-      'pembelian_detail.*', 
-      'barang.nama_barang', 
-      'barang.barcode_id', 
-      'barang.harga_jual',
-      'barang.sph_r',
-      'barang.sph_l',
-      'barang.cyl_r',
-      'barang.cyl_l',
-      'barang.add_r',
-      'barang.add_l',
-      'kategori.nama as kategori_nama'
-    )
-    .leftJoin('barang', 'pembelian_detail.barang_id', 'barang.id')
-    .leftJoin('kategori', 'barang.kategori_id', 'kategori.id')
-    .where('pembelian_detail.pembelian_id', pembelianId)
-    .orderBy('pembelian_detail.id', 'asc');
+exports.insert = function (trx, data) {
+  return trx(TABLE).insert(data).returning('*').then(r => r[0]);
 };
 
-exports.create = async function (pembelianData, detailItems) {
-  return db.transaction(async (trx) => {
-    const [pembelian] = await trx('pembelian').insert(pembelianData).returning('*');
-    for (const item of detailItems) {
-      await trx('pembelian_detail').insert({
-        pembelian_id: pembelian.id,
-        barang_id: item.barang_id,
-        jumlah: item.jumlah || 1,
-        harga_beli: item.harga_beli || 0,
-      });
-      // Increment stock and update harga_jual
-      if (item.barang_id) {
-        const brg = await trx('barang').select('qty', 'harga_jual').where('id', item.barang_id).first();
-        if (brg) {
-          const updateData = {};
-          if (brg.qty !== null) {
-            updateData.qty = parseInt(brg.qty) + (item.jumlah || 1);
-          }
-          if (item.harga_jual !== undefined && item.harga_jual !== null) {
-            updateData.harga_jual = item.harga_jual;
-          }
-          if (Object.keys(updateData).length > 0) {
-            await trx('barang').where('id', item.barang_id).update(updateData);
-          }
-        }
-      }
-    }
-    // Auto-create payment record if lunas
-    if (pembelianData.status_bayar === 'lunas') {
-      await trx('pembayaran_pembelian').insert({
-        pembelian_id: pembelian.id,
-        tanggal_bayar: pembelianData.tanggal_pembelian,
-        jumlah_bayar: pembelianData.total_harga,
-        keterangan: 'Pembayaran lunas (saat nota dibuat)',
-      });
-    }
-    return pembelian;
-  });
+exports.update = function (trx, id, data) {
+  return trx(TABLE).where('id', id).update(data);
 };
 
-exports.del = async function (id) {
-  return db.transaction(async (trx) => {
-    // Restore stock (decrement back)
-    const details = await trx('pembelian_detail').where('pembelian_id', id);
-    for (const item of details) {
-      if (item.barang_id) {
-        const brg = await trx('barang').select('qty').where('id', item.barang_id).first();
-        if (brg && brg.qty !== null) {
-          await trx('barang').where('id', item.barang_id).decrement('qty', item.jumlah);
-        }
-      }
-    }
-    await trx('pembelian').where('id', id).del();
-  });
+exports.deleteById = function (trx, id) {
+  return trx(TABLE).where('id', id).del();
+};
+
+exports.findByIdWithTrx = function (trx, id) {
+  return trx(TABLE).where('id', id).first();
 };
 
 exports.generateKodePembelian = async function () {
-  const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+  const today = todayCompact();
   const prefix = `PI-${today}-`;
-  const result = await db('pembelian').where('kode_pembelian', 'like', `${prefix}%`).count('id as cnt').first();
+  const result = await db(TABLE).where('kode_pembelian', 'like', `${prefix}%`).count('id as cnt').first();
   const seq = (parseInt(result.cnt) || 0) + 1;
   return prefix + String(seq).padStart(4, '0');
 };

@@ -1,48 +1,29 @@
 const db = require('../config/database');
+const TABLE = 'pembayaran_pembelian';
 
 exports.findByPembelianId = function (pembelianId) {
-  return db('pembayaran_pembelian')
+  return db(TABLE)
     .where('pembelian_id', pembelianId)
     .orderBy('tanggal_bayar', 'asc');
 };
 
-exports.create = async function (data) {
-  return db.transaction(async (trx) => {
-    const [payment] = await trx('pembayaran_pembelian').insert({
-      pembelian_id: data.pembelian_id,
-      tanggal_bayar: data.tanggal_bayar || new Date().toISOString().split('T')[0],
-      jumlah_bayar: data.jumlah_bayar,
-      keterangan: data.keterangan || '',
-    }).returning('*');
-
-    // Check total paid and update status
-    const totalPaid = await trx('pembayaran_pembelian')
-      .where('pembelian_id', data.pembelian_id)
-      .sum('jumlah_bayar as total')
-      .first();
-    const pembelian = await trx('pembelian').where('id', data.pembelian_id).first();
-    const newStatus = parseFloat(totalPaid.total) >= parseFloat(pembelian.total_harga) ? 'lunas' : 'belum_lunas';
-    await trx('pembelian').where('id', data.pembelian_id).update({ status_bayar: newStatus, updated_at: new Date() });
-
-    return payment;
-  });
+exports.insert = function (trx, data) {
+  return trx(TABLE).insert(data).returning('*').then(r => r[0]);
 };
 
-exports.del = async function (id) {
-  return db.transaction(async (trx) => {
-    const payment = await trx('pembayaran_pembelian').where('id', id).first();
-    if (!payment) return;
-    await trx('pembayaran_pembelian').where('id', id).del();
+exports.findById = function (trx, id) {
+  return (trx || db)(TABLE).where('id', id).first();
+};
 
-    // Recalculate status
-    const totalPaid = await trx('pembayaran_pembelian')
-      .where('pembelian_id', payment.pembelian_id)
-      .sum('jumlah_bayar as total')
-      .first();
-    const pembelian = await trx('pembelian').where('id', payment.pembelian_id).first();
-    const newStatus = parseFloat(totalPaid.total || 0) >= parseFloat(pembelian.total_harga) ? 'lunas' : 'belum_lunas';
-    await trx('pembelian').where('id', payment.pembelian_id).update({ status_bayar: newStatus, updated_at: new Date() });
-  });
+exports.deleteById = function (trx, id) {
+  return trx(TABLE).where('id', id).del();
+};
+
+exports.sumByPembelianId = function (trx, pembelianId) {
+  return (trx || db)(TABLE)
+    .where('pembelian_id', pembelianId)
+    .sum('jumlah_bayar as total')
+    .first();
 };
 
 exports.findUnpaidPembelian = function (query = {}) {

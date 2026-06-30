@@ -1,17 +1,12 @@
 const service = require('../services/bukti-hitung-fisik.service');
 const { ok, fail } = require('../utils/response');
+const { todayStr, firstDayOfMonth } = require('../utils/date.helper');
 
 exports.index = async function (req, res, next) {
   try {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const todayStr = `${year}-${month}-${String(now.getDate()).padStart(2, '0')}`;
-    const firstDayOfMonth = `${year}-${month}-01`;
-
     const filters = {
-      from: req.query.from || firstDayOfMonth,
-      to: req.query.to || todayStr,
+      from: req.query.from || firstDayOfMonth(),
+      to: req.query.to || todayStr(),
     };
 
     res.render('bukti-hitung-fisik/index', {

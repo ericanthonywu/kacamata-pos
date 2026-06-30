@@ -1,4 +1,5 @@
 const repo = require('../repositories/sales.repository');
+const { todayStr } = require('../utils/date.helper');
 
 exports.getAll = function () { return repo.findAll(); };
 exports.getActive = function () { return repo.findActive(); };
@@ -10,7 +11,7 @@ exports.create = function (data) {
     nama: data.nama.trim(),
     komisi_frame: parseFloat(data.komisi_frame) || 0,
     komisi_lensa: parseFloat(data.komisi_lensa) || 0,
-    tanggal_kerja: data.tanggal_kerja || new Date().toISOString().split('T')[0],
+    tanggal_kerja: data.tanggal_kerja || todayStr(),
     status: data.status || 'aktif',
   });
 };

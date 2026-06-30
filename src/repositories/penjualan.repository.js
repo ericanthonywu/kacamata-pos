@@ -1,7 +1,9 @@
 const db = require('../config/database');
+const { todayCompact } = require('../utils/date.helper');
+const TABLE = 'penjualan';
 
 exports.findAll = function () {
-  return db('penjualan')
+  return db(TABLE)
     .select('penjualan.*', 'pelanggan.nama as pelanggan_nama', 'sales.nama as sales_nama', 'pengguna.nama as created_by_nama')
     .leftJoin('pelanggan', 'penjualan.pelanggan_id', 'pelanggan.id')
     .leftJoin('sales', 'penjualan.sales_id', 'sales.id')
@@ -12,7 +14,7 @@ exports.findAll = function () {
 exports.getDatatablesData = async function (params) {
   const { start, length, search, order, start_date, end_date, status, is_toko } = params;
 
-  let baseQuery = db('penjualan')
+  let baseQuery = db(TABLE)
     .leftJoin('pelanggan', 'penjualan.pelanggan_id', 'pelanggan.id')
     .leftJoin('sales', 'penjualan.sales_id', 'sales.id')
     .leftJoin('pengguna', 'penjualan.created_by', 'pengguna.id')
@@ -58,8 +60,8 @@ exports.getDatatablesData = async function (params) {
     totalPenjualanKhusus = sumRes && sumRes.total_khusus ? parseFloat(sumRes.total_khusus) : 0;
   }
 
-  var columns = ['order_date', 'no_nota', 'pelanggan_nama', 'total', 'bpjs', 'dp', null, 'status_bayar', 'sales_nama'];
-  var colToDb = {
+  const columns = ['order_date', 'no_nota', 'pelanggan_nama', 'total', 'bpjs', 'dp', null, 'status_bayar', 'sales_nama'];
+  const colToDb = {
     order_date: 'penjualan.order_date', no_nota: 'penjualan.no_nota',
     pelanggan_nama: 'pelanggan.nama', total: 'penjualan.total',
     bpjs: 'penjualan.bpjs',
@@ -67,9 +69,9 @@ exports.getDatatablesData = async function (params) {
     sales_nama: 'sales.nama',
   };
   if (order && order.length > 0) {
-    var colIndex = parseInt(order[0].column);
-    var dir = order[0].dir === 'desc' ? 'desc' : 'asc';
-    var colName = columns[colIndex];
+    const colIndex = parseInt(order[0].column);
+    const dir = order[0].dir === 'desc' ? 'desc' : 'asc';
+    const colName = columns[colIndex];
     baseQuery = baseQuery.orderBy(colName ? colToDb[colName] : 'penjualan.created_at', dir);
   } else {
     baseQuery = baseQuery.orderBy('penjualan.created_at', 'desc');
@@ -85,7 +87,7 @@ exports.getDatatablesData = async function (params) {
 };
 
 exports.findById = function (id) {
-  return db('penjualan')
+  return db(TABLE)
     .select('penjualan.*', 'pelanggan.nama as pelanggan_nama', 'pelanggan.no_telp as pelanggan_telp',
       'sales.nama as sales_nama', 'pengguna.nama as created_by_nama')
     .leftJoin('pelanggan', 'penjualan.pelanggan_id', 'pelanggan.id')
@@ -94,157 +96,31 @@ exports.findById = function (id) {
     .where('penjualan.id', id).first();
 };
 
-exports.findDetailsByPenjualanId = function (penjualanId) {
-  return db('penjualan_detail')
-    .select(
-      'penjualan_detail.*',
-      'barang.nama_barang',
-      'barang.barcode_id',
-      'barang.sph_r as b_sph_r', 'barang.cyl_r as b_cyl_r', 'barang.add_r as b_add_r',
-      'barang.sph_l as b_sph_l', 'barang.cyl_l as b_cyl_l', 'barang.add_l as b_add_l',
-      'kategori.nama as kategori_nama'
-    )
-    .leftJoin('barang', 'penjualan_detail.barang_id', 'barang.id')
-    .leftJoin('kategori', 'barang.kategori_id', 'kategori.id')
-    .where('penjualan_detail.penjualan_id', penjualanId)
-    .orderBy('penjualan_detail.tipe', 'asc');
+exports.insert = function (trx, data) {
+  return trx(TABLE).insert(data).returning('*').then(r => r[0]);
 };
 
-exports.findPaymentsByPenjualanId = function (penjualanId) {
-  return db('pembayaran_penjualan')
-    .select('pembayaran_penjualan.*', 'metode_pembayaran.nama as metode_pembayaran_nama')
-    .leftJoin('metode_pembayaran', 'pembayaran_penjualan.metode_bayar_id', 'metode_pembayaran.id')
-    .where('penjualan_id', penjualanId)
-    .orderBy('tanggal_bayar', 'asc')
-    .orderBy('pembayaran_penjualan.id', 'asc');
+exports.update = function (trx, id, data) {
+  return trx(TABLE).where('id', id).update(data);
 };
 
-exports.create = async function (penjualanData, detailItems) {
-  return db.transaction(async (trx) => {
-    var penjualanArr = await trx('penjualan').insert(penjualanData).returning('*');
-    var penjualan = penjualanArr[0];
-
-    // Batch insert all detail items in one query
-    var detailRows = detailItems.map(function (item) {
-      return {
-        penjualan_id: penjualan.id, tipe: item.tipe, barang_id: item.barang_id,
-        harga: item.harga || 0, diskon: item.diskon || 0, jumlah: item.jumlah || 1,
-        keterangan: item.keterangan || null
-      };
-    });
-    await trx('penjualan_detail').insert(detailRows);
-
-    // Decrement stock separately
-    for (var i = 0; i < detailItems.length; i++) {
-      var item = detailItems[i];
-      if (item.barang_id) {
-        var brg = await trx('barang').select('qty').where('id', item.barang_id).first();
-        if (brg && brg.qty !== null && brg.qty > 0) {
-          await trx('barang').where('id', item.barang_id).decrement('qty', item.jumlah || 1);
-        }
-      }
-    }
-
-    // Auto-create first payment record
-    if (penjualanData.status_bayar === 'lunas') {
-      const [pp] = await trx('pembayaran_penjualan').insert({
-        penjualan_id: penjualan.id, tanggal_bayar: penjualanData.order_date,
-        jumlah_bayar: penjualanData.total, keterangan: 'Pembayaran lunas',
-        metode_bayar_id: penjualanData.metode_bayar_id
-      }).returning('*');
-      await trx('kas').insert({
-        tipe: 'masuk', kategori: 'pembayaran_lunas', jumlah: penjualanData.total,
-        tanggal: penjualanData.order_date, referensi_id: pp.id, referensi_tipe: 'pembayaran_penjualan',
-        penjualan_id: penjualan.id, no_referensi: penjualanData.no_nota, keterangan: 'Pembayaran lunas',
-        metode_bayar_id: penjualanData.metode_bayar_id
-      });
-    } else if (penjualanData.status_bayar === 'dp' && penjualanData.dp > 0) {
-      const [pp] = await trx('pembayaran_penjualan').insert({
-        penjualan_id: penjualan.id, tanggal_bayar: penjualanData.order_date,
-        jumlah_bayar: penjualanData.dp, keterangan: 'Down Payment',
-        metode_bayar_id: penjualanData.metode_bayar_id
-      }).returning('*');
-      await trx('kas').insert({
-        tipe: 'masuk', kategori: 'down_payment', jumlah: penjualanData.dp,
-        tanggal: penjualanData.order_date, referensi_id: pp.id, referensi_tipe: 'pembayaran_penjualan',
-        penjualan_id: penjualan.id, no_referensi: penjualanData.no_nota, keterangan: 'Down Payment',
-        metode_bayar_id: penjualanData.metode_bayar_id
-      });
-    }
-
-    // Save komisi sales
-    if (penjualanData.sales_id && penjualanData.status_bayar === 'lunas') {
-      var frameTotal = 0, lensaTotal = 0;
-      for (var j = 0; j < detailItems.length; j++) {
-        var line = detailItems[j];
-        var lineTotal = (parseFloat(line.harga || 0) - parseFloat(line.diskon || 0)) * parseInt(line.jumlah || 1);
-        if (line.tipe === 'frame') frameTotal += lineTotal;
-        else if (line.tipe === 'lensa_r' || line.tipe === 'lensa_l') lensaTotal += lineTotal;
-      }
-
-      var sales = await trx('sales').where('id', penjualanData.sales_id).first();
-      if (sales) {
-        var komisiRows = [];
-        if (frameTotal > 0 && parseFloat(sales.komisi_frame) > 0) {
-          komisiRows.push({
-            penjualan_id: penjualan.id, sales_id: sales.id, tipe: 'frame',
-            persentase: sales.komisi_frame, nominal_komisi: frameTotal * parseFloat(sales.komisi_frame) / 100
-          });
-        }
-        if (lensaTotal > 0 && parseFloat(sales.komisi_lensa) > 0) {
-          komisiRows.push({
-            penjualan_id: penjualan.id, sales_id: sales.id, tipe: 'lensa',
-            persentase: sales.komisi_lensa, nominal_komisi: lensaTotal * parseFloat(sales.komisi_lensa) / 100
-          });
-        }
-        if (komisiRows.length > 0) await trx('komisi_sales').insert(komisiRows);
-      }
-    }
-
-    return penjualan;
-  });
+exports.deleteById = function (trx, id) {
+  return trx(TABLE).where('id', id).del();
 };
 
-exports.del = async function (id) {
-  return db.transaction(async (trx) => {
-    // 1. Revert and delete retur (flattened — single query for all retur details)
-    var returIds = await trx('penjualan_retur').where('penjualan_id', id).pluck('id');
-    if (returIds.length > 0) {
-      var returDetails = await trx('penjualan_retur_detail').whereIn('penjualan_retur_id', returIds);
-      for (var i = 0; i < returDetails.length; i++) {
-        if (returDetails[i].barang_id) {
-          await trx('barang').where('id', returDetails[i].barang_id).decrement('qty', returDetails[i].jumlah);
-        }
-      }
-      await trx('penjualan_retur_detail').whereIn('penjualan_retur_id', returIds).del();
-      await trx('penjualan_retur').whereIn('id', returIds).del();
-    }
-
-    // 2. Revert and delete penjualan details
-    var details = await trx('penjualan_detail').where('penjualan_id', id);
-    for (var j = 0; j < details.length; j++) {
-      if (details[j].barang_id) {
-        await trx('barang').where('id', details[j].barang_id).increment('qty', details[j].jumlah);
-      }
-    }
-    await trx('penjualan_detail').where('penjualan_id', id).del();
-
-    // 3. Delete related records and main record
-    await trx('komisi_sales').where('penjualan_id', id).del();
-    await trx('pembayaran_penjualan').where('penjualan_id', id).del();
-    await trx('penjualan').where('id', id).del();
-  });
+exports.findByIdWithTrx = function (trx, id) {
+  return trx(TABLE).where('id', id).first();
 };
 
 exports.generateNotaNumber = async function (is_b2b) {
-  const today = new Date().toISOString().slice(0, 10).replace(/-/g, '');
+  const today = todayCompact();
   const tag = is_b2b ? 'B2B' : 'INV';
   const prefix = `${tag}-${today}-`;
-  const lastNota = await db('penjualan')
+  const lastNota = await db(TABLE)
     .where('no_nota', 'like', `${prefix}%`)
     .orderBy('no_nota', 'desc')
     .first();
-  
+
   let seq = 1;
   if (lastNota && lastNota.no_nota) {
     const lastSeqStr = lastNota.no_nota.replace(prefix, '');
@@ -254,15 +130,6 @@ exports.generateNotaNumber = async function (is_b2b) {
   return prefix + String(seq).padStart(4, '0');
 };
 
-exports.updateMetodePembayaran = async function (id, metode_bayar_id) {
-  return db.transaction(async (trx) => {
-    const val = metode_bayar_id || null;
-    await trx('penjualan').where('id', id).update({ metode_bayar_id: val });
-    await trx('pembayaran_penjualan').where('penjualan_id', id).whereNull('metode_bayar_id').update({ metode_bayar_id: val });
-    await trx('kas').where('penjualan_id', id).whereNull('metode_bayar_id').update({ metode_bayar_id: val });
-  });
-};
-
 exports.getPelunasanDpDatatablesData = async function (params) {
   const { start, length, search, order, start_date, end_date } = params;
 
@@ -270,7 +137,7 @@ exports.getPelunasanDpDatatablesData = async function (params) {
   const sqlPelunasanDate = db.raw('(SELECT MAX(tanggal_bayar) FROM pembayaran_penjualan WHERE penjualan_id = penjualan.id)');
   const sqlTotalBayar = db.raw('((SELECT SUM(jumlah_bayar) FROM pembayaran_penjualan WHERE penjualan_id = penjualan.id) - penjualan.dp)');
 
-  let baseQuery = db('penjualan')
+  let baseQuery = db(TABLE)
     .leftJoin('pelanggan', 'penjualan.pelanggan_id', 'pelanggan.id')
     .leftJoin('sales', 'penjualan.sales_id', 'sales.id')
     .where('penjualan.status_bayar', 'lunas')
@@ -336,4 +203,13 @@ exports.getPelunasanDpDatatablesData = async function (params) {
 
   const data = await baseQuery;
   return { recordsTotal, recordsFiltered, data, grandTotal };
+};
+
+/** Check if any penjualan exists for a given pelanggan_id. */
+exports.existsByPelangganId = async function (pelangganId) {
+  const result = await db.raw(
+    'SELECT EXISTS(SELECT 1 FROM penjualan WHERE pelanggan_id = ?) as exists',
+    [pelangganId]
+  );
+  return result.rows[0].exists;
 };

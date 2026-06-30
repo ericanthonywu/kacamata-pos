@@ -1,5 +1,5 @@
 const repo = require('../repositories/pelanggan.repository');
-const db = require('../config/database');
+const penjualanRepo = require('../repositories/penjualan.repository');
 
 exports.getAll = function () { return repo.findAll(); };
 exports.getById = function (id) { return repo.findById(id); };
@@ -19,8 +19,8 @@ exports.update = function (id, data) {
 };
 
 exports.del = async function (id) {
-  const count = await db('penjualan').where('pelanggan_id', id).count('id as cnt').first();
-  if (count && parseInt(count.cnt) > 0) {
+  const hasData = await penjualanRepo.existsByPelangganId(id);
+  if (hasData) {
     throw Object.assign(new Error('Pelanggan tidak bisa dihapus karena masih ada data penjualan yang terkait.'), { status: 400 });
   }
   return repo.del(id);

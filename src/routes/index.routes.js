@@ -10,7 +10,7 @@ const { requireAdmin } = require('../middleware/rbac');
 
 const pembayaranPembelianService = require('../services/pembayaran-pembelian.service');
 const pembayaranPenjualanService = require('../services/pembayaran-penjualan.service');
-const laporanRepo = require('../repositories/laporan.repository');
+const laporanService = require('../services/laporan.service');
 const kategoriService = require('../services/kategori.service');
 
 // Auth routes
@@ -23,7 +23,7 @@ router.get('/', auth, async (req, res, next) => {
     const hutangPenjualan = await pembayaranPenjualanService.getUnpaid();
     const totalHutangPembelian = hutangPembelian.reduce((s, p) => s + (parseFloat(p.total_harga) - parseFloat(p.total_dibayar)), 0);
     const totalHutangPenjualan = hutangPenjualan.reduce((s, p) => s + (parseFloat(p.total) - parseFloat(p.total_dibayar)), 0);
-    const lifetimeSummary = await laporanRepo.getSummary({});
+    const lifetimeSummary = await laporanService.getDashboardSummary();
     res.render('dashboard', {
       title: 'Dashboard', activePage: 'dashboard',
       hutangPembelian, hutangPenjualan,

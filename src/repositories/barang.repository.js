@@ -149,10 +149,28 @@ exports.del = function (id) {
   return db(TABLE).where('id', id).update({ deleted_at: db.fn.now() });
 };
 
-exports.decrementQty = function (id, amount) {
-  return db(TABLE).where('id', id).decrement('qty', amount);
+exports.decrementQty = function (id, amount, trx) {
+  return (trx || db)(TABLE).where('id', id).decrement('qty', amount);
 };
 
-exports.incrementQty = function (id, amount) {
-  return db(TABLE).where('id', id).increment('qty', amount);
+exports.incrementQty = function (id, amount, trx) {
+  return (trx || db)(TABLE).where('id', id).increment('qty', amount);
+};
+
+exports.updateQty = function (trx, id, qty) {
+  return trx(TABLE).where('id', id).update({ qty, updated_at: trx.fn.now() });
+};
+
+exports.findByIdWithTrx = function (trx, id) {
+  return trx(TABLE).select('qty', 'harga_jual').where('id', id).first();
+};
+
+exports.updateFields = function (trx, id, data) {
+  return trx(TABLE).where('id', id).update(data);
+};
+
+exports.generateBarcodeId = async function () {
+  const result = await db(TABLE).max('id as max_id').first();
+  const nextId = (result.max_id || 0) + 1;
+  return 'BRG-' + String(nextId).padStart(6, '0');
 };

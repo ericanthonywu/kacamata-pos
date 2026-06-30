@@ -1,17 +1,12 @@
 const laporanService = require('../services/laporan.service');
 const salesService = require('../services/sales.service');
+const { todayStr, firstDayOfMonth, getMonthRange } = require('../utils/date.helper');
 
 exports.kas = async function (req, res, next) {
   try {
-    const now = new Date();
-    const year = now.getFullYear();
-    const month = String(now.getMonth() + 1).padStart(2, '0');
-    const todayStr = `${year}-${month}-${String(now.getDate()).padStart(2, '0')}`;
-    const firstDayOfMonth = `${year}-${month}-01`;
-
     const filters = {
-      from: req.query.from || firstDayOfMonth,
-      to: req.query.to || todayStr,
+      from: req.query.from || firstDayOfMonth(),
+      to: req.query.to || todayStr(),
       sales_id: req.query.sales_id || null,
     };
     const [summary, salesList] = await Promise.all([
@@ -59,15 +54,9 @@ exports.kasChart = async function (req, res) {
 exports.komisi = async function (req, res, next) {
   try {
     const today = new Date();
-    const currentMonth = today.getMonth() + 1;
-    const currentYear = today.getFullYear();
-    const bulan = req.query.bulan ? parseInt(req.query.bulan) : currentMonth;
-    const tahun = req.query.tahun ? parseInt(req.query.tahun) : currentYear;
-    
-    // Calculate first and last day of the month
-    const from = `${tahun}-${bulan.toString().padStart(2, '0')}-01`;
-    const lastDay = new Date(tahun, bulan, 0).getDate();
-    const to = `${tahun}-${bulan.toString().padStart(2, '0')}-${lastDay}`;
+    const bulan = req.query.bulan ? parseInt(req.query.bulan) : today.getMonth() + 1;
+    const tahun = req.query.tahun ? parseInt(req.query.tahun) : today.getFullYear();
+    const { from, to } = getMonthRange(bulan, tahun);
 
     const filters = {
       from, to, bulan, tahun,
@@ -92,15 +81,9 @@ exports.komisi = async function (req, res, next) {
 exports.komisiDetail = async function (req, res, next) {
   try {
     const today = new Date();
-    const currentMonth = today.getMonth() + 1;
-    const currentYear = today.getFullYear();
-    const bulan = req.query.bulan ? parseInt(req.query.bulan) : currentMonth;
-    const tahun = req.query.tahun ? parseInt(req.query.tahun) : currentYear;
-    
-    // Calculate first and last day of the month
-    const from = `${tahun}-${bulan.toString().padStart(2, '0')}-01`;
-    const lastDay = new Date(tahun, bulan, 0).getDate();
-    const to = `${tahun}-${bulan.toString().padStart(2, '0')}-${lastDay}`;
+    const bulan = req.query.bulan ? parseInt(req.query.bulan) : today.getMonth() + 1;
+    const tahun = req.query.tahun ? parseInt(req.query.tahun) : today.getFullYear();
+    const { from, to } = getMonthRange(bulan, tahun);
 
     const sales_id = req.params.sales_id;
     if (!sales_id) return res.redirect('/laporan/komisi');

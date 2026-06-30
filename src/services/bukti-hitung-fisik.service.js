@@ -1,10 +1,10 @@
-const repo = require('../repositories/bukti-hitung-fisik.repository');
-const barangRepo = require('../repositories/barang.repository');
 const db = require('../config/database');
+const bhfRepo = require('../repositories/bukti-hitung-fisik.repository');
+const barangRepo = require('../repositories/barang.repository');
 
 exports.create = function (data) {
   if (!data.nama_barang) throw Object.assign(new Error('Nama barang harus diisi'), { status: 400 });
-  return repo.create({
+  return bhfRepo.create({
     barang_id: data.barang_id,
     nama_barang: data.nama_barang,
     barcode_id: data.barcode_id || '',
@@ -31,13 +31,12 @@ exports.createWithStockUpdate = async function (data) {
 
   const selisih = qtySesudah - qtySebelum;
 
-  // Use transaction to ensure atomicity
   return db.transaction(async (trx) => {
     // Update barang stock
-    await trx('barang').where('id', data.barang_id).update({ qty: qtySesudah, updated_at: trx.fn.now() });
+    await barangRepo.updateQty(trx, data.barang_id, qtySesudah);
 
     // Create BHF log
-    const [log] = await trx('bukti_hitung_fisik').insert({
+    const log = await bhfRepo.insertWithTrx(trx, {
       barang_id: data.barang_id,
       nama_barang: barang.nama_barang,
       barcode_id: barang.barcode_id || '',
@@ -45,19 +44,19 @@ exports.createWithStockUpdate = async function (data) {
       qty_sesudah: qtySesudah,
       selisih,
       diubah_oleh: data.diubah_oleh || '',
-    }).returning('*');
+    });
 
     return log;
   });
 };
 
 exports.getDatatablesData = function (params) {
-  return repo.getDatatablesData(params);
+  return bhfRepo.getDatatablesData(params);
 };
 
 exports.del = async function (id) {
-  const log = await repo.findById(id);
+  const log = await bhfRepo.findById(id);
   if (!log) throw Object.assign(new Error('Data tidak ditemukan'), { status: 404 });
-  await repo.del(id);
+  await bhfRepo.del(id);
   return log;
 };

@@ -1,7 +1,8 @@
-const repo = require('../repositories/laporan.repository');
+const kasRepo = require('../repositories/kas.repository');
+const laporanRepo = require('../repositories/laporan.repository');
 
 exports.getKasReport = async function (filters) {
-  const summary = await repo.getSummary(filters);
+  const summary = await kasRepo.getSummary(filters);
   const rawUangMasuk = parseFloat(summary.total_uang_masuk) || 0;
   const totalRetur = parseFloat(summary.total_retur) || 0;
   return {
@@ -20,17 +21,22 @@ exports.getKasReport = async function (filters) {
 };
 
 exports.getKasDatatablesData = function (params) {
-  return repo.getKasDatatablesData(params);
+  return kasRepo.getDatatablesData(params);
 };
 
 exports.getKasChartData = function (params) {
-  return repo.getKasChartData(params);
+  return kasRepo.getChartData(params);
 };
 
 exports.getKomisiReport = async function (filters) {
-  return repo.getKomisiReport(filters);
+  return laporanRepo.getKomisiReport(filters);
 };
 
 exports.getKomisiDetail = function (filters) {
-  return repo.getKomisiDetail(filters);
+  return laporanRepo.getKomisiDetail(filters);
+};
+
+/** Dashboard summary (lifetime). */
+exports.getDashboardSummary = function () {
+  return kasRepo.getSummary({});
 };

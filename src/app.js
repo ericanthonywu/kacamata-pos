@@ -4,6 +4,7 @@ const path = require('path');
 const flash = require('connect-flash');
 
 const db = require('./config/database');
+const { todayStr } = require('./utils/date.helper');
 const sessionMiddleware = require('./config/session');
 const errorHandler = require('./middleware/errorHandler');
 const routes = require('./routes/index.routes');
@@ -27,6 +28,7 @@ app.use((req, res, next) => {
   res.locals.currentUser = req.session.user || null;
   res.locals.success = req.flash('success')[0] || null;
   res.locals.error = req.flash('error')[0] || null;
+  res.locals.todayStr = todayStr;
   next();
 });
 

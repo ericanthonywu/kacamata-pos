@@ -5,6 +5,10 @@ exports.create = function (data) {
   return db(TABLE).insert(data).returning('*').then(r => r[0]);
 };
 
+exports.insertWithTrx = function (trx, data) {
+  return trx(TABLE).insert(data).returning('*').then(r => r[0]);
+};
+
 exports.getDatatablesData = async function (params) {
   const { start, length, search, order, from, to, columns: dtColumns } = params;
 

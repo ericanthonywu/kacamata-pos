@@ -49,7 +49,7 @@
                 <button class="btn btn-sm btn-outline-secondary me-1 btn-edit" data-id="<%= item.id %>"
                   data-nama="<%= item.nama %>" data-komisi_frame="<%= item.komisi_frame || 0 %>"
                   data-komisi_lensa="<%= item.komisi_lensa || 0 %>"
-                  data-tanggal="<%= item.tanggal_kerja ? new Date(item.tanggal_kerja).toISOString().slice(0,10) : '' %>"
+                  data-tanggal="<%= item.tanggal_kerja || '' %>"
                   data-status="<%= item.status %>">
                   <i class="bi bi-pencil"></i>
                 </button>
@@ -121,7 +121,7 @@ $(function() {
     $('#nama').val('');
     $('#komisi_frame').val(0);
     $('#komisi_lensa').val(0);
-    $('#tanggal_kerja').val(new Date().toISOString().slice(0,10));
+    $('#tanggal_kerja').val('<%= todayStr() %>');
     $('#status').val('aktif');
     $('.modal-title').text('Tambah Sales');
     formModal.show();
