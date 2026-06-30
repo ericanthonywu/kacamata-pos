@@ -16,7 +16,3 @@ exports.create = function (data) {
 exports.update = function (id, data) {
   return db(TABLE).where('id', id).update(data).returning('*').then(r => r[0]);
 };
-
-exports.del = function (id) {
-  return db(TABLE).where('id', id).del();
-};

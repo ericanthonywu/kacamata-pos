@@ -29,9 +29,3 @@ exports.update = async function (req, res) {
   } catch (err) { fail(res, err); }
 };
 
-exports.destroy = async function (req, res) {
-  try {
-    await service.del(req.params.id);
-    ok(res);
-  } catch (err) { fail(res, err); }
-};

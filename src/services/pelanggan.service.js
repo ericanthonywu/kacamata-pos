@@ -18,10 +18,3 @@ exports.update = function (id, data) {
   return repo.update(id, { nama: data.nama.trim(), no_telp: (data.no_telp || '').trim() || null });
 };
 
-exports.del = async function (id) {
-  const hasData = await penjualanRepo.existsByPelangganId(id);
-  if (hasData) {
-    throw Object.assign(new Error('Pelanggan tidak bisa dihapus karena masih ada data penjualan yang terkait.'), { status: 400 });
-  }
-  return repo.del(id);
-};

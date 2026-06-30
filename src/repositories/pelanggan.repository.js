@@ -12,4 +12,3 @@ exports.search = function (q) {
 };
 exports.create = function (data) { return db(TABLE).insert(data).returning('*').then(r => r[0]); };
 exports.update = function (id, data) { return db(TABLE).where('id', id).update(data).returning('*').then(r => r[0]); };
-exports.del = function (id) { return db(TABLE).where('id', id).del(); };

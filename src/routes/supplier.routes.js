@@ -4,5 +4,4 @@ const c = require('../controllers/supplier.controller');
 router.get('/', auth, c.index);
 router.post('/', auth, c.store);
 router.put('/:id', auth, c.update);
-router.delete('/:id', auth, c.destroy);
 module.exports = router;
