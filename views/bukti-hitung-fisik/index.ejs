@@ -132,20 +132,20 @@
               text: '<i class="bi bi-file-earmark-excel"></i> Excel',
               className: 'btn btn-success btn-sm',
               action: newExportAction,
-              exportOptions: { columns: ':visible:not(:last-child)', orthogonal: 'export' }
+              exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6], orthogonal: 'export' }
             },
             {
               extend: 'csvHtml5',
               text: '<i class="bi bi-filetype-csv"></i> CSV',
               className: 'btn btn-info btn-sm',
               action: newExportAction,
-              exportOptions: { columns: ':visible:not(:last-child)', orthogonal: 'export' }
+              exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6], orthogonal: 'export' }
             },
             {
               extend: 'print',
               text: '<i class="bi bi-printer"></i> Print',
               className: 'btn btn-secondary btn-sm',
-              exportOptions: { columns: ':visible:not(:last-child)', orthogonal: 'export' }
+              exportOptions: { columns: [0, 1, 2, 3, 4, 5, 6], orthogonal: 'export' }
             }
           ],
           language: dtLanguageID,
