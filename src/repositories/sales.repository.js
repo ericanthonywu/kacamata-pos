@@ -6,4 +6,3 @@ exports.findActive = function () { return db(TABLE).where('status', 'aktif').ord
 exports.findById = function (id) { return db(TABLE).where('id', id).first(); };
 exports.create = function (data) { return db(TABLE).insert(data).returning('*').then(r => r[0]); };
 exports.update = function (id, data) { return db(TABLE).where('id', id).update(data).returning('*').then(r => r[0]); };
-exports.del = function (id) { return db(TABLE).where('id', id).del(); };

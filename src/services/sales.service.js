@@ -26,5 +26,3 @@ exports.update = function (id, data) {
     status: data.status || 'aktif',
   });
 };
-
-exports.del = function (id) { return repo.del(id); };
