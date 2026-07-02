@@ -54,6 +54,63 @@ exports.getDatatablesData = function (params) {
   return bhfRepo.getDatatablesData(params);
 };
 
+exports.createBulkWithStockUpdate = async function (items, diubahOleh) {
+  if (!items || items.length === 0) {
+    throw Object.assign(new Error('Minimal satu item harus diisi'), { status: 400 });
+  }
+
+  // Validate all items first
+  const barangDataMap = {};
+  for (const item of items) {
+    if (!item.barang_id) {
+      throw Object.assign(new Error('Semua baris harus memilih barang'), { status: 400 });
+    }
+    const qtySesudah = parseInt(item.qty_sesudah);
+    if (isNaN(qtySesudah)) {
+      throw Object.assign(new Error('Qty sesudah harus diisi untuk semua baris'), { status: 400 });
+    }
+    if (!barangDataMap[item.barang_id]) {
+      const barang = await barangRepo.findById(item.barang_id);
+      if (!barang) {
+        throw Object.assign(new Error(`Barang dengan ID ${item.barang_id} tidak ditemukan`), { status: 404 });
+      }
+      barangDataMap[item.barang_id] = barang;
+    }
+  }
+
+  return db.transaction(async (trx) => {
+    const logs = [];
+
+    for (const item of items) {
+      const barang = barangDataMap[item.barang_id];
+      const qtySebelum = barang.qty !== null ? parseInt(barang.qty) : 0;
+      const qtySesudah = parseInt(item.qty_sesudah);
+      const selisih = qtySesudah - qtySebelum;
+
+      // Update barang stock
+      await barangRepo.updateQty(trx, item.barang_id, qtySesudah);
+
+      // Create BHF log
+      const log = await bhfRepo.insertWithTrx(trx, {
+        barang_id: item.barang_id,
+        nama_barang: barang.nama_barang,
+        barcode_id: barang.barcode_id || '',
+        qty_sebelum: qtySebelum,
+        qty_sesudah: qtySesudah,
+        selisih,
+        diubah_oleh: diubahOleh || '',
+      });
+
+      logs.push(log);
+
+      // Update in-memory data so subsequent same-barang entries use the new qty
+      barang.qty = qtySesudah;
+    }
+
+    return logs;
+  });
+};
+
 exports.del = async function (id) {
   const log = await bhfRepo.findById(id);
   if (!log) throw Object.assign(new Error('Data tidak ditemukan'), { status: 404 });

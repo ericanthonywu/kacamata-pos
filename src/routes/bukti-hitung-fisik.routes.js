@@ -6,6 +6,7 @@ const c = require('../controllers/bukti-hitung-fisik.controller');
 router.get('/', auth, c.index);
 router.get('/dt', auth, c.datatables);
 router.post('/', auth, c.store);
+router.post('/bulk', auth, c.storeBulk);
 router.delete('/:id', auth, requireAdmin, c.destroy);
 
 module.exports = router;

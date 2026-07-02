@@ -189,7 +189,7 @@
             </div>
             <div class="modal-footer no-print">
               <button class="btn btn-secondary" data-bs-dismiss="modal">Tutup</button>
-              <button class="btn btn-primary" onclick="window.print()"><i class="bi bi-printer"></i> Print</button>
+              <button class="btn btn-primary" onclick="printKomisi()"><i class="bi bi-printer"></i> Print</button>
             </div>
           </div>
         </div>
@@ -197,17 +197,36 @@
       
       <style>
         @media print {
-          body.modal-open { visibility: hidden; }
-          body.modal-open #detailModal { visibility: visible; position: absolute; left: 0; top: 0; width: 100%; margin: 0; }
-          body.modal-open #detailModal * { visibility: visible; }
-          body.modal-open .modal-dialog { max-width: 100%; margin: 0; }
-          body.modal-open .modal-content { border: none; box-shadow: none; }
-          body.modal-open .no-print, body.modal-open .modal-footer { display: none !important; }
-          body.modal-open .modal-body { padding: 0 !important; }
+          body.printing-komisi > * { display: none !important; }
+          body.printing-komisi > #printContainer {
+            display: block !important;
+          }
+          #printContainer {
+            display: none;
+          }
+          #printContainer table { page-break-inside: auto; }
+          #printContainer tr { page-break-inside: avoid; page-break-after: auto; }
+          #printContainer thead { display: table-header-group; }
+          #printContainer tfoot { display: table-footer-group; }
         }
       </style>
 
       <script>
+
+function printKomisi() {
+  // Clone the printArea content into a top-level container
+  var container = document.getElementById('printContainer');
+  if (!container) {
+    container = document.createElement('div');
+    container.id = 'printContainer';
+    document.body.appendChild(container);
+  }
+  container.innerHTML = document.getElementById('printArea').innerHTML;
+  document.body.classList.add('printing-komisi');
+  window.print();
+  document.body.classList.remove('printing-komisi');
+  container.innerHTML = '';
+}
 
 function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
 const months = ['Januari','Februari','Maret','April','Mei','Juni','Juli','Agustus','September','Oktober','November','Desember'];

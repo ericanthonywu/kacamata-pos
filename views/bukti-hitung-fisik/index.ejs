@@ -42,38 +42,41 @@
         </table>
       </div>
 
-      <!-- Form Modal -->
-      <div class="modal fade" id="formModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
+
+      <!-- Bulk Form Modal -->
+      <div class="modal fade" id="bulkModal" tabindex="-1">
+        <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
           <div class="modal-content">
             <div class="modal-header">
-              <h5 class="modal-title">Tambah Bukti Hitung Fisik</h5><button type="button" class="btn-close"
-                data-bs-dismiss="modal"></button>
+              <h5 class="modal-title">Hitung Fisik</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
             </div>
             <div class="modal-body">
-              <div class="mb-3">
-                <label class="form-label small">Barang</label>
-                <select class="form-select" id="barang_id" style="width:100%"></select>
+              <div class="table-responsive">
+                <table class="table table-sm align-middle mb-0" id="bulkTable">
+                  <thead>
+                    <tr>
+                      <th style="width:40px">#</th>
+                      <th>Barang</th>
+                      <th style="width:120px">Qty Sebelum</th>
+                      <th style="width:120px">Qty Sesudah</th>
+                      <th style="width:100px">Selisih</th>
+                      <th style="width:50px"></th>
+                    </tr>
+                  </thead>
+                  <tbody id="bulkRows">
+                  </tbody>
+                </table>
               </div>
-              <div class="row">
-                <div class="col-md-6 mb-3">
-                  <label class="form-label small">Qty Sebelum (Stock Saat Ini)</label>
-                  <input type="text" class="form-control" id="qty_sebelum" readonly>
-                </div>
-                <div class="col-md-6 mb-3">
-                  <label class="form-label small">Qty Sesudah</label>
-                  <input type="number" class="form-control" id="qty_sesudah" placeholder="Masukan qty baru">
-                </div>
-              </div>
-              <div id="selisih-preview" style="display:none;">
-                <div class="alert alert-info py-2 mb-0">
-                  <small>Selisih: <strong id="selisih-value">0</strong></small>
-                </div>
-              </div>
+              <button type="button" class="btn btn-outline-primary btn-sm mt-2" id="btnAddRow">
+                <i class="bi bi-plus-circle"></i> Tambah Baris
+              </button>
             </div>
             <div class="modal-footer">
               <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
-              <button class="btn btn-primary btn-sm" id="btnSave">Simpan</button>
+              <button class="btn btn-primary btn-sm" id="btnSaveBulk">
+                <i class="bi bi-check-circle"></i> Simpan Semua
+              </button>
             </div>
           </div>
         </div>
@@ -215,102 +218,163 @@
             confirmDelete($(this).data('id'), $(this).data('url'));
           });
 
-          // Form modal
-          var formModal = new bootstrap.Modal(document.getElementById('formModal'));
+          // ─── Bulk Form Modal ───────────────────────────────────
+          var bulkModal = new bootstrap.Modal(document.getElementById('bulkModal'));
+          var bulkRowIdx = 0;
 
-          // Init Select2 AJAX for barang
-          $('#barang_id').select2({
-            theme: 'bootstrap-5',
-            placeholder: '-- Cari Barang --',
-            allowClear: true,
-            dropdownParent: $('#formModal'),
-            ajax: {
-              url: '/barang/search',
-              dataType: 'json',
-              delay: 250,
-              data: function (params) {
-                return { q: params.term || '' };
-              },
-              processResults: function (data) {
-                return {
-                  results: $.map(data.data, function (item) {
-                    var text = item.nama_barang;
-                    var sph = item.sph_r || item.sph_l || '';
-                    var cyl = item.cyl_r || item.cyl_l || '';
-                    var add = item.add_r || item.add_l || '';
-                    if (sph || cyl || add) {
-                      text += ' (SPH: ' + sph + ' CYL: ' + cyl + ' ADD: ' + add + ')';
-                    }
-                    text += ' [Stok: ' + (item.qty !== null ? item.qty : '-') + ']';
-                    return { id: item.id, text: text, item: item };
-                  })
-                };
-              },
-              cache: true
+          function buildBarangLabel(item) {
+            var text = item.nama_barang;
+            var sph = item.sph_r || item.sph_l || '';
+            var cyl = item.cyl_r || item.cyl_l || '';
+            var add = item.add_r || item.add_l || '';
+            if (sph || cyl || add) {
+              text += ' (SPH: ' + sph + ' CYL: ' + cyl + ' ADD: ' + add + ')';
             }
-          }).on('select2:select', function (e) {
-            var b = e.params.data.item;
-            $('#qty_sebelum').val(b.qty !== null ? b.qty : 0);
-            $('#qty_sesudah').val('');
-            $('#selisih-preview').hide();
-          }).on('select2:clear', function () {
-            $('#qty_sebelum').val('');
-            $('#qty_sesudah').val('');
-            $('#selisih-preview').hide();
-          });
+            text += ' [Stok: ' + (item.qty !== null ? item.qty : '-') + ']';
+            return text;
+          }
 
-          $('#btnAdd').on('click', function () {
-            // Reset form
-            $('#barang_id').val(null).trigger('change');
-            $('#qty_sebelum').val('');
-            $('#qty_sesudah').val('');
-            $('#selisih-preview').hide();
-            formModal.show();
-          });
+          function addBulkRow() {
+            bulkRowIdx++;
+            var idx = bulkRowIdx;
+            var html = '<tr data-idx="' + idx + '">' +
+              '<td class="text-center fw-bold">' + idx + '</td>' +
+              '<td><select class="form-select bulk-barang" data-idx="' + idx + '" style="width:100%"></select></td>' +
+              '<td><input type="text" class="form-control form-control-sm bulk-sebelum" data-idx="' + idx + '" readonly></td>' +
+              '<td><input type="number" class="form-control form-control-sm bulk-sesudah" data-idx="' + idx + '" placeholder="Qty baru"></td>' +
+              '<td class="bulk-selisih" data-idx="' + idx + '"><span class="text-muted">-</span></td>' +
+              '<td><button type="button" class="btn btn-sm btn-outline-danger btn-remove-row" data-idx="' + idx + '"><i class="bi bi-x"></i></button></td>' +
+              '</tr>';
+            $('#bulkRows').append(html);
 
-          // Preview selisih
-          $('#qty_sesudah').on('input', function () {
-            var sebelum = parseInt($('#qty_sebelum').val()) || 0;
+            // Init Select2 on the new row
+            var $sel = $('select.bulk-barang[data-idx="' + idx + '"]');
+            $sel.select2({
+              theme: 'bootstrap-5',
+              placeholder: '-- Cari Barang --',
+              allowClear: true,
+              dropdownParent: $('#bulkModal'),
+              ajax: {
+                url: '/barang/search',
+                dataType: 'json',
+                delay: 250,
+                data: function (params) { return { q: params.term || '' }; },
+                processResults: function (data) {
+                  return {
+                    results: $.map(data.data, function (item) {
+                      return { id: item.id, text: buildBarangLabel(item), item: item };
+                    })
+                  };
+                },
+                cache: true
+              }
+            }).on('select2:select', function (e) {
+              var b = e.params.data.item;
+              var i = $(this).data('idx');
+              $('input.bulk-sebelum[data-idx="' + i + '"]').val(b.qty !== null ? b.qty : 0);
+              $('input.bulk-sesudah[data-idx="' + i + '"]').val('').focus();
+              $('td.bulk-selisih[data-idx="' + i + '"]').html('<span class="text-muted">-</span>');
+            }).on('select2:clear', function () {
+              var i = $(this).data('idx');
+              $('input.bulk-sebelum[data-idx="' + i + '"]').val('');
+              $('input.bulk-sesudah[data-idx="' + i + '"]').val('');
+              $('td.bulk-selisih[data-idx="' + i + '"]').html('<span class="text-muted">-</span>');
+            });
+
+            return idx;
+          }
+
+          function renumberBulkRows() {
+            $('#bulkRows tr').each(function (i) {
+              $(this).find('td:first').text(i + 1);
+            });
+          }
+
+          // Selisih preview for bulk rows
+          $(document).on('input', '.bulk-sesudah', function () {
+            var i = $(this).data('idx');
+            var sebelum = parseInt($('input.bulk-sebelum[data-idx="' + i + '"]').val()) || 0;
             var sesudah = parseInt($(this).val());
+            var $td = $('td.bulk-selisih[data-idx="' + i + '"]');
             if (!isNaN(sesudah)) {
               var selisih = sesudah - sebelum;
               var text = selisih > 0 ? '+' + selisih : String(selisih);
-              var cls = selisih > 0 ? 'text-success' : (selisih < 0 ? 'text-danger' : 'text-muted');
-              $('#selisih-value').text(text).attr('class', cls);
-              $('#selisih-preview').show();
+              var cls = selisih > 0 ? 'text-success fw-bold' : (selisih < 0 ? 'text-danger fw-bold' : 'text-muted');
+              $td.html('<span class="' + cls + '">' + text + '</span>');
             } else {
-              $('#selisih-preview').hide();
+              $td.html('<span class="text-muted">-</span>');
             }
           });
 
-          // Save
-          $('#btnSave').on('click', function () {
+          // Remove row
+          $(document).on('click', '.btn-remove-row', function () {
+            var i = $(this).data('idx');
+            // Destroy Select2 before removing
+            $('select.bulk-barang[data-idx="' + i + '"]').select2('destroy');
+            $('tr[data-idx="' + i + '"]').remove();
+            renumberBulkRows();
+          });
+
+          // Add row button
+          $('#btnAddRow').on('click', function () { addBulkRow(); });
+
+          // Open bulk modal
+          $('#btnAdd').on('click', function () {
+            // Clear existing rows
+            $('#bulkRows').empty();
+            bulkRowIdx = 0;
+            // Start with 3 empty rows
+            addBulkRow();
+            addBulkRow();
+            addBulkRow();
+            bulkModal.show();
+          });
+
+          // Save bulk
+          $('#btnSaveBulk').on('click', function () {
             var btn = this;
             if (!setBtnLoading(btn)) return;
 
-            var barangId = $('#barang_id').val();
-            var qtySesudah = $('#qty_sesudah').val();
+            var items = [];
+            var valid = true;
+            $('#bulkRows tr').each(function () {
+              var idx = $(this).data('idx');
+              var barangId = $('select.bulk-barang[data-idx="' + idx + '"]').val();
+              var qtySesudah = $('input.bulk-sesudah[data-idx="' + idx + '"]').val();
 
-            if (!barangId) {
-              showToast('Pilih barang terlebih dahulu', 'warning');
-              resetBtn(btn);
-              return;
-            }
-            if (qtySesudah === '' || isNaN(parseInt(qtySesudah))) {
-              showToast('Qty sesudah harus diisi', 'warning');
+              // Skip completely empty rows
+              if (!barangId && (qtySesudah === '' || qtySesudah === null)) return;
+
+              if (!barangId) {
+                showToast('Baris ' + $(this).find('td:first').text() + ': Pilih barang terlebih dahulu', 'warning');
+                valid = false;
+                return false;
+              }
+              if (qtySesudah === '' || isNaN(parseInt(qtySesudah))) {
+                showToast('Baris ' + $(this).find('td:first').text() + ': Qty sesudah harus diisi', 'warning');
+                valid = false;
+                return false;
+              }
+
+              items.push({ barang_id: barangId, qty_sesudah: qtySesudah });
+            });
+
+            if (!valid) { resetBtn(btn); return; }
+            if (items.length === 0) {
+              showToast('Minimal satu baris harus diisi', 'warning');
               resetBtn(btn);
               return;
             }
 
             $.ajax({
-              url: '/bukti-hitung-fisik',
+              url: '/bukti-hitung-fisik/bulk',
               method: 'POST',
               contentType: 'application/json',
-              data: JSON.stringify({ barang_id: barangId, qty_sesudah: qtySesudah }),
+              data: JSON.stringify({ items: items }),
               success: function (res) {
                 if (res.success) {
-                  formModal.hide();
-                  showToast('Bukti hitung fisik berhasil ditambahkan', 'success');
+                  bulkModal.hide();
+                  showToast(items.length + ' bukti hitung fisik berhasil disimpan', 'success');
                   dt.ajax.reload();
                 }
                 resetBtn(btn);

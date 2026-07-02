@@ -42,6 +42,20 @@ exports.store = async function (req, res) {
   } catch (err) { fail(res, err); }
 };
 
+exports.storeBulk = async function (req, res) {
+  try {
+    const items = req.body.items;
+    if (!items || !Array.isArray(items) || items.length === 0) {
+      throw Object.assign(new Error('Minimal satu item harus diisi'), { status: 400 });
+    }
+    const result = await service.createBulkWithStockUpdate(
+      items,
+      req.session.user ? req.session.user.nama : ''
+    );
+    ok(res, result, 201);
+  } catch (err) { fail(res, err); }
+};
+
 exports.destroy = async function (req, res) {
   try {
     await service.del(req.params.id);
