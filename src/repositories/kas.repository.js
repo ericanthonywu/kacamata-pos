@@ -196,3 +196,25 @@ exports.getChartData = async function ({ from, to, sales_id, group_by } = {}) {
     net: (parseFloat(row.total_masuk) || 0) - (parseFloat(row.total_keluar) || 0),
   }));
 };
+
+exports.getDashboardSummary = async function () {
+  // Stats from penjualan table (non-B2B only)
+  const penjualanStats = await db('penjualan')
+    .where('is_b2b', false)
+    .select(
+      db.raw('COUNT(*) as total_transaksi'),
+      db.raw('COALESCE(SUM(subtotal), 0) as total_subtotal'),
+      db.raw('COALESCE(SUM(total), 0) as total_penjualan'),
+      db.raw("COALESCE(SUM(CASE WHEN status_bayar = 'dp' THEN dp ELSE 0 END), 0) as total_dp_belum_lunas"),
+      db.raw('COALESCE(SUM(bpjs), 0) as total_bpjs')
+    )
+    .first();
+
+  return {
+    total_transaksi: parseInt(penjualanStats.total_transaksi) || 0,
+    total_subtotal:  parseFloat(penjualanStats.total_subtotal) || 0,
+    total_penjualan: parseFloat(penjualanStats.total_penjualan) || 0,
+    total_dp_belum_lunas: parseFloat(penjualanStats.total_dp_belum_lunas) || 0,
+    total_bpjs:      parseFloat(penjualanStats.total_bpjs) || 0,
+  };
+};

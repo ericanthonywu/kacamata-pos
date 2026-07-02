@@ -38,5 +38,5 @@ exports.getKomisiDetail = function (filters) {
 
 /** Dashboard summary (lifetime). */
 exports.getDashboardSummary = function () {
-  return kasRepo.getSummary({});
+  return kasRepo.getDashboardSummary();
 };
