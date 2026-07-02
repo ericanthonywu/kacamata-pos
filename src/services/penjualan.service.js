@@ -109,7 +109,8 @@ exports.create = async function (data, userId) {
     for (const item of items) {
       if (item.barang_id) {
         const brg = await barangRepo.findByIdWithTrx(trx, item.barang_id);
-        if (brg && brg.qty !== null) {
+        if (brg) {
+          if (brg.qty == null) brg.qty = 0;
           await barangRepo.decrementQty(item.barang_id, item.jumlah || 1, trx);
         }
       }
