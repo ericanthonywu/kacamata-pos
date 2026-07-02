@@ -12,6 +12,12 @@
           <% }); %>
       </select>
     </div>
+    <div class="col-auto">
+      <div class="form-check form-switch mb-0">
+        <input class="form-check-input" type="checkbox" id="filterMinus" role="switch">
+        <label class="form-check-label small" for="filterMinus">Stok Minus Saja</label>
+      </div>
+    </div>
   </div>
 
   <div class="row g-3 mb-4">
@@ -28,9 +34,10 @@
       </div>
     </div>
     <div class="col-md-4 col-4">
-      <div class="stat-card"><i class="bi bi-exclamation-triangle stat-icon text-danger"></i>
+      <div class="stat-card" id="cardMinus" style="cursor:pointer" title="Klik untuk filter stok minus">
+        <i class="bi bi-exclamation-triangle stat-icon text-danger"></i>
         <div class="stat-value text-danger" id="valHabis">0</div>
-        <div class="stat-label">Stok < 1</div>
+        <div class="stat-label">Stok Minus (&lt; 0)</div>
       </div>
     </div>
   </div>
@@ -88,6 +95,7 @@ $(function() {
       url: '/barang/dt',
       data: function(d) {
         d.kategori_id = $('#filterKategori').val();
+        d.minus_stock = $('#filterMinus').is(':checked') ? '1' : '';
       }
     },
     order: [[3, 'asc']], 
@@ -164,6 +172,16 @@ $(function() {
   });
 
   $('#filterKategori').on('change', function() {
+    table.ajax.reload();
+  });
+
+  $('#filterMinus').on('change', function() {
+    table.ajax.reload();
+  });
+
+  // Clicking the minus stat card toggles the filter
+  $('#cardMinus').on('click', function() {
+    $('#filterMinus').prop('checked', !$('#filterMinus').is(':checked'));
     table.ajax.reload();
   });
 });

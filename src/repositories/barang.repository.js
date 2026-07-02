@@ -27,7 +27,7 @@ exports.findAll = function (filters = {}) {
 };
 
 exports.getDatatablesData = async function (params) {
-  const { start, length, search, order, kategori_id, columns: dtColumns } = params;
+  const { start, length, search, order, kategori_id, minus_stock, columns: dtColumns } = params;
   
   let baseQuery = db(TABLE)
     .leftJoin('kategori', 'barang.kategori_id', 'kategori.id')
@@ -35,6 +35,10 @@ exports.getDatatablesData = async function (params) {
 
   if (kategori_id) {
     baseQuery = baseQuery.where('barang.kategori_id', kategori_id);
+  }
+
+  if (minus_stock === '1' || minus_stock === true) {
+    baseQuery = baseQuery.where('barang.qty', '<', 0);
   }
 
   // Count total without search
@@ -54,7 +58,7 @@ exports.getDatatablesData = async function (params) {
     .select(
       db.raw('COUNT(barang.id) as count'),
       db.raw('SUM(barang.qty) as total_qty'),
-      db.raw('SUM(CASE WHEN COALESCE(barang.qty, 0) < 1 THEN 1 ELSE 0 END) as out_of_stock')
+      db.raw('SUM(CASE WHEN COALESCE(barang.qty, 0) < 0 THEN 1 ELSE 0 END) as out_of_stock')
     )
     .first();
   const recordsFiltered = parseInt(filteredCountRes.count) || 0;
