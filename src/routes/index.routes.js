@@ -12,6 +12,7 @@ const pembayaranPembelianService = require('../services/pembayaran-pembelian.ser
 const pembayaranPenjualanService = require('../services/pembayaran-penjualan.service');
 const laporanService = require('../services/laporan.service');
 const kategoriService = require('../services/kategori.service');
+const { todayStr, firstDayOfMonth } = require('../utils/date.helper');
 
 // Auth routes
 router.use('/', require('./auth.routes'));
@@ -19,18 +20,69 @@ router.use('/', require('./auth.routes'));
 // Dashboard
 router.get('/', auth, async (req, res, next) => {
   try {
-    const hutangPembelian = await pembayaranPembelianService.getUnpaid();
-    const hutangPenjualan = await pembayaranPenjualanService.getUnpaid();
-    const totalHutangPembelian = hutangPembelian.reduce((s, p) => s + (parseFloat(p.total_harga) - parseFloat(p.total_dibayar)), 0);
-    const totalHutangPenjualan = hutangPenjualan.reduce((s, p) => s + (parseFloat(p.total) - parseFloat(p.total_dibayar)), 0);
-    const lifetimeSummary = await laporanService.getDashboardSummary();
+    const today = todayStr();
+    const fom = firstDayOfMonth();
+    const isAdmin = req.session.user.hak_akses === 'admin';
+
+    const promises = [
+      laporanService.getDashboardSummary(today, fom),
+    ];
+    // Admin-only: hutang alerts
+    if (isAdmin) {
+      promises.push(pembayaranPembelianService.getUnpaid());
+      promises.push(pembayaranPenjualanService.getUnpaid());
+    }
+
+    const [summary, hutangPembelian, hutangPenjualan] = await Promise.all(promises);
+
+    const totalHutangPembelian = hutangPembelian ? hutangPembelian.reduce((s, p) => s + (parseFloat(p.total_harga) - parseFloat(p.total_dibayar)), 0) : 0;
+    const totalHutangPenjualan = hutangPenjualan ? hutangPenjualan.reduce((s, p) => s + (parseFloat(p.total) - parseFloat(p.total_dibayar)), 0) : 0;
+
     res.render('dashboard', {
       title: 'Dashboard', activePage: 'dashboard',
-      hutangPembelian, hutangPenjualan,
+      summary,
+      hutangPembelian: hutangPembelian || [],
+      hutangPenjualan: hutangPenjualan || [],
       totalHutangPembelian, totalHutangPenjualan,
-      lifetimeSummary,
+      today, firstOfMonth: fom,
     });
   } catch (err) { next(err); }
+});
+
+// Dashboard API endpoints
+router.get('/api/dashboard/top-barang', auth, async (req, res) => {
+  try {
+    const data = await laporanService.getTopBarang(req.query.from || firstDayOfMonth(), req.query.to || todayStr(), 10);
+    res.json({ success: true, data });
+  } catch (err) { res.status(500).json({ success: false, error: err.message }); }
+});
+
+router.get('/api/dashboard/daily-trend', auth, async (req, res) => {
+  try {
+    const data = await laporanService.getDailyTrend(req.query.from || firstDayOfMonth(), req.query.to || todayStr());
+    res.json({ success: true, data });
+  } catch (err) { res.status(500).json({ success: false, error: err.message }); }
+});
+
+router.get('/api/dashboard/recent-pelanggan', auth, async (req, res) => {
+  try {
+    const data = await laporanService.getRecentPelanggan(5);
+    res.json({ success: true, data });
+  } catch (err) { res.status(500).json({ success: false, error: err.message }); }
+});
+
+router.get('/api/dashboard/sales-performance', auth, requireAdmin, async (req, res) => {
+  try {
+    const data = await laporanService.getSalesPerformance(req.query.from || firstDayOfMonth(), req.query.to || todayStr());
+    res.json({ success: true, data });
+  } catch (err) { res.status(500).json({ success: false, error: err.message }); }
+});
+
+router.get('/api/dashboard/kategori-breakdown', auth, async (req, res) => {
+  try {
+    const data = await laporanService.getKategoriBreakdown(req.query.from || firstDayOfMonth(), req.query.to || todayStr());
+    res.json({ success: true, data });
+  } catch (err) { res.status(500).json({ success: false, error: err.message }); }
 });
 
 // Stock Gudang (read-only, reuses barang data)

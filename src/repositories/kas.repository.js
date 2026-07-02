@@ -197,24 +197,61 @@ exports.getChartData = async function ({ from, to, sales_id, group_by } = {}) {
   }));
 };
 
-exports.getDashboardSummary = async function () {
-  // Stats from penjualan table (non-B2B only)
+exports.getDashboardSummary = async function (today, firstOfMonth) {
+  // 1. Penjualan stats (non-B2B): today + month counts
   const penjualanStats = await db('penjualan')
     .where('is_b2b', false)
     .select(
-      db.raw('COUNT(*) as total_transaksi'),
-      db.raw('COALESCE(SUM(subtotal), 0) as total_subtotal'),
-      db.raw('COALESCE(SUM(total), 0) as total_penjualan'),
-      db.raw("COALESCE(SUM(CASE WHEN status_bayar = 'dp' THEN dp ELSE 0 END), 0) as total_dp_belum_lunas"),
-      db.raw('COALESCE(SUM(bpjs), 0) as total_bpjs')
+      db.raw('COUNT(CASE WHEN order_date = ? THEN 1 END) as transaksi_today', [today]),
+      db.raw('COUNT(CASE WHEN order_date >= ? THEN 1 END) as transaksi_month', [firstOfMonth]),
+      db.raw("COUNT(CASE WHEN status_bayar = 'dp' THEN 1 END) as dp_count")
+    )
+    .first();
+
+  // 2. Kas stats (cash in / cash out): today + month
+  const kasStats = await db(TABLE)
+    .select(
+      db.raw("COALESCE(SUM(CASE WHEN tipe = 'masuk' AND tanggal = ? THEN jumlah ELSE 0 END), 0) as cash_in_today", [today]),
+      db.raw("COALESCE(SUM(CASE WHEN tipe = 'keluar' AND tanggal = ? THEN jumlah ELSE 0 END), 0) as cash_out_today", [today]),
+      db.raw("COALESCE(SUM(CASE WHEN tipe = 'masuk' AND tanggal >= ? THEN jumlah ELSE 0 END), 0) as cash_in_month", [firstOfMonth]),
+      db.raw("COALESCE(SUM(CASE WHEN tipe = 'keluar' AND tanggal >= ? THEN jumlah ELSE 0 END), 0) as cash_out_month", [firstOfMonth])
+    )
+    .first();
+
+  // 3. Barang stats
+  const barangStats = await db('barang')
+    .whereNull('deleted_at')
+    .select(
+      db.raw('COUNT(*) as total_aktif'),
+      db.raw('COUNT(CASE WHEN qty < 0 THEN 1 END) as stok_minus')
+    )
+    .first();
+
+  // 4. Hutang supplier (pembelian belum lunas)
+  const hutangRes = await db('pembelian')
+    .where('status_bayar', 'belum_lunas')
+    .select(
+      db.raw('COALESCE(SUM(total_harga - COALESCE((SELECT SUM(jumlah_bayar) FROM pembayaran_pembelian WHERE pembelian_id = pembelian.id), 0)), 0) as total_hutang')
     )
     .first();
 
   return {
-    total_transaksi: parseInt(penjualanStats.total_transaksi) || 0,
-    total_subtotal:  parseFloat(penjualanStats.total_subtotal) || 0,
-    total_penjualan: parseFloat(penjualanStats.total_penjualan) || 0,
-    total_dp_belum_lunas: parseFloat(penjualanStats.total_dp_belum_lunas) || 0,
-    total_bpjs:      parseFloat(penjualanStats.total_bpjs) || 0,
+    today: {
+      transaksi: parseInt(penjualanStats.transaksi_today) || 0,
+      cash_in: parseFloat(kasStats.cash_in_today) || 0,
+      cash_out: parseFloat(kasStats.cash_out_today) || 0,
+    },
+    month: {
+      transaksi: parseInt(penjualanStats.transaksi_month) || 0,
+      cash_in: parseFloat(kasStats.cash_in_month) || 0,
+      cash_out: parseFloat(kasStats.cash_out_month) || 0,
+      hutang_supplier: parseFloat(hutangRes.total_hutang) || 0,
+    },
+    barang: {
+      total_aktif: parseInt(barangStats.total_aktif) || 0,
+      stok_minus: parseInt(barangStats.stok_minus) || 0,
+    },
+    dp_count: parseInt(penjualanStats.dp_count) || 0,
   };
 };
+

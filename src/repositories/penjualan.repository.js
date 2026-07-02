@@ -213,3 +213,34 @@ exports.existsByPelangganId = async function (pelangganId) {
   );
   return result.rows[0].exists;
 };
+
+/** Read-only: daily transaction count within a date range (for trend chart). */
+exports.getDailyTrend = function (from, to) {
+  return db(TABLE)
+    .select(
+      db.raw("to_char(order_date, 'YYYY-MM-DD') as tanggal"),
+      db.raw('COUNT(*) as jumlah')
+    )
+    .where('is_b2b', false)
+    .where('order_date', '>=', from)
+    .where('order_date', '<=', to)
+    .groupByRaw('1')
+    .orderByRaw('1 ASC');
+};
+
+/** Read-only: most recent pelanggan transactions. */
+exports.getRecentPelanggan = function (limit) {
+  return db(TABLE)
+    .select(
+      'pelanggan.nama',
+      'pelanggan.no_telp',
+      'penjualan.no_nota',
+      'penjualan.order_date'
+    )
+    .innerJoin('pelanggan', 'penjualan.pelanggan_id', 'pelanggan.id')
+    .where('penjualan.is_b2b', false)
+    .orderBy('penjualan.order_date', 'desc')
+    .orderBy('penjualan.created_at', 'desc')
+    .limit(limit || 5);
+};
+

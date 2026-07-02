@@ -93,3 +93,36 @@ exports.getKomisiDetail = async function ({ from, to, sales_id, tipe } = {}) {
 
   return await query.orderBy('komisi_sales.created_at', 'desc');
 };
+
+/** Read-only: sales performance within date range (admin dashboard). */
+exports.getSalesPerformance = function (from, to) {
+  return db('penjualan')
+    .select(
+      'sales.nama as sales_nama',
+      db.raw('COUNT(penjualan.id) as total_transaksi'),
+      db.raw('COALESCE(SUM(penjualan.total), 0) as total_omzet')
+    )
+    .innerJoin('sales', 'penjualan.sales_id', 'sales.id')
+    .where('penjualan.is_b2b', false)
+    .where('penjualan.order_date', '>=', from)
+    .where('penjualan.order_date', '<=', to)
+    .groupBy('sales.id', 'sales.nama')
+    .orderBy('total_omzet', 'desc');
+};
+
+/** Read-only: breakdown of sold items by kategori within date range. */
+exports.getKategoriBreakdown = function (from, to) {
+  return db('penjualan_detail')
+    .select(
+      'kategori.nama as kategori_nama',
+      db.raw('SUM(penjualan_detail.jumlah) as total_qty')
+    )
+    .innerJoin('penjualan', 'penjualan_detail.penjualan_id', 'penjualan.id')
+    .innerJoin('barang', 'penjualan_detail.barang_id', 'barang.id')
+    .leftJoin('kategori', 'barang.kategori_id', 'kategori.id')
+    .where('penjualan.is_b2b', false)
+    .where('penjualan.order_date', '>=', from)
+    .where('penjualan.order_date', '<=', to)
+    .groupBy('kategori.id', 'kategori.nama')
+    .orderBy('total_qty', 'desc');
+};

@@ -29,3 +29,24 @@ exports.insertMany = function (trx, rows) {
 exports.deleteByPenjualanId = function (trx, penjualanId) {
   return trx(TABLE).where('penjualan_id', penjualanId).del();
 };
+
+/** Read-only: top selling items by qty within a date range. */
+exports.getTopBarang = function (from, to, limit) {
+  return db(TABLE)
+    .select(
+      'barang.nama_barang',
+      'barang.harga_jual',
+      'kategori.nama as kategori_nama',
+      db.raw('SUM(penjualan_detail.jumlah) as total_qty')
+    )
+    .innerJoin('penjualan', 'penjualan_detail.penjualan_id', 'penjualan.id')
+    .innerJoin('barang', 'penjualan_detail.barang_id', 'barang.id')
+    .leftJoin('kategori', 'barang.kategori_id', 'kategori.id')
+    .where('penjualan.is_b2b', false)
+    .where('penjualan.order_date', '>=', from)
+    .where('penjualan.order_date', '<=', to)
+    .groupBy('barang.id', 'barang.nama_barang', 'barang.harga_jual', 'kategori.nama')
+    .orderBy('total_qty', 'desc')
+    .limit(limit || 10);
+};
+

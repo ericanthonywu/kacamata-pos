@@ -1,5 +1,6 @@
 <%
 function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
+const isAdmin = currentUser && currentUser.hak_akses === 'admin';
 %>
 <%- include('./partials/top', { title, activePage }) %>
 
@@ -13,7 +14,13 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
   </a>
 </div>
 
-<% if (currentUser.hak_akses === 'admin' && (hutangPembelian.length > 0 || hutangPenjualan.length > 0)) { %>
+<% if (isAdmin) { %>
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- ADMIN DASHBOARD                                            -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<!-- Alert Hutang -->
+<% if (hutangPembelian.length > 0 || hutangPenjualan.length > 0) { %>
 <div class="row g-3 mb-4">
   <% if (hutangPembelian.length > 0) { %>
   <div class="col-md-6">
@@ -42,55 +49,746 @@ function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
 </div>
 <% } %>
 
-<div class="row g-3 mb-4 row-cols-2 row-cols-md-5">
+<!-- Stat Cards: Hari Ini -->
+<h6 class="fw-bold text-muted mb-2"><i class="bi bi-calendar-day me-1"></i>Hari Ini</h6>
+<div class="row g-3 mb-4 row-cols-2 row-cols-md-4">
   <div class="col">
-    <div class="stat-card"><i class="bi bi-receipt stat-icon text-info"></i><div class="stat-value"><%= lifetimeSummary.total_transaksi || 0 %></div><div class="stat-label">Total Transaksi</div></div>
+    <div class="stat-card"><i class="bi bi-receipt stat-icon text-info"></i><div class="stat-value"><%= summary.today.transaksi %></div><div class="stat-label">Transaksi</div></div>
   </div>
   <div class="col">
-    <div class="stat-card"><i class="bi bi-shield-plus stat-icon text-secondary"></i><div class="stat-value"><%= fmtRp(lifetimeSummary.total_bpjs) %></div><div class="stat-label">Total BPJS</div></div>
-  </div>
-  <% if (currentUser.hak_akses === 'admin') { %>
-  <div class="col">
-    <div class="stat-card"><i class="bi bi-cash stat-icon text-primary"></i><div class="stat-value"><%= fmtRp(lifetimeSummary.total_subtotal) %></div><div class="stat-label">Total Subtotal</div></div>
+    <div class="stat-card"><i class="bi bi-arrow-down-circle stat-icon text-success"></i><div class="stat-value"><%= fmtRp(summary.today.cash_in) %></div><div class="stat-label">Cash In</div></div>
   </div>
   <div class="col">
-    <div class="stat-card"><i class="bi bi-wallet2 stat-icon text-warning"></i><div class="stat-value"><%= fmtRp(lifetimeSummary.total_dp_belum_lunas) %></div><div class="stat-label">Total DP (Belum Lunas)</div></div>
+    <div class="stat-card"><i class="bi bi-arrow-up-circle stat-icon text-danger"></i><div class="stat-value"><%= fmtRp(summary.today.cash_out) %></div><div class="stat-label">Cash Out</div></div>
   </div>
   <div class="col">
-    <div class="stat-card"><i class="bi bi-graph-up stat-icon text-success"></i><div class="stat-value"><%= fmtRp(lifetimeSummary.total_penjualan) %></div><div class="stat-label">Total Penjualan Bersih</div></div>
+    <div class="stat-card"><i class="bi bi-exclamation-triangle stat-icon text-warning"></i><div class="stat-value"><%= summary.barang.stok_minus %></div><div class="stat-label">Stok Minus</div></div>
   </div>
-  <% } %>
 </div>
 
-<div class="row g-3">
-  <div class="col-md-3 col-6">
-    <div class="stat-card">
-      <i class="bi bi-receipt stat-icon text-info"></i>
-      <div class="stat-label">Data Penjualan</div>
-      <a href="/penjualan" class="stretched-link"></a>
+<!-- Stat Cards: Bulan Ini -->
+<h6 class="fw-bold text-muted mb-2"><i class="bi bi-calendar-month me-1"></i>Bulan Ini</h6>
+<div class="row g-3 mb-4 row-cols-2 row-cols-md-4">
+  <div class="col">
+    <div class="stat-card"><i class="bi bi-calendar-check stat-icon text-info"></i><div class="stat-value"><%= summary.month.transaksi %></div><div class="stat-label">Transaksi</div></div>
+  </div>
+  <div class="col">
+    <div class="stat-card"><i class="bi bi-arrow-down-circle stat-icon text-success"></i><div class="stat-value"><%= fmtRp(summary.month.cash_in) %></div><div class="stat-label">Cash In</div></div>
+  </div>
+  <div class="col">
+    <div class="stat-card"><i class="bi bi-arrow-up-circle stat-icon text-danger"></i><div class="stat-value"><%= fmtRp(summary.month.cash_out) %></div><div class="stat-label">Cash Out</div></div>
+  </div>
+  <div class="col">
+    <div class="stat-card"><i class="bi bi-shop stat-icon text-primary"></i><div class="stat-value"><%= fmtRp(summary.month.hutang_supplier) %></div><div class="stat-label">Hutang Supplier</div></div>
+  </div>
+</div>
+
+<!-- Grafik Arus Kas (full width) -->
+<div class="card p-3 mb-4">
+  <div class="d-flex justify-content-between align-items-center mb-3">
+    <h6 class="fw-bold mb-0"><i class="bi bi-bar-chart-line me-2"></i>Grafik Arus Kas</h6>
+    <div class="btn-group btn-group-sm" id="chartGroupBy" role="group">
+      <button type="button" class="btn btn-outline-primary active" data-group="day">Harian</button>
+      <button type="button" class="btn btn-outline-primary" data-group="week">Mingguan</button>
+      <button type="button" class="btn btn-outline-primary" data-group="month">Bulanan</button>
+      <button type="button" class="btn btn-outline-primary" data-group="year">Tahunan</button>
     </div>
   </div>
-  <div class="col-md-3 col-6">
-    <div class="stat-card">
-      <i class="bi bi-cart-plus stat-icon text-primary"></i>
-      <div class="stat-label">Pembelian</div>
-      <a href="/pembelian" class="stretched-link"></a>
+  <div id="kasChart" style="width:100%; height:370px;"></div>
+</div>
+
+<!-- Row: Top 10 Barang + Performa Sales -->
+<div class="row g-3 mb-4">
+  <div class="col-md-6">
+    <div class="card p-3" style="min-height:380px;">
+      <h6 class="fw-bold mb-3"><i class="bi bi-trophy me-2"></i>Top 10 Barang Terlaris</h6>
+      <div id="topBarangChart" style="width:100%; height:320px;"></div>
     </div>
   </div>
-  <div class="col-md-3 col-6">
-    <div class="stat-card">
-      <i class="bi bi-box-seam stat-icon text-success"></i>
-      <div class="stat-label">Barang</div>
-      <a href="/barang" class="stretched-link"></a>
-    </div>
-  </div>
-  <div class="col-md-3 col-6">
-    <div class="stat-card">
-      <i class="bi bi-graph-up stat-icon text-warning"></i>
-      <div class="stat-label">Laporan Kas</div>
-      <a href="/laporan/kas" class="stretched-link"></a>
+  <div class="col-md-6">
+    <div class="card p-3" style="min-height:380px;">
+      <h6 class="fw-bold mb-3"><i class="bi bi-person-badge me-2"></i>Performa Sales Bulan Ini</h6>
+      <div id="salesPerfChart" style="width:100%; height:320px;"></div>
     </div>
   </div>
 </div>
+
+<!-- Row: Breakdown Kategori + Tren Transaksi -->
+<div class="row g-3 mb-4">
+  <div class="col-md-6">
+    <div class="card p-3" style="min-height:350px;">
+      <h6 class="fw-bold mb-3"><i class="bi bi-pie-chart me-2"></i>Breakdown Kategori Terjual</h6>
+      <div id="kategoriChart" style="width:100%; height:280px;"></div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card p-3" style="min-height:350px;">
+      <h6 class="fw-bold mb-3"><i class="bi bi-graph-up me-2"></i>Tren Transaksi 30 Hari</h6>
+      <div id="trendChart" style="width:100%; height:280px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Pelanggan Terakhir -->
+<div class="card p-3 mb-4">
+  <h6 class="fw-bold mb-3"><i class="bi bi-people me-2"></i>5 Pelanggan Terakhir Transaksi</h6>
+  <div class="table-responsive">
+    <table class="table table-sm table-hover mb-0" id="recentPelangganTable">
+      <thead><tr><th>Nama</th><th>No. Telp</th><th>No. Nota</th><th>Tanggal</th></tr></thead>
+      <tbody><tr><td colspan="4" class="text-center text-muted">Memuat...</td></tr></tbody>
+    </table>
+  </div>
+</div>
+
+<% } else { %>
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- KASIR DASHBOARD                                            -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+
+<!-- Stat Cards: Ringkasan Hari Ini -->
+<h6 class="fw-bold text-muted mb-2"><i class="bi bi-calendar-day me-1"></i>Ringkasan Hari Ini</h6>
+<div class="row g-3 mb-4 row-cols-2 row-cols-md-4">
+  <div class="col">
+    <div class="stat-card"><i class="bi bi-receipt stat-icon text-info"></i><div class="stat-value"><%= summary.today.transaksi %></div><div class="stat-label">Transaksi Hari Ini</div></div>
+  </div>
+  <div class="col">
+    <div class="stat-card"><i class="bi bi-clock-history stat-icon text-warning"></i><div class="stat-value"><%= summary.dp_count %></div><div class="stat-label">Penjualan DP</div></div>
+  </div>
+  <div class="col">
+    <div class="stat-card"><i class="bi bi-box-seam stat-icon text-primary"></i><div class="stat-value"><%= summary.barang.total_aktif %></div><div class="stat-label">Total Barang</div></div>
+  </div>
+  <div class="col">
+    <div class="stat-card"><i class="bi bi-exclamation-triangle stat-icon text-danger"></i><div class="stat-value"><%= summary.barang.stok_minus %></div><div class="stat-label">Stok Minus</div></div>
+  </div>
+</div>
+
+<!-- Shortcut Cards -->
+<h6 class="fw-bold text-muted mb-2"><i class="bi bi-lightning me-1"></i>Aksi Cepat</h6>
+<div class="row g-3 mb-4 row-cols-2 row-cols-md-4">
+  <div class="col">
+    <div class="stat-card">
+      <i class="bi bi-plus-square stat-icon text-primary"></i>
+      <div class="stat-label fw-semibold">Tambah Penjualan</div>
+      <a href="/penjualan/baru" class="stretched-link"></a>
+    </div>
+  </div>
+  <div class="col">
+    <div class="stat-card">
+      <i class="bi bi-house-gear stat-icon text-success"></i>
+      <div class="stat-label fw-semibold">Cek Stock Gudang</div>
+      <a href="/stock-gudang" class="stretched-link"></a>
+    </div>
+  </div>
+  <div class="col">
+    <div class="stat-card">
+      <i class="bi bi-cash-coin stat-icon text-warning"></i>
+      <div class="stat-label fw-semibold">Proses Pelunasan</div>
+      <a href="/pembayaran-penjualan" class="stretched-link"></a>
+    </div>
+  </div>
+  <div class="col">
+    <div class="stat-card">
+      <i class="bi bi-people stat-icon text-info"></i>
+      <div class="stat-label fw-semibold">Data Pelanggan</div>
+      <a href="/pelanggan" class="stretched-link"></a>
+    </div>
+  </div>
+</div>
+
+<!-- Row: Top 10 Barang + Breakdown Kategori -->
+<div class="row g-3 mb-4">
+  <div class="col-md-6">
+    <div class="card p-3" style="min-height:380px;">
+      <h6 class="fw-bold mb-3"><i class="bi bi-trophy me-2"></i>Top 10 Barang Terlaris</h6>
+      <div id="topBarangChart" style="width:100%; height:320px;"></div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card p-3" style="min-height:380px;">
+      <h6 class="fw-bold mb-3"><i class="bi bi-pie-chart me-2"></i>Breakdown Kategori Terjual</h6>
+      <div id="kategoriChart" style="width:100%; height:320px;"></div>
+    </div>
+  </div>
+</div>
+
+<!-- Row: Tren Transaksi + Pelanggan Terakhir -->
+<div class="row g-3 mb-4">
+  <div class="col-md-6">
+    <div class="card p-3" style="min-height:350px;">
+      <h6 class="fw-bold mb-3"><i class="bi bi-graph-up me-2"></i>Tren Transaksi 30 Hari</h6>
+      <div id="trendChart" style="width:100%; height:280px;"></div>
+    </div>
+  </div>
+  <div class="col-md-6">
+    <div class="card p-3" style="min-height:350px;">
+      <h6 class="fw-bold mb-3"><i class="bi bi-people me-2"></i>5 Pelanggan Terakhir Transaksi</h6>
+      <div class="table-responsive">
+        <table class="table table-sm table-hover mb-0" id="recentPelangganTable">
+          <thead><tr><th>Nama</th><th>No. Telp</th><th>No. Nota</th><th>Tanggal</th></tr></thead>
+          <tbody><tr><td colspan="4" class="text-center text-muted">Memuat...</td></tr></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<% } %>
+
+<!-- ═══════════════════════════════════════════════════════════ -->
+<!-- CHARTS JS (amCharts 5)                                     -->
+<!-- ═══════════════════════════════════════════════════════════ -->
+<script src="https://cdn.amcharts.com/lib/5/index.js"></script>
+<script src="https://cdn.amcharts.com/lib/5/xy.js"></script>
+<script src="https://cdn.amcharts.com/lib/5/percent.js"></script>
+<script src="https://cdn.amcharts.com/lib/5/themes/Animated.js"></script>
+<script src="https://cdn.amcharts.com/lib/5/plugins/exporting.js"></script>
+<script>
+(function() {
+  var isAdmin = <%= isAdmin ? 'true' : 'false' %>;
+  var firstOfMonth = '<%= firstOfMonth %>';
+  var today = '<%= today %>';
+
+  function fmtDate(dStr) {
+    if (!dStr) return '';
+    var d = new Date(dStr);
+    if (!isNaN(d)) {
+      return d.toLocaleDateString('id-ID', { day: 'numeric', month: 'short', year: 'numeric' });
+    }
+    return dStr;
+  }
+  function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); }
+
+  // ── Shared: styled tooltip (adapter-based to avoid {valueX} literal issues) ──
+  function styledTooltip(root, adapterFn) {
+    var tt = am5.Tooltip.new(root, {
+      autoTextColor: false,
+      getFillFromSprite: false
+    });
+    tt.get('background').setAll({
+      fill: am5.color(0x1a1d27),
+      fillOpacity: 0.95,
+      strokeWidth: 1,
+      stroke: am5.color(0x3d4255),
+      cornerRadius: 8,
+      shadowColor: am5.color(0x000000),
+      shadowBlur: 12,
+      shadowOffsetX: 2,
+      shadowOffsetY: 2,
+      shadowOpacity: 0.3
+    });
+    tt.label.setAll({ fill: am5.color(0xf0f0f0), fontSize: 12 });
+    if (adapterFn) {
+      tt.label.adapters.add('text', function(text, target) {
+        if (target.dataItem) return adapterFn(target.dataItem);
+        return text;
+      });
+    }
+    return tt;
+  }
+
+  // ── Shared: empty state label ──
+  function emptyLabel(root, msg) {
+    root.container.children.push(am5.Label.new(root, {
+      text: msg || 'Belum ada data',
+      fontSize: 13, fill: am5.color(0x999999),
+      x: am5.p50, y: am5.p50,
+      centerX: am5.p50, centerY: am5.p50, opacity: 0.7
+    }));
+  }
+
+  // ── Shared: Rp Y-axis formatter ──
+  function rpAxisAdapter(text, target) {
+    var val = target.dataItem ? target.dataItem.get('value') : 0;
+    if (val == null || val === 0) return 'Rp 0';
+    if (Math.abs(val) >= 1000000) return 'Rp ' + (val / 1000000).toLocaleString('id-ID', { maximumFractionDigits: 1 }) + ' Jt';
+    if (Math.abs(val) >= 1000) return 'Rp ' + (val / 1000).toLocaleString('id-ID', { maximumFractionDigits: 0 }) + ' Rb';
+    return 'Rp ' + val.toLocaleString('id-ID');
+  }
+
+  // ══════════════════════════════════════════════════════
+  // CHART 1: Arus Kas (Admin only)
+  // ══════════════════════════════════════════════════════
+  if (isAdmin && document.getElementById('kasChart')) {
+    var kasRoot = am5.Root.new('kasChart');
+    kasRoot.setThemes([am5themes_Animated.new(kasRoot)]);
+    kasRoot.numberFormatter.setAll({ numberFormat: '#,###', numericFields: ['valueY'] });
+
+    am5plugins_exporting.Exporting.new(kasRoot, {
+      menu: am5plugins_exporting.ExportingMenu.new(kasRoot, {}),
+      filePrefix: 'Dashboard_Arus_Kas'
+    });
+
+    var kasChart = kasRoot.container.children.push(am5xy.XYChart.new(kasRoot, {
+      panX: true, panY: false, wheelX: 'panX', wheelY: 'zoomX',
+      layout: kasRoot.verticalLayout, paddingLeft: 0, pinchZoomX: true
+    }));
+
+    var kasCursor = kasChart.set('cursor', am5xy.XYCursor.new(kasRoot, { behavior: 'zoomX' }));
+    kasCursor.lineY.set('visible', false);
+
+    kasChart.set('scrollbarX', am5xy.XYChartScrollbar.new(kasRoot, { orientation: 'horizontal', height: 8 }));
+
+    // X-axis tooltip matching laporan/kas.ejs exactly
+    var xTooltip = am5.Tooltip.new(kasRoot, {
+      getFillFromSprite: false,
+      autoTextColor: false
+    });
+    xTooltip.get('background').setAll({
+      fill: am5.color(0x343a40),
+      fillOpacity: 0.9,
+      stroke: am5.color(0x343a40)
+    });
+    xTooltip.label.setAll({
+      fill: am5.color(0xffffff),
+      fontSize: 12
+    });
+    xTooltip.label.adapters.add('text', function(text, target) {
+      if (target.dataItem) {
+        var d = target.dataItem.dataContext;
+        if (d) {
+          var str = '[bold]' + d.period + '[/]\n';
+          if (d.total_cash) str += 'Cash: ' + fmtRp(d.total_cash) + '\n';
+          if (d.total_transfer) str += 'Transfer: ' + fmtRp(d.total_transfer) + '\n';
+          if (d.total_keluar) str += 'Retur: ' + fmtRp(d.total_keluar) + '\n';
+          str += '------------------\n';
+          str += '[bold]Net: ' + fmtRp(d.net || 0) + '[/]';
+          return str;
+        }
+      }
+      return text;
+    });
+
+    var kasXAxis = kasChart.xAxes.push(am5xy.CategoryAxis.new(kasRoot, {
+      categoryField: 'period',
+      renderer: am5xy.AxisRendererX.new(kasRoot, { minGridDistance: 40, cellStartLocation: 0.1, cellEndLocation: 0.9 }),
+      tooltip: xTooltip
+    }));
+    kasXAxis.get('renderer').labels.template.setAll({ rotation: -45, centerY: am5.p50, centerX: am5.p100, fontSize: 11, fill: am5.color(0x8c8c8c) });
+    kasXAxis.get('renderer').grid.template.setAll({ strokeOpacity: 0.05 });
+
+    var kasYAxis = kasChart.yAxes.push(am5xy.ValueAxis.new(kasRoot, { renderer: am5xy.AxisRendererY.new(kasRoot, {}), min: 0 }));
+    kasYAxis.get('renderer').labels.template.setAll({ fill: am5.color(0x8c8c8c), fontSize: 11 });
+    kasYAxis.get('renderer').labels.template.adapters.add('text', rpAxisAdapter);
+    kasYAxis.get('renderer').grid.template.setAll({ strokeOpacity: 0.06, strokeDasharray: [3, 3] });
+
+    function createKasSeries(name, field, colorHex, isLine, isStacked, isBaseStacked) {
+      var series;
+      if (isLine) {
+        series = kasChart.series.push(am5xy.LineSeries.new(kasRoot, {
+          name: name, xAxis: kasXAxis, yAxis: kasYAxis, valueYField: field, categoryXField: 'period'
+        }));
+        series.strokes.template.setAll({ strokeWidth: 2 });
+        series.set('stroke', am5.color(colorHex));
+        series.bullets.push(function() {
+          return am5.Bullet.new(kasRoot, {
+            sprite: am5.Circle.new(kasRoot, {
+              radius: 4, fill: am5.color(colorHex), strokeWidth: 2,
+              stroke: kasRoot.interfaceColors.get('background')
+            })
+          });
+        });
+      } else {
+        series = kasChart.series.push(am5xy.ColumnSeries.new(kasRoot, {
+          name: name, xAxis: kasXAxis, yAxis: kasYAxis, valueYField: field, categoryXField: 'period', stacked: isStacked
+        }));
+        series.columns.template.setAll({
+          cornerRadiusTL: isBaseStacked ? 0 : 4,
+          cornerRadiusTR: isBaseStacked ? 0 : 4,
+          width: am5.percent(60)
+        });
+        series.setAll({ fill: am5.color(colorHex), stroke: am5.color(colorHex) });
+      }
+      series.appear(1000);
+      return series;
+    }
+
+    var cashSeries = createKasSeries('Cash', 'total_cash', 0x28a745, false, true, true);
+    var transferSeries = createKasSeries('Transfer', 'total_transfer', 0x6f42c1, false, true, false);
+    var returSeries = createKasSeries('Retur', 'total_keluar', 0xdc3545, false, false, false);
+    var netSeries = createKasSeries('Net', 'net', 0x0d6efd, true, false, false);
+
+    // Legend with hover dim
+    var kasLegend = kasChart.children.push(am5.Legend.new(kasRoot, { centerX: am5.p50, x: am5.p50, marginTop: 10 }));
+    kasLegend.markers.template.setAll({ width: 12, height: 12 });
+    kasLegend.labels.template.setAll({ fontSize: 12 });
+    kasLegend.itemContainers.template.events.on('pointerover', function(e) {
+      var di = e.target.dataItem;
+      if (di) kasChart.series.each(function(s) { if (s !== di.dataContext) s.set('opacity', 0.15); });
+    });
+    kasLegend.itemContainers.template.events.on('pointerout', function() {
+      kasChart.series.each(function(s) { s.set('opacity', 1); });
+    });
+    kasLegend.data.setAll(kasChart.series.values);
+
+    var currentGroupBy = 'day';
+    function loadKasChart() {
+      $.get('/laporan/kas/chart', { from: firstOfMonth, to: today, group_by: currentGroupBy }, function(res) {
+        if (res.success && res.data) {
+          res.data.forEach(function(d) {
+            if (d.period) {
+              var parts = d.period.split('-');
+              if (parts.length === 3) {
+                var dt = new Date(+parts[0], +parts[1]-1, +parts[2]);
+                if (!isNaN(dt)) d.period = dt.toLocaleDateString('id-ID', { day: 'numeric', month: 'long', year: 'numeric' });
+              } else if (parts.length === 2) {
+                var dt2 = new Date(+parts[0], +parts[1]-1, 1);
+                if (!isNaN(dt2)) d.period = dt2.toLocaleDateString('id-ID', { month: 'long', year: 'numeric' });
+              }
+            }
+          });
+          kasXAxis.data.setAll(res.data);
+          cashSeries.data.setAll(res.data);
+          transferSeries.data.setAll(res.data);
+          returSeries.data.setAll(res.data);
+          netSeries.data.setAll(res.data);
+        }
+      });
+    }
+    $('#chartGroupBy').on('click', 'button', function() {
+      $('#chartGroupBy button').removeClass('active');
+      $(this).addClass('active');
+      currentGroupBy = $(this).data('group');
+      loadKasChart();
+    });
+    loadKasChart();
+    kasChart.appear(1000, 100);
+  }
+
+  // ══════════════════════════════════════════════════════
+  // CHART 2: Top 10 Barang Terlaris — Horizontal Bars
+  // ══════════════════════════════════════════════════════
+  if (document.getElementById('topBarangChart')) {
+    var tbRoot = am5.Root.new('topBarangChart');
+    tbRoot.setThemes([am5themes_Animated.new(tbRoot)]);
+
+    var tbChart = tbRoot.container.children.push(am5xy.XYChart.new(tbRoot, {
+      panX: false, panY: false, layout: tbRoot.verticalLayout, paddingLeft: 0, paddingRight: 15
+    }));
+
+    var tbYAxis = tbChart.yAxes.push(am5xy.CategoryAxis.new(tbRoot, {
+      categoryField: 'nama_barang',
+      renderer: am5xy.AxisRendererY.new(tbRoot, { inversed: true, minGridDistance: 15, cellStartLocation: 0.1, cellEndLocation: 0.9 })
+    }));
+    tbYAxis.get('renderer').labels.template.setAll({ fontSize: 11, maxWidth: 140, oversizedBehavior: 'truncate', fill: am5.color(0x8c8c8c) });
+    tbYAxis.get('renderer').grid.template.setAll({ strokeOpacity: 0.04 });
+
+    var tbXAxis = tbChart.xAxes.push(am5xy.ValueAxis.new(tbRoot, {
+      renderer: am5xy.AxisRendererX.new(tbRoot, { minGridDistance: 50 }), min: 0, maxPrecision: 0
+    }));
+    tbXAxis.get('renderer').labels.template.setAll({ fill: am5.color(0x8c8c8c), fontSize: 10 });
+    tbXAxis.get('renderer').grid.template.setAll({ strokeOpacity: 0.04 });
+
+    var tbSeries = tbChart.series.push(am5xy.ColumnSeries.new(tbRoot, {
+      name: 'Qty Terjual', xAxis: tbXAxis, yAxis: tbYAxis,
+      valueXField: 'total_qty', categoryYField: 'nama_barang',
+      sequencedInterpolation: true,
+      tooltip: styledTooltip(tbRoot, function(di) {
+        var d = di.dataContext;
+        return '[bold]' + d.nama_barang + '[/]\n' +
+          'Qty: ' + d.total_qty + '\n' +
+          'Harga Jual: Rp ' + d.harga_jual + '\n' +
+          'Kategori: ' + d.kategori_nama;
+      })
+    }));
+    tbSeries.columns.template.setAll({
+      cornerRadiusTR: 6, cornerRadiusBR: 6, height: am5.percent(65), strokeOpacity: 0,
+      shadowColor: am5.color(0x000000), shadowBlur: 3, shadowOffsetX: 1, shadowOpacity: 0.08
+    });
+    var tbColors = [0x0d6efd, 0x6610f2, 0x6f42c1, 0xd63384, 0xdc3545, 0xfd7e14, 0xffc107, 0x198754, 0x20c997, 0x0dcaf0];
+    tbSeries.columns.template.adapters.add('fill', function(fill, target) {
+      var idx = tbSeries.columns.indexOf(target);
+      return am5.color(tbColors[idx % tbColors.length]);
+    });
+    tbSeries.columns.template.adapters.add('stroke', function(s, target) {
+      return am5.color(tbColors[tbSeries.columns.indexOf(target) % tbColors.length]);
+    });
+    tbSeries.columns.template.states.create('hover', { shadowBlur: 12, shadowOpacity: 0.2 });
+    // Value labels
+    tbSeries.bullets.push(function() {
+      return am5.Bullet.new(tbRoot, {
+        locationX: 1,
+        sprite: am5.Label.new(tbRoot, {
+          text: '{valueX}', populateText: true,
+          fill: am5.color(0x666666), fontSize: 11, fontWeight: '600',
+          centerY: am5.p50, centerX: am5.p0, paddingLeft: 6
+        })
+      });
+    });
+
+    // Animate smoothly after data is fully processed
+    tbSeries.events.once("datavalidated", function(ev) {
+      ev.target.appear(1000, 50);
+    });
+
+    $.get('/api/dashboard/top-barang', { from: firstOfMonth, to: today }, function(res) {
+      if (res.success && res.data && res.data.length) {
+        res.data.forEach(function(d) {
+          d.total_qty = parseInt(d.total_qty);
+          d.harga_jual = Number(d.harga_jual || 0).toLocaleString('id-ID');
+          if (!d.kategori_nama) d.kategori_nama = '-';
+        });
+        tbYAxis.data.setAll(res.data);
+        tbSeries.data.setAll(res.data);
+      } else { emptyLabel(tbRoot, 'Belum ada data penjualan bulan ini'); }
+    });
+    tbChart.appear(1000, 100);
+  }
+
+  // ══════════════════════════════════════════════════════
+  // CHART 3: Performa Sales (Admin only) — Bar + Bullet
+  // ══════════════════════════════════════════════════════
+  if (isAdmin && document.getElementById('salesPerfChart')) {
+    var spRoot = am5.Root.new('salesPerfChart');
+    spRoot.setThemes([am5themes_Animated.new(spRoot)]);
+
+    var spChart = spRoot.container.children.push(am5xy.XYChart.new(spRoot, {
+      panX: false, panY: false, layout: spRoot.verticalLayout, paddingLeft: 0
+    }));
+
+    var spXAxis = spChart.xAxes.push(am5xy.CategoryAxis.new(spRoot, {
+      categoryField: 'sales_nama',
+      renderer: am5xy.AxisRendererX.new(spRoot, { minGridDistance: 40, cellStartLocation: 0.15, cellEndLocation: 0.85 })
+    }));
+    spXAxis.get('renderer').labels.template.setAll({ fontSize: 11, fill: am5.color(0x8c8c8c) });
+    spXAxis.get('renderer').grid.template.setAll({ strokeOpacity: 0.04 });
+
+    var spYAxisOmzet = spChart.yAxes.push(am5xy.ValueAxis.new(spRoot, { renderer: am5xy.AxisRendererY.new(spRoot, {}), min: 0 }));
+    spYAxisOmzet.get('renderer').labels.template.setAll({ fill: am5.color(0x8c8c8c), fontSize: 10 });
+    spYAxisOmzet.get('renderer').labels.template.adapters.add('text', rpAxisAdapter);
+    spYAxisOmzet.get('renderer').grid.template.setAll({ strokeOpacity: 0.05, strokeDasharray: [3, 3] });
+
+    var spYAxisTrx = spChart.yAxes.push(am5xy.ValueAxis.new(spRoot, {
+      renderer: am5xy.AxisRendererY.new(spRoot, { opposite: true }), min: 0, maxPrecision: 0, syncWithAxis: spYAxisOmzet
+    }));
+    spYAxisTrx.get('renderer').labels.template.setAll({ fill: am5.color(0xffc107), fontSize: 10 });
+    spYAxisTrx.get('renderer').grid.template.set('forceHidden', true);
+
+    // Omzet bars
+    var spBarSeries = spChart.series.push(am5xy.ColumnSeries.new(spRoot, {
+      name: 'Omzet', xAxis: spXAxis, yAxis: spYAxisOmzet,
+      valueYField: 'total_omzet', categoryXField: 'sales_nama', sequencedInterpolation: true,
+      tooltip: styledTooltip(spRoot, function(di) {
+        var d = di.dataContext;
+        return '[bold]' + d.sales_nama + '[/]\n' +
+          'Omzet: Rp ' + d.total_omzet_fmt + '\n' +
+          'Transaksi: ' + d.total_transaksi;
+      })
+    }));
+    spBarSeries.columns.template.setAll({
+      cornerRadiusTL: 5, cornerRadiusTR: 5, width: am5.percent(55), strokeOpacity: 0,
+      shadowColor: am5.color(0x000000), shadowBlur: 4, shadowOffsetY: 2, shadowOpacity: 0.08
+    });
+    var spGradColors = [0x0d6efd, 0x6f42c1, 0x20c997, 0xd63384, 0x0dcaf0];
+    spBarSeries.columns.template.adapters.add('fill', function(fill, target) {
+      var idx = spBarSeries.columns.indexOf(target);
+      return am5.color(spGradColors[idx % spGradColors.length]);
+    });
+    spBarSeries.columns.template.states.create('hover', { shadowBlur: 14, shadowOpacity: 0.25 });
+
+    // Transaksi count line + bullets
+    var spLineSeries = spChart.series.push(am5xy.LineSeries.new(spRoot, {
+      name: 'Transaksi', xAxis: spXAxis, yAxis: spYAxisTrx,
+      valueYField: 'total_transaksi', categoryXField: 'sales_nama', stroke: am5.color(0xffc107)
+    }));
+    spLineSeries.strokes.template.setAll({ strokeWidth: 2, strokeDasharray: [5, 3] });
+    spLineSeries.bullets.push(function() {
+      var container = am5.Container.new(spRoot, {});
+      container.children.push(am5.Circle.new(spRoot, { radius: 14, fill: am5.color(0xffc107), fillOpacity: 0.15, strokeWidth: 0 }));
+      container.children.push(am5.Circle.new(spRoot, {
+        radius: 6, fill: am5.color(0xffc107), strokeWidth: 2, stroke: am5.color(0xffffff),
+        shadowColor: am5.color(0xffc107), shadowBlur: 8, shadowOpacity: 0.3
+      }));
+      container.children.push(am5.Label.new(spRoot, {
+        text: '{valueY}', populateText: true,
+        fill: am5.color(0x555555), fontSize: 10, fontWeight: '700',
+        centerX: am5.p50, centerY: am5.p100, dy: -16
+      }));
+      return am5.Bullet.new(spRoot, { sprite: container });
+    });
+
+    var spLegend = spChart.children.push(am5.Legend.new(spRoot, { centerX: am5.p50, x: am5.p50, marginTop: 10 }));
+    spLegend.markers.template.setAll({ width: 12, height: 12 });
+    spLegend.labels.template.setAll({ fontSize: 12 });
+
+    // Animate smoothly after data is processed
+    spBarSeries.events.once("datavalidated", function(ev) { ev.target.appear(1000, 100); });
+    spLineSeries.events.once("datavalidated", function(ev) { ev.target.appear(1000, 300); });
+
+    $.get('/api/dashboard/sales-performance', { from: firstOfMonth, to: today }, function(res) {
+      if (res.success && res.data && res.data.length) {
+        res.data.forEach(function(d) {
+          d.total_transaksi = parseInt(d.total_transaksi);
+          d.total_omzet = parseFloat(d.total_omzet);
+          d.total_omzet_fmt = Number(d.total_omzet).toLocaleString('id-ID');
+        });
+        spXAxis.data.setAll(res.data);
+        spBarSeries.data.setAll(res.data);
+        spLineSeries.data.setAll(res.data);
+        spLegend.data.setAll(spChart.series.values);
+      } else { emptyLabel(spRoot, 'Belum ada data sales bulan ini'); }
+    });
+    spChart.appear(1000, 100);
+  }
+
+  // ══════════════════════════════════════════════════════
+  // CHART 4: Breakdown Kategori — Donut with Center Label
+  // ══════════════════════════════════════════════════════
+  if (document.getElementById('kategoriChart')) {
+    var kRoot = am5.Root.new('kategoriChart');
+    kRoot.setThemes([am5themes_Animated.new(kRoot)]);
+
+    var kChart = kRoot.container.children.push(am5percent.PieChart.new(kRoot, {
+      layout: kRoot.verticalLayout,
+      innerRadius: am5.percent(50)
+    }));
+
+    var kSeries = kChart.series.push(am5percent.PieSeries.new(kRoot, {
+      valueField: 'total_qty', categoryField: 'kategori_nama',
+      legendLabelText: '{kategori_nama}', legendValueText: '{value}'
+    }));
+    kSeries.get('colors').set('colors', [
+      am5.color(0x0d6efd), am5.color(0x6f42c1), am5.color(0xd63384),
+      am5.color(0xfd7e14), am5.color(0x20c997), am5.color(0x0dcaf0),
+      am5.color(0x198754), am5.color(0xffc107)
+    ]);
+    kSeries.labels.template.setAll({ fontSize: 11, text: '{kategori_nama}', maxWidth: 100, oversizedBehavior: 'truncate' });
+    kSeries.slices.template.setAll({
+      strokeWidth: 2, stroke: am5.color(0xffffff),
+      tooltipText: '[bold]{kategori_nama}[/]\nQty: {value}'
+    });
+
+    var kLegend = kChart.children.push(am5.Legend.new(kRoot, {
+      centerX: am5.p50, x: am5.p50, layout: kRoot.horizontalLayout
+    }));
+    kLegend.markers.template.setAll({ width: 10, height: 10 });
+    kLegend.labels.template.setAll({ fontSize: 11 });
+    kLegend.valueLabels.template.setAll({ fontSize: 11, fill: am5.color(0x999999) });
+
+    $.get('/api/dashboard/kategori-breakdown', { from: firstOfMonth, to: today }, function(res) {
+      if (res.success && res.data && res.data.length) {
+        res.data.forEach(function(d) {
+          d.total_qty = parseInt(d.total_qty);
+          if (!d.kategori_nama) d.kategori_nama = 'Tanpa Kategori';
+        });
+        kSeries.data.setAll(res.data);
+        kLegend.data.setAll(kSeries.dataItems);
+      } else { emptyLabel(kRoot, 'Belum ada data bulan ini'); }
+    });
+    kSeries.appear(1000, 100);
+  }
+
+  // ══════════════════════════════════════════════════════
+  // CHART 5: Tren Transaksi 30 Hari — Smooth Area
+  // ══════════════════════════════════════════════════════
+  if (document.getElementById('trendChart')) {
+    var d30 = new Date();
+    d30.setDate(d30.getDate() - 29);
+    var from30 = d30.getFullYear() + '-' + String(d30.getMonth()+1).padStart(2,'0') + '-' + String(d30.getDate()).padStart(2,'0');
+
+    var trRoot = am5.Root.new('trendChart');
+    trRoot.setThemes([am5themes_Animated.new(trRoot)]);
+
+    var trChart = trRoot.container.children.push(am5xy.XYChart.new(trRoot, {
+      panX: true, panY: false, wheelX: 'panX', wheelY: 'zoomX',
+      layout: trRoot.verticalLayout, paddingLeft: 0, pinchZoomX: true
+    }));
+
+    var trCursor = trChart.set('cursor', am5xy.XYCursor.new(trRoot, { behavior: 'none' }));
+    trCursor.lineY.set('visible', false);
+    trCursor.lineX.setAll({ stroke: am5.color(0x0dcaf0), strokeWidth: 1, strokeDasharray: [4, 4] });
+
+    var trXAxis = trChart.xAxes.push(am5xy.CategoryAxis.new(trRoot, {
+      categoryField: 'tanggal',
+      renderer: am5xy.AxisRendererX.new(trRoot, { minGridDistance: 50 })
+    }));
+    trXAxis.get('renderer').labels.template.setAll({ rotation: -45, centerY: am5.p50, centerX: am5.p100, fontSize: 10, fill: am5.color(0x8c8c8c) });
+    trXAxis.get('renderer').grid.template.setAll({ strokeOpacity: 0.04 });
+
+    var trYAxis = trChart.yAxes.push(am5xy.ValueAxis.new(trRoot, {
+      renderer: am5xy.AxisRendererY.new(trRoot, {}), min: 0, maxPrecision: 0, strictMinMax: true
+    }));
+    trYAxis.get('renderer').labels.template.setAll({ fill: am5.color(0x8c8c8c), fontSize: 10 });
+    trYAxis.get('renderer').grid.template.setAll({ strokeOpacity: 0.05, strokeDasharray: [3, 3] });
+
+    var trColor = am5.color(0x0dcaf0);
+    var trSeries = trChart.series.push(am5xy.LineSeries.new(trRoot, {
+      name: 'Transaksi', xAxis: trXAxis, yAxis: trYAxis,
+      valueYField: 'jumlah', categoryXField: 'tanggal',
+      tooltip: styledTooltip(trRoot, function(di) {
+        var d = di.dataContext;
+        return '[bold]' + d.tanggal + '[/]\n' + d.jumlah + ' transaksi';
+      })
+    }));
+    trSeries.strokes.template.setAll({ strokeWidth: 3, stroke: trColor });
+    trSeries.set('stroke', trColor);
+    trSeries.set('fill', trColor);
+    trSeries.fills.template.setAll({ visible: true, fillOpacity: 1 });
+    trSeries.fills.template.set('fillGradient', am5.LinearGradient.new(trRoot, {
+      stops: [{ color: trColor, opacity: 0.3 }, { color: trColor, opacity: 0.05 }, { color: trColor, opacity: 0.0 }], rotation: 90
+    }));
+    trSeries.bullets.push(function() {
+      var container = am5.Container.new(trRoot, {});
+      var outer = container.children.push(am5.Circle.new(trRoot, { radius: 10, fill: trColor, fillOpacity: 0, strokeWidth: 0 }));
+      outer.states.create('hover', { fillOpacity: 0.15, radius: 14 });
+      var inner = container.children.push(am5.Circle.new(trRoot, {
+        radius: 4, fill: trColor, strokeWidth: 2, stroke: am5.color(0xffffff),
+        shadowColor: trColor, shadowBlur: 6, shadowOpacity: 0.3
+      }));
+      inner.states.create('hover', { radius: 6, shadowBlur: 12 });
+      return am5.Bullet.new(trRoot, { sprite: container });
+    });
+
+    $.get('/api/dashboard/daily-trend', { from: from30, to: today }, function(res) {
+      if (res.success && res.data) {
+        var dataMap = {};
+        res.data.forEach(function(d) { dataMap[d.tanggal] = parseInt(d.jumlah); });
+        var filled = [];
+        var cur = new Date(d30);
+        var end = new Date(today + 'T23:59:59');
+        while (cur <= end) {
+          var key = cur.getFullYear() + '-' + String(cur.getMonth()+1).padStart(2,'0') + '-' + String(cur.getDate()).padStart(2,'0');
+          var label = cur.toLocaleDateString('id-ID', { day: 'numeric', month: 'short' });
+          filled.push({ tanggal: label, jumlah: dataMap[key] || 0 });
+          cur.setDate(cur.getDate() + 1);
+        }
+        trXAxis.data.setAll(filled);
+        trSeries.data.setAll(filled);
+      }
+    });
+    trSeries.appear(1500, 300);
+    trChart.appear(1000, 400);
+  }
+
+  // ══════════════════════════════════════════════════════
+  // TABLE: 5 Pelanggan Terakhir (both roles)
+  // ══════════════════════════════════════════════════════
+  $.get('/api/dashboard/recent-pelanggan', function(res) {
+    var tbody = $('#recentPelangganTable tbody');
+    if (res.success && res.data && res.data.length) {
+      var html = '';
+      res.data.forEach(function(p, i) {
+        html += '<tr style="animation: fadeInUp 0.3s ease ' + (i * 0.08) + 's both">';
+        html += '<td class="fw-semibold">' + (p.nama || '-') + '</td>';
+        html += '<td>' + (p.no_telp || '<span class=text-muted>-</span>') + '</td>';
+        html += '<td><code class="text-primary">' + (p.no_nota || '-') + '</code></td>';
+        html += '<td>' + fmtDate(p.order_date) + '</td>';
+        html += '</tr>';
+      });
+      tbody.html(html);
+    } else {
+      tbody.html('<tr><td colspan="4" class="text-center text-muted py-4"><i class="bi bi-inbox me-2"></i>Belum ada data pelanggan.</td></tr>');
+    }
+  });
+
+})();
+</script>
+
+<style>
+@keyframes fadeInUp {
+  from { opacity: 0; transform: translateY(8px); }
+  to { opacity: 1; transform: translateY(0); }
+}
+</style>
 
 <%- include('./partials/bottom') %>
+
