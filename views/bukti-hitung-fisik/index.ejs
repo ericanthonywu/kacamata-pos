@@ -152,7 +152,20 @@
             ],
             language: dtLanguageID,
             columns: [
-              { data: 'nama_barang' },
+              {
+                data: 'nama_barang',
+                render: function (d, type, row) {
+                  if (type !== 'display' && type !== 'filter') return d;
+                  var sph = row.sph_r || row.sph_l || '';
+                  var cyl = row.cyl_r || row.cyl_l || '';
+                  var add = row.add_r || row.add_l || '';
+                  var ukuran = '';
+                  if (sph || cyl || add) {
+                    ukuran = ' <span class="text-muted small">(SPH: ' + sph + ' CYL: ' + cyl + (add ? ' ADD: ' + add : '') + ')</span>';
+                  }
+                  return d + ukuran;
+                }
+              },
               { data: 'barcode_id', render: function (d) { return '<span class="font-monospace small">' + (d || '-') + '</span>'; } },
               { data: 'qty_sebelum' },
               { data: 'qty_sesudah' },

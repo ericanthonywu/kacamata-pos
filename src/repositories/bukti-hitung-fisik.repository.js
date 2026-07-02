@@ -12,31 +12,32 @@ exports.insertWithTrx = function (trx, data) {
 exports.getDatatablesData = async function (params) {
   const { start, length, search, order, from, to, columns: dtColumns } = params;
 
-  let baseQuery = db(TABLE);
+  let baseQuery = db(TABLE)
+    .leftJoin('barang', `${TABLE}.barang_id`, 'barang.id');
 
   // Date range filter
   if (from) {
-    baseQuery = baseQuery.where('created_at', '>=', `${from} 00:00:00`);
+    baseQuery = baseQuery.where(`${TABLE}.created_at`, '>=', `${from} 00:00:00`);
   }
   if (to) {
-    baseQuery = baseQuery.where('created_at', '<=', `${to} 23:59:59`);
+    baseQuery = baseQuery.where(`${TABLE}.created_at`, '<=', `${to} 23:59:59`);
   }
 
   // Count total (with date filters applied)
-  const totalCountRes = await baseQuery.clone().count('id as count').first();
+  const totalCountRes = await baseQuery.clone().count(`${TABLE}.id as count`).first();
   const recordsTotal = parseInt(totalCountRes.count);
 
   // Apply search
   if (search && search.value) {
     baseQuery = baseQuery.where(function () {
-      this.where('nama_barang', 'ilike', `%${search.value}%`)
-        .orWhere('barcode_id', 'ilike', `%${search.value}%`)
-        .orWhere('diubah_oleh', 'ilike', `%${search.value}%`);
+      this.where(`${TABLE}.nama_barang`, 'ilike', `%${search.value}%`)
+        .orWhere(`${TABLE}.barcode_id`, 'ilike', `%${search.value}%`)
+        .orWhere(`${TABLE}.diubah_oleh`, 'ilike', `%${search.value}%`);
     });
   }
 
   // Count filtered
-  const filteredCountRes = await baseQuery.clone().count('id as count').first();
+  const filteredCountRes = await baseQuery.clone().count(`${TABLE}.id as count`).first();
   const recordsFiltered = parseInt(filteredCountRes.count);
 
   // Apply ordering
@@ -53,12 +54,12 @@ exports.getDatatablesData = async function (params) {
     }
 
     if (colName) {
-      baseQuery = baseQuery.orderBy(colName, dir);
+      baseQuery = baseQuery.orderBy(`${TABLE}.${colName}`, dir);
     } else {
-      baseQuery = baseQuery.orderBy('created_at', 'desc');
+      baseQuery = baseQuery.orderBy(`${TABLE}.created_at`, 'desc');
     }
   } else {
-    baseQuery = baseQuery.orderBy('created_at', 'desc');
+    baseQuery = baseQuery.orderBy(`${TABLE}.created_at`, 'desc');
   }
 
   // Pagination
@@ -66,7 +67,12 @@ exports.getDatatablesData = async function (params) {
     baseQuery = baseQuery.limit(length).offset(start);
   }
 
-  const data = await baseQuery.select('*');
+  const data = await baseQuery.select(
+    `${TABLE}.*`,
+    'barang.sph_r', 'barang.sph_l',
+    'barang.cyl_r', 'barang.cyl_l',
+    'barang.add_r', 'barang.add_l'
+  );
 
   return { recordsTotal, recordsFiltered, data };
 };
