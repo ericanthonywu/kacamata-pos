@@ -83,18 +83,23 @@
 
         function addItem() {
           var idx = itemIndex++;
-          var html = '<div class="row g-2 align-items-end mb-2 item-row" data-idx="' + idx + '">' +
-            '<div class="col-md-3"><label class="form-label small">Barang</label>' +
+          var html = '<div class="border rounded p-2 mb-2 item-row" data-idx="' + idx + '">' +
+            '<div class="row g-2 align-items-end mb-2">' +
+            '<div class="col"><label class="form-label small">Barang</label>' +
             '<select class="form-select form-select-sm item-barang" data-idx="' + idx + '"><option value="">-- Pilih Barang --</option></select></div>' +
-            '<div class="col-md-1"><label class="form-label small">Qty</label>' +
+            '<div class="col-auto d-flex align-items-end">' +
+            '<button class="btn btn-sm btn-outline-danger" onclick="removeItem(' + idx + ')"><i class="bi bi-trash"></i></button></div>' +
+            '</div>' +
+            '<div class="row g-2 align-items-end">' +
+            '<div class="col-md-2"><label class="form-label small">Qty</label>' +
             '<input type="number" class="form-control form-control-sm item-jumlah calc-input" data-idx="' + idx + '" value="1" min="1"></div>' +
-            '<div class="col-md-2"><label class="form-label small">Harga Beli</label>' +
+            '<div class="col-md-3"><label class="form-label small">Harga Beli</label>' +
             '<input type="text" class="form-control form-control-sm item-harga calc-input input-currency" data-idx="' + idx + '" value="0"></div>' +
-            '<div class="col-md-2"><label class="form-label small">Harga Jual</label>' +
+            '<div class="col-md-3"><label class="form-label small">Harga Jual</label>' +
             '<input type="text" class="form-control form-control-sm item-harga-jual input-currency" data-idx="' + idx + '" value="0"></div>' +
-            '<div class="col-md-3"><label class="form-label small">Subtotal</label>' +
+            '<div class="col-md-4"><label class="form-label small">Subtotal</label>' +
             '<div class="form-control-plaintext form-control-sm fw-bold item-subtotal" data-idx="' + idx + '">Rp 0</div></div>' +
-            '<div class="col-md-1"><button class="btn btn-sm btn-outline-danger" onclick="removeItem(' + idx + ')"><i class="bi bi-trash"></i></button></div>' +
+            '</div>' +
             '</div>';
           $('#itemList').append(html);
 
