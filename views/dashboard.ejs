@@ -308,7 +308,8 @@ const isAdmin = currentUser && currentUser.hak_akses === 'admin';
   // ══════════════════════════════════════════════════════
   // CHART 1: Arus Kas (Admin only)
   // ══════════════════════════════════════════════════════
-  if (isAdmin && document.getElementById('kasChart')) {
+  function initKasChart() {
+    if (!isAdmin || !document.getElementById('kasChart')) return;
     var kasRoot = am5.Root.new('kasChart');
     kasRoot.setThemes([am5themes_Animated.new(kasRoot)]);
     kasRoot.numberFormatter.setAll({ numberFormat: '#,###', numericFields: ['valueY'] });
@@ -454,10 +455,11 @@ const isAdmin = currentUser && currentUser.hak_akses === 'admin';
     kasChart.appear(1000, 100);
   }
 
-  // ══════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════
   // CHART 2: Top 10 Barang Terlaris — Horizontal Bars
   // ══════════════════════════════════════════════════════
-  if (document.getElementById('topBarangChart')) {
+  function initTopBarangChart() {
+    if (!document.getElementById('topBarangChart')) return;
     var tbRoot = am5.Root.new('topBarangChart');
     tbRoot.setThemes([am5themes_Animated.new(tbRoot)]);
 
@@ -534,10 +536,11 @@ const isAdmin = currentUser && currentUser.hak_akses === 'admin';
     tbChart.appear(1000, 100);
   }
 
-  // ══════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════
   // CHART 3: Performa Sales (Admin only) — Bar + Bullet
   // ══════════════════════════════════════════════════════
-  if (isAdmin && document.getElementById('salesPerfChart')) {
+  function initSalesPerfChart() {
+    if (!isAdmin || !document.getElementById('salesPerfChart')) return;
     var spRoot = am5.Root.new('salesPerfChart');
     spRoot.setThemes([am5themes_Animated.new(spRoot)]);
 
@@ -630,10 +633,11 @@ const isAdmin = currentUser && currentUser.hak_akses === 'admin';
     spChart.appear(1000, 100);
   }
 
+    // ══════════════════════════════════════════════════════
+  // CHART 4: Breakdown Kategori — Donut
   // ══════════════════════════════════════════════════════
-  // CHART 4: Breakdown Kategori — Donut with Center Label
-  // ══════════════════════════════════════════════════════
-  if (document.getElementById('kategoriChart')) {
+  function initKategoriChart() {
+    if (!document.getElementById('kategoriChart')) return;
     var kRoot = am5.Root.new('kategoriChart');
     kRoot.setThemes([am5themes_Animated.new(kRoot)]);
 
@@ -677,10 +681,11 @@ const isAdmin = currentUser && currentUser.hak_akses === 'admin';
     kSeries.appear(1000, 100);
   }
 
-  // ══════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════
   // CHART 5: Tren Transaksi 30 Hari — Smooth Area
   // ══════════════════════════════════════════════════════
-  if (document.getElementById('trendChart')) {
+  function initTrendChart() {
+    if (!document.getElementById('trendChart')) return;
     var d30 = new Date();
     d30.setDate(d30.getDate() - 29);
     var from30 = d30.getFullYear() + '-' + String(d30.getMonth()+1).padStart(2,'0') + '-' + String(d30.getDate()).padStart(2,'0');
@@ -759,10 +764,11 @@ const isAdmin = currentUser && currentUser.hak_akses === 'admin';
     trChart.appear(1000, 400);
   }
 
-  // ══════════════════════════════════════════════════════
+    // ══════════════════════════════════════════════════════
   // TABLE: 5 Pelanggan Terakhir (both roles)
   // ══════════════════════════════════════════════════════
-  $.get('/api/dashboard/recent-pelanggan', function(res) {
+  function initRecentPelanggan() {
+    $.get('/api/dashboard/recent-pelanggan', function(res) {
     var tbody = $('#recentPelangganTable tbody');
     if (res.success && res.data && res.data.length) {
       var html = '';
@@ -778,7 +784,38 @@ const isAdmin = currentUser && currentUser.hak_akses === 'admin';
     } else {
       tbody.html('<tr><td colspan="4" class="text-center text-muted py-4"><i class="bi bi-inbox me-2"></i>Belum ada data pelanggan.</td></tr>');
     }
-  });
+    }
+  }
+
+  // ══════════════════════════════════════════════════════
+  // LAZY LOADING & STAGGERING LOGIC
+  // ══════════════════════════════════════════════════════
+  function lazyLoad(elementId, initFn, delay) {
+    var el = document.getElementById(elementId);
+    if (!el) return;
+
+    if ('IntersectionObserver' in window) {
+      var observer = new IntersectionObserver(function(entries, obs) {
+        if (entries[0].isIntersecting) {
+          obs.disconnect(); // Fire only once
+          if (delay) setTimeout(initFn, delay);
+          else initFn();
+        }
+      }, { rootMargin: '100px' }); // Trigger 100px before scrolling into view
+      observer.observe(el);
+    } else {
+      // Fallback for older browsers
+      setTimeout(initFn, delay || 0);
+    }
+  }
+
+  // Initialize charts with stagger to prevent main thread blocking
+  lazyLoad('kasChart', initKasChart, 0);
+  lazyLoad('topBarangChart', initTopBarangChart, isAdmin ? 200 : 0);
+  lazyLoad('salesPerfChart', initSalesPerfChart, isAdmin ? 400 : 0);
+  lazyLoad('kategoriChart', initKategoriChart, 0);
+  lazyLoad('trendChart', initTrendChart, 200);
+  lazyLoad('recentPelangganTable', initRecentPelanggan, 0);
 
 })();
 </script>
