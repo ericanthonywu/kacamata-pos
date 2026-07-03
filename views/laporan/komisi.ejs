@@ -250,11 +250,6 @@ function showDetailModal(sales_id, pBulan, pTahun, pTipe) {
       document.getElementById('mdlKategori').innerText = tipeStr;
       document.getElementById('printKategori').innerText = tipeStr;
 
-      let komisiLabel = 'Komisi';
-      if (data.filters.tipe === 'lensa') komisiLabel += ' (' + (data.sales.komisi_lensa||0) + '%)';
-      else if (data.filters.tipe === 'frame') komisiLabel += ' (' + (data.sales.komisi_frame||0) + '%)';
-      document.getElementById('colKomisi').innerText = komisiLabel;
-
       let subtotalLabel = data.filters.tipe === 'semua' ? 'Subtotal Penjualan (Semua)' : ('Subtotal Penjualan ' + tipeStr);
       document.getElementById('colSubtotal').innerText = subtotalLabel;
 
