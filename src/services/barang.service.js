@@ -12,7 +12,7 @@ exports.create = async function (data) {
   return repo.create({
     nama_barang: data.nama_barang.trim(),
     kategori_id: data.kategori_id || null,
-    qty: (data.qty === '' || data.qty === null || data.qty === undefined) ? null : parseInt(data.qty),
+    qty: (data.qty === '' || data.qty == null) ? 0 : parseInt(data.qty),
     harga_jual: parseFloat(data.harga_jual) || 0,
     sph_r: data.sph_r || null,
     sph_l: data.sph_l || null,
@@ -39,7 +39,7 @@ exports.update = async function (id, data, options = {}) {
   const updateData = {
     nama_barang: data.nama_barang.trim(),
     kategori_id: data.kategori_id || null,
-    qty: (data.qty === '' || data.qty === null || data.qty === undefined) ? null : parseInt(data.qty),
+    qty: (data.qty === '' || data.qty == null) ? 0 : parseInt(data.qty),
     harga_jual: parseFloat(data.harga_jual) || 0,
     sph_r: data.sph_r || null,
     sph_l: data.sph_l || null,
@@ -53,8 +53,8 @@ exports.update = async function (id, data, options = {}) {
 
   // Create bukti hitung fisik log if requested and stock actually changed
   if (log_hitung_fisik && oldBarang) {
-    const oldQty = oldBarang.qty !== null ? parseInt(oldBarang.qty) : 0;
-    const newQty = updateData.qty !== null ? parseInt(updateData.qty) : 0;
+    const oldQty = parseInt(oldBarang.qty);
+    const newQty = parseInt(updateData.qty);
 
     if (oldQty !== newQty) {
       await bhfRepo.create({

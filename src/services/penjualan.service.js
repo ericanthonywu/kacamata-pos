@@ -53,7 +53,7 @@ exports.create = async function (data, userId) {
     subtotal += ((parseFloat(item.harga) || 0) - (parseFloat(item.diskon) || 0)) * (parseInt(item.jumlah) || 1);
     if (item.barang_id) {
       const barang = await barangRepo.findById(item.barang_id);
-      if (barang && barang.qty !== null && barang.qty <= 0) {
+      if (barang && barang.qty <= 0) {
         warnings.push(`Pemberitahuan: Stok barang "${barang.nama_barang}" saat ini sedang kosong (0). Transaksi tetap berhasil dicatat.`);
       }
     }
@@ -110,7 +110,7 @@ exports.create = async function (data, userId) {
       if (item.barang_id) {
         const brg = await barangRepo.findByIdWithTrx(trx, item.barang_id);
         if (brg) {
-          if (brg.qty == null) brg.qty = 0;
+
           await barangRepo.decrementQty(item.barang_id, item.jumlah || 1, trx);
         }
       }

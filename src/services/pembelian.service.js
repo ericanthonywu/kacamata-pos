@@ -68,10 +68,9 @@ exports.create = async function (data) {
       if (item.barang_id) {
         const brg = await barangRepo.findByIdWithTrx(trx, item.barang_id);
         if (brg) {
-          const updateData = {};
-          if (brg.qty !== null) {
-            updateData.qty = parseInt(brg.qty) + (item.jumlah || 1);
-          }
+          const updateData = {
+            qty: parseInt(brg.qty) + (item.jumlah || 1),
+          };
           if (item.harga_jual !== undefined && item.harga_jual !== null) {
             updateData.harga_jual = item.harga_jual;
           }
@@ -106,7 +105,7 @@ exports.del = async function (id) {
     for (const item of details) {
       if (item.barang_id) {
         const brg = await barangRepo.findByIdWithTrx(trx, item.barang_id);
-        if (brg && brg.qty !== null) {
+        if (brg) {
           await barangRepo.decrementQty(item.barang_id, item.jumlah, trx);
         }
       }

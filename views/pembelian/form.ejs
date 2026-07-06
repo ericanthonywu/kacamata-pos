@@ -121,7 +121,7 @@
                       id: item.id,
                       text: item.nama_barang +
                         (item.sph_r || item.sph_l || item.cyl_r || item.cyl_l || item.add_r || item.add_l ? ' (SPH : ' + (item.sph_r || item.sph_l || '') + ' CYL : ' + (item.cyl_r || item.cyl_l || '') + ' ADD : ' + (item.add_r || item.add_l || '') + ')' : '') +
-                        ' (Stok: ' + (item.qty !== null ? item.qty : '-') + ')',
+                        ' (Stok: ' + item.qty + ')',
                       item: item
                     }
                   })
@@ -226,8 +226,8 @@
                       <% }); %>
                   </select>
                 </div>
-                <div class="col-md-3 mb-3"><label class="form-label small">Qty</label><input type="text"
-                    class="form-control" id="qty" placeholder="Kosong=Non-Stok"></div>
+                <div class="col-md-3 mb-3"><label class="form-label small">Qty</label><input type="number"
+                    class="form-control" id="qty" value="0" min="0"></div>
                 <div class="col-md-3 mb-3"><label class="form-label small">Harga Jual</label><input type="text"
                     class="form-control input-currency" id="harga_jual" min="0" value="0"></div>
               </div>
@@ -269,7 +269,7 @@
         function showAddBarangModal() {
           $('#nama_barang').val('');
           $('#kategori_id').val('');
-          $('#qty').val('');
+          $('#qty').val(0);
           $('#harga_jual').val(0).trigger('input');
           $('#sph_r, #cyl_r, #add_r, #sph_l, #cyl_l, #add_l').val('');
           $('#resep-container').hide();
@@ -291,7 +291,7 @@
           var payload = {
             nama_barang: $('#nama_barang').val(),
             kategori_id: $('#kategori_id').val() || null,
-            qty: $('#qty').val() !== '' ? $('#qty').val() : null,
+            qty: parseInt($('#qty').val()) || 0,
             harga_jual: $('#harga_jual').data('raw-value') || $('#harga_jual').val().replace(/[^0-9]/g, ''),
             sph_r: $('#sph_r').val(), cyl_r: $('#cyl_r').val(), add_r: $('#add_r').val(),
             sph_l: $('#sph_l').val(), cyl_l: $('#cyl_l').val(), add_l: $('#add_l').val(),

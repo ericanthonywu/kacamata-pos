@@ -58,8 +58,8 @@
                     <% }); %>
                 </select>
               </div>
-              <div class="col-md-3 mb-3"><label class="form-label small">Qty</label><input type="text"
-                  class="form-control" id="qty" placeholder="Kosong=Non-Stok"></div>
+              <div class="col-md-3 mb-3"><label class="form-label small">Qty</label><input type="number"
+                  class="form-control" id="qty" value="0" min="0"></div>
               <div class="col-md-3 mb-3"><label class="form-label small">Harga Jual</label><input type="text"
                   class="form-control input-currency" id="harga_jual" min="0" value="0"></div>
             </div>
@@ -135,7 +135,7 @@
               }
             },
             { data: 'kategori_nama', render: function (d) { return '<span class="badge bg-info bg-opacity-25 text-info">' + (d || '-') + '</span>'; } },
-            { data: 'qty', render: function (d) { return '<span class="' + (d !== null && d <= 0 ? 'text-danger fw-bold' : '') + '">' + (d !== null ? d : '-') + '</span>'; } },
+            { data: 'qty', render: function (d) { return '<span class="' + (d <= 0 ? 'text-danger fw-bold' : '') + '">' + d + '</span>'; } },
             { data: 'harga_jual', render: function (d) { return fmtRp(d); } },
             { data: 'barcode_id', render: function (d) { return '<span class="font-monospace small">' + (d || '-') + '</span>'; } },
             {
@@ -149,7 +149,7 @@
                 if (window.userRole === 'admin') {
                   html += '<button class="btn btn-sm btn-outline-secondary btn-edit" ' +
                     'data-id="' + row.id + '" data-nama="' + escapeHtml(row.nama_barang || '') + '" data-kategori="' + (row.kategori_id || '') + '" ' +
-                    'data-qty="' + (row.qty !== null ? row.qty : '') + '" data-harga="' + (row.harga_jual || 0) + '" ' +
+                    'data-qty="' + row.qty + '" data-harga="' + (row.harga_jual || 0) + '" ' +
                     'data-sph_r="' + (row.sph_r || '') + '" data-cyl_r="' + (row.cyl_r || '') + '" data-add_r="' + (row.add_r || '') + '" ' +
                     'data-sph_l="' + (row.sph_l || '') + '" data-cyl_l="' + (row.cyl_l || '') + '" data-add_l="' + (row.add_l || '') + '" ' +
                     'title="Edit"><i class="bi bi-pencil"></i></button>';
@@ -172,7 +172,7 @@
           $('#editId').val('');
           $('#nama_barang').val('');
           $('#kategori_id').val('').trigger('change');
-          $('#qty').val('');
+          $('#qty').val(0);
           $('#harga_jual').val(0).trigger('input');
           $('#sph_r, #cyl_r, #add_r, #sph_l, #cyl_l, #add_l').val('');
           $('.modal-title').text('Tambah Barang');
@@ -181,11 +181,11 @@
 
         $(document).on('click', '.btn-edit', function () {
           var $b = $(this);
-          var origQty = $b.data('qty') !== '' ? parseInt($b.data('qty')) : '';
+          var origQty = parseInt($b.data('qty')) || 0;
           $('#editId').val($b.data('id'));
           $('#nama_barang').val($b.data('nama'));
           $('#kategori_id').val($b.data('kategori')).trigger('change');
-          $('#qty').val(origQty !== '' ? origQty : '');
+          $('#qty').val(origQty);
           $('#qty').data('original-qty', origQty);
           $('#harga_jual').val(parseInt($b.data('harga')) || 0).trigger('input');
           $('#sph_r').val($b.data('sph_r'));
@@ -242,7 +242,7 @@
           var payload = {
             nama_barang: $('#nama_barang').val(),
             kategori_id: $('#kategori_id').val() || null,
-            qty: $('#qty').val() !== '' ? $('#qty').val() : null,
+            qty: parseInt($('#qty').val()) || 0,
             harga_jual: $('#harga_jual').data('raw-value') || $('#harga_jual').val().replace(/[^0-9]/g, ''),
             sph_r: $('#sph_r').val(), cyl_r: $('#cyl_r').val(), add_r: $('#add_r').val(),
             sph_l: $('#sph_l').val(), cyl_l: $('#cyl_l').val(), add_l: $('#add_l').val(),

@@ -139,7 +139,7 @@
                 id: item.id,
                 text: item.nama_barang +
                   (item.sph_r || item.sph_l || item.cyl_r || item.cyl_l || item.add_r || item.add_l ? ' (SPH: ' + (item.sph_r || item.sph_l || '') + ' CYL: ' + (item.cyl_r || item.cyl_l || '') + ' ADD: ' + (item.add_r || item.add_l || '') + ')' : '') +
-                  ' (Stok: ' + (item.qty !== null ? item.qty : '-') + ')',
+                  ' (Stok: ' + item.qty + ')',
                 item: item
               }
             })

@@ -147,14 +147,11 @@ $(function() {
       { data: 'barcode_id', render: function(d) { return '<span class="font-monospace small">' + (d||'-') + '</span>'; } },
       { data: 'qty', render: function(d) { 
           var cls = '';
-          if (d !== null) {
-            if (d <= 0) cls = 'text-danger';
-            else if (d <= 5) cls = 'text-warning text-dark';
-          }
-          return '<span class="fw-bold ' + cls + '">' + (d !== null ? d : '-') + '</span>'; 
+          if (d <= 0) cls = 'text-danger';
+          else if (d <= 5) cls = 'text-warning text-dark';
+          return '<span class="fw-bold ' + cls + '">' + d + '</span>'; 
       } },
       { data: 'qty', orderable: false, render: function(d) {
-          if (d === null) return '-';
           if (d <= 0) return '<span class="badge bg-danger">Habis</span>';
           if (d <= 5) return '<span class="badge bg-warning text-dark">Rendah</span>';
           return '<span class="badge bg-success">Tersedia</span>';

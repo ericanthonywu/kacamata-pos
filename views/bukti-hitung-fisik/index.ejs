@@ -230,7 +230,7 @@
             if (sph || cyl || add) {
               text += ' (SPH: ' + sph + ' CYL: ' + cyl + ' ADD: ' + add + ')';
             }
-            text += ' [Stok: ' + (item.qty !== null ? item.qty : '-') + ']';
+            text += ' [Stok: ' + item.qty + ']';
             return text;
           }
 
@@ -271,7 +271,7 @@
             }).on('select2:select', function (e) {
               var b = e.params.data.item;
               var i = $(this).data('idx');
-              $('input.bulk-sebelum[data-idx="' + i + '"]').val(b.qty !== null ? b.qty : 0);
+              $('input.bulk-sebelum[data-idx="' + i + '"]').val(b.qty);
               $('input.bulk-sesudah[data-idx="' + i + '"]').val('').focus();
               $('td.bulk-selisih[data-idx="' + i + '"]').html('<span class="text-muted">-</span>');
             }).on('select2:clear', function () {

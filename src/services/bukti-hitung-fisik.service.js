@@ -25,7 +25,7 @@ exports.createWithStockUpdate = async function (data) {
   const barang = await barangRepo.findById(data.barang_id);
   if (!barang) throw Object.assign(new Error('Barang tidak ditemukan'), { status: 404 });
 
-  const qtySebelum = barang.qty !== null ? parseInt(barang.qty) : 0;
+  const qtySebelum = parseInt(barang.qty);
   const qtySesudah = parseInt(data.qty_sesudah);
   if (isNaN(qtySesudah)) throw Object.assign(new Error('Qty sesudah harus diisi'), { status: 400 });
 
@@ -83,7 +83,7 @@ exports.createBulkWithStockUpdate = async function (items, diubahOleh) {
 
     for (const item of items) {
       const barang = barangDataMap[item.barang_id];
-      const qtySebelum = barang.qty !== null ? parseInt(barang.qty) : 0;
+      const qtySebelum = parseInt(barang.qty);
       const qtySesudah = parseInt(item.qty_sesudah);
       const selisih = qtySesudah - qtySebelum;
 
