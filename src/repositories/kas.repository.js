@@ -32,9 +32,9 @@ exports.getSummary = async function ({ from, to, sales_id } = {}) {
   const result = await query
     .select(
       db.raw("COUNT(CASE WHEN kas.tipe = 'masuk' THEN 1 END) as total_pembayaran"),
-      db.raw("COALESCE(SUM(CASE WHEN kas.tipe = 'masuk' THEN kas.jumlah ELSE 0 END), 0) as total_uang_masuk"),
-      db.raw("COALESCE(SUM(CASE WHEN kas.tipe = 'masuk' AND metode_pembayaran.tipe = 'cash' THEN kas.jumlah ELSE 0 END), 0) as total_cash"),
-      db.raw("COALESCE(SUM(CASE WHEN kas.tipe = 'masuk' AND metode_pembayaran.tipe = 'transfer' THEN kas.jumlah ELSE 0 END), 0) as total_transfer"),
+      db.raw("COALESCE(SUM(CASE WHEN kas.tipe = 'masuk' THEN kas.jumlah WHEN kas.tipe = 'keluar' THEN -kas.jumlah ELSE 0 END), 0) as total_uang_masuk"),
+      db.raw("COALESCE(SUM(CASE WHEN metode_pembayaran.tipe = 'cash' THEN (CASE WHEN kas.tipe = 'masuk' THEN kas.jumlah WHEN kas.tipe = 'keluar' THEN -kas.jumlah ELSE 0 END) ELSE 0 END), 0) as total_cash"),
+      db.raw("COALESCE(SUM(CASE WHEN metode_pembayaran.tipe = 'transfer' THEN (CASE WHEN kas.tipe = 'masuk' THEN kas.jumlah WHEN kas.tipe = 'keluar' THEN -kas.jumlah ELSE 0 END) ELSE 0 END), 0) as total_transfer"),
       db.raw("COALESCE(SUM(CASE WHEN kas.kategori IN ('pembayaran_lunas', 'down_payment') THEN kas.jumlah ELSE 0 END), 0) as uang_dari_penjualan"),
       db.raw("COALESCE(SUM(CASE WHEN kas.kategori = 'pelunasan' THEN kas.jumlah ELSE 0 END), 0) as uang_dari_pelunasan"),
       db.raw("COALESCE(SUM(CASE WHEN kas.tipe = 'keluar' THEN kas.jumlah ELSE 0 END), 0) as total_retur"),

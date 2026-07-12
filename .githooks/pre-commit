@@ -1,0 +1,6 @@
+#!/bin/sh
+# Pre-commit: enforce the Node 13 / ES2019 syntax guard on server code.
+# Blocks the commit if `npm run lint` finds ES2020+ syntax that would fail to
+# parse on the Windows 7 / Node 13 deployment target.
+# Bypass (not recommended): git commit --no-verify
+npm run lint

@@ -1,3 +1,9 @@
+// Manual backport of Node 20's `autoSelectFamily` (Happy Eyeballs, RFC 8305)
+// for the Windows 7 deployment target, which is capped at Node 13 — a runtime
+// that has neither `autoSelectFamily` (Node 18.18/20) nor
+// `dns.setDefaultResultOrder` (Node 14.18/16.4). On Node >= 20 this whole file
+// is redundant (pg inherits Happy Eyeballs for free): delete it and revert
+// knexfile.js to `host: process.env.DB_HOST`.
 const net = require('net');
 const dns = require('dns').promises;
 

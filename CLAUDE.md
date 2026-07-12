@@ -14,11 +14,34 @@
 | Database | PostgreSQL via **Knex.js** |
 | Auth | `express-session` + bcryptjs |
 | Frontend | Bootstrap 5.3 (dark), jQuery 3.7, DataTables 2.x |
-| Dev server | `npm run dev` → `node --watch src/app.js` on port 3000 |
+| Dev server | `npm run dev` → `nodemon src/app.js` on port 3000 |
 
 ### Key Dependencies
 - `express`, `ejs`, `knex`, `pg`, `bcryptjs`, `express-session`, `connect-flash`, `dotenv`
-- **No dev dependencies** — uses Node's built-in `--watch` flag
+- Dev dependency: `eslint` (Node 13 syntax guard — see **Deployment Target** below). Dev server uses `nodemon`.
+
+---
+
+## Deployment Target: Windows 7 / Node 13 (CRITICAL)
+
+Production runs on **Windows 7**, whose last supported Node.js is **13.x**.
+Development may use newer Node (e.g. v25), so modern syntax can "work locally"
+and then **fail to start in production** — ES2020+ syntax is a parse-time
+`SyntaxError` on Node 13.
+
+- **Server code must stay ES2019-compatible.** Forbidden in `src/`, `db/`, `knexfile.js`:
+  `?.` (optional chaining), `??` (nullish coalescing), `||=`/`&&=`/`??=` (logical
+  assignment), `Promise.any`, `structuredClone`, `.at()`, `.replaceAll()`, top-level `await`.
+- **Browser code in `public/` is exempt** — it runs in Chrome, not Node 13.
+- **Enforced by `npm run lint`** (ESLint pinned to `ecmaVersion: 2019` in
+  `eslint.config.js`). Run before every commit/deploy.
+- **Dev server uses `nodemon`**, NOT `node --watch` (that flag is Node 18.11+).
+- **`unhandledRejection` only warns on Node 13** (Node 15+ crashes) — handle
+  promise errors explicitly; don't rely on the process crashing.
+- **DB host failover:** `src/config/resolve-host.js` + the `connection` function
+  in `knexfile.js` are a manual backport of Node 20's `autoSelectFamily`
+  (Happy-Eyeballs IPv4/IPv6 selection). Delete both and revert to
+  `host: process.env.DB_HOST` once the target moves to Node ≥ 20.
 
 ---
 
@@ -268,6 +291,7 @@ throw Object.assign(new Error('Human-readable message'), { status: 400 });
 5. ❌ Do NOT use `COUNT` when `EXISTS` is sufficient
 6. ❌ Do NOT duplicate komisi calculation — use `buildKomisiRows()` from `komisi.helper.js`
 7. ❌ Do NOT create a repository that writes to more than one table
+8. ❌ Do NOT use ES2020+ syntax in server code (`?.`, `??`, `||=`, `.at()`, `Promise.any`, …) — Node 13 target; run `npm run lint`
 
 ---
 
@@ -277,6 +301,7 @@ throw Object.assign(new Error('Human-readable message'), { status: 400 });
 npm run dev           # start dev server (port 3000)
 npm run migrate       # run pending migrations
 npm run seed          # seed admin user + categories
+npm run lint          # enforce Node 13 (ES2019) syntax on server code
 
 # Verify all modules load without import errors:
 node -e "require('./src/routes/index.routes')" && echo "OK"

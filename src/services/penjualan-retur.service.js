@@ -31,6 +31,9 @@ exports.create = async function (data) {
   if (items.length === 0)
     throw Object.assign(new Error('Minimal satu item harus diisi'), { status: 400 });
 
+  if (!data.metode_bayar_id)
+    throw Object.assign(new Error('Metode refund harus dipilih'), { status: 400 });
+
   let total_retur = 0;
   for (const item of items) {
     total_retur += (parseFloat(item.harga) || 0) * (parseInt(item.jumlah) || 1);
@@ -65,8 +68,19 @@ exports.create = async function (data) {
       }
     }
 
-    // 3. Remove original transaction from kas ledger
-    await kasRepo.deleteByPenjualanId(trx, returData.penjualan_id);
+    // 3. Record cash-out for the retur (original kas entries stay intact for history)
+    await kasRepo.insert(trx, {
+      tipe: 'keluar',
+      kategori: 'retur_penjualan',
+      jumlah: total_retur,
+      tanggal: returData.tanggal_retur,
+      referensi_id: retur.id,
+      referensi_tipe: 'penjualan_retur',
+      penjualan_id: returData.penjualan_id,
+      no_referensi: kode_retur,
+      keterangan: 'Retur Penjualan',
+      metode_bayar_id: data.metode_bayar_id,
+    });
 
     // 4. Delete komisi sales (penjualan has been returned)
     await komisiSalesRepo.deleteByPenjualanId(trx, returData.penjualan_id);
@@ -91,7 +105,8 @@ exports.del = async function (id) {
       }
     }
 
-    // 2. (Kas is not restored automatically; original kas was deleted on retur creation)
+    // 2. Remove the kas cash-out entry recorded for this retur
+    await kasRepo.deleteByRef(trx, id, 'penjualan_retur');
 
     // 3. Delete details and retur
     await penjualanReturDetailRepo.deleteByReturId(trx, id);

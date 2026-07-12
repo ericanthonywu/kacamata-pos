@@ -25,6 +25,15 @@
             <input type="date" class="form-control" id="tanggal_retur"
               value="<%= todayStr() %>">
           </div>
+          <div class="mb-3">
+            <label class="form-label small">Metode Refund <span class="text-danger">*</span></label>
+            <select class="form-select" id="metode_bayar_id">
+              <option value="" disabled selected>Pilih Metode</option>
+              <% metodePembayaran.forEach(function(m) { %>
+                <option value="<%= m.id %>"><%= m.nama %> (<%= m.tipe === 'cash' ? 'Cash' : 'Transfer' %>)</option>
+              <% }); %>
+            </select>
+          </div>
         </div>
       </div>
 
@@ -101,6 +110,9 @@
         var penjualanId = $('#penjualan_id').val();
         if (!penjualanId) { showToast('Pilih penjualan', 'danger'); return; }
 
+        var metodeBayarId = $('#metode_bayar_id').val();
+        if (!metodeBayarId) { showToast('Pilih metode refund', 'danger'); return; }
+
         var items = [];
         $('.item-row').each(function () {
           var j = parseInt($(this).find('.item-jumlah').val()) || 0;
@@ -119,7 +131,7 @@
 
         $.ajax({
           url: '/penjualan-retur', method: 'POST', contentType: 'application/json',
-          data: JSON.stringify({ penjualan_id: penjualanId, tanggal_retur: $('#tanggal_retur').val(), items: items }),
+          data: JSON.stringify({ penjualan_id: penjualanId, tanggal_retur: $('#tanggal_retur').val(), metode_bayar_id: metodeBayarId, items: items }),
           success: function (res) { if (res.success) window.location.href = '/penjualan-retur'; else resetBtn(btn); },
           error: function (xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal', 'danger'); resetBtn(btn); }
         });

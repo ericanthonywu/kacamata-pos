@@ -1,5 +1,6 @@
 const returService = require('../services/penjualan-retur.service');
 const penjualanService = require('../services/penjualan.service');
+const metodeService = require('../services/metode-pembayaran.service');
 const { ok, fail } = require('../utils/response');
 
 exports.index = async function (req, res, next) {
@@ -12,13 +13,14 @@ exports.index = async function (req, res, next) {
 exports.createForm = async function (req, res, next) {
   try {
     const penjualanList = await penjualanService.getAll();
+    const metodePembayaran = await metodeService.getAll();
     let selectedPenjualan = null;
     if (req.query.penjualan_id) {
       selectedPenjualan = await penjualanService.getById(req.query.penjualan_id);
     }
     res.render('penjualan-retur/form', {
       title: 'Retur Penjualan Baru',
-      penjualanList, selectedPenjualan,
+      penjualanList, selectedPenjualan, metodePembayaran,
       activePage: 'penjualan-retur',
     });
   } catch (err) { next(err); }
