@@ -39,6 +39,10 @@ exports.create = async function (data) {
     total_retur += (parseFloat(item.harga) || 0) * (parseInt(item.jumlah) || 1);
   }
 
+  const penjualanSubtotal = parseFloat(penjualan.subtotal) || 0;
+  if (Math.abs(total_retur - penjualanSubtotal) > 0.01)
+    throw Object.assign(new Error('Retur parsial tidak diperbolehkan. Retur harus mencakup seluruh item pada penjualan ini.'), { status: 400 });
+
   const kode_retur = await penjualanReturRepo.generateKodeRetur();
 
   const returData = {

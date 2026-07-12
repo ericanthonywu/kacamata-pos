@@ -9,7 +9,10 @@ exports.getKomisiReport = async function ({ from, to, sales_id, tipe } = {}) {
   let pQuery = db('penjualan')
     .select('penjualan.*', 'sales.nama as sales_nama', 'sales.komisi_frame', 'sales.komisi_lensa')
     .innerJoin('sales', 'penjualan.sales_id', 'sales.id')
-    .where('penjualan.status_bayar', 'lunas');
+    .where('penjualan.status_bayar', 'lunas')
+    .whereNotExists(function () {
+      this.select('*').from('penjualan_retur').whereRaw('penjualan_retur.penjualan_id = penjualan.id');
+    });
 
   if (from) pQuery = pQuery.where('penjualan.order_date', '>=', from);
   if (to) pQuery = pQuery.where('penjualan.order_date', '<=', to);
