@@ -42,17 +42,13 @@ exports.getSummary = async function ({ from, to, sales_id } = {}) {
     )
     .first();
 
-  // BPJS is on penjualan table, needs a separate query
+  // BPJS is summed per-penjualan filtered by order_date (not by kas payment date)
+  // This avoids double-counting for DP + pelunasan transactions
   let bpjsQuery = db('penjualan')
-    .whereExists(function () {
-      this.select('*').from('kas')
-        .whereRaw('kas.penjualan_id = penjualan.id')
-        .where('kas.tipe', 'masuk');
-      if (from) this.andWhere('kas.tanggal', '>=', from);
-      if (to) this.andWhere('kas.tanggal', '<=', to);
-    });
+    .where('penjualan.is_b2b', false);
+  if (from) bpjsQuery = bpjsQuery.where('penjualan.order_date', '>=', from);
+  if (to) bpjsQuery = bpjsQuery.where('penjualan.order_date', '<=', to);
   if (sales_id) bpjsQuery = bpjsQuery.where('penjualan.sales_id', sales_id);
-  bpjsQuery = bpjsQuery.where('penjualan.is_b2b', false);
 
   const bpjsRes = await bpjsQuery.sum('bpjs as total_bpjs').first();
   result.total_bpjs = bpjsRes ? parseFloat(bpjsRes.total_bpjs || 0) : 0;
