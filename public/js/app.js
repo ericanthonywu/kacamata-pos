@@ -60,6 +60,7 @@ function printNotaData(d) {
     var aksesorisItem = (d.detail || []).find(function (i) { return i.tipe === 'aksesoris'; });
     var lainLainItem = (d.detail || []).find(function (i) { return i.tipe === 'lain_lain'; });
 
+    var subtotal = d.subtotal || d.total || 0;
     var total = d.total || 0;
     var dp = d.dp || 0;
     var sisa = total - dp;
@@ -118,7 +119,7 @@ function printNotaData(d) {
     }
 
     // Totals (right-aligned)
-    lines.push(padRight('', W - 45) + padRight('Jumlah', 22) + ': ' + padLeft('Rp ' + Number(total).toLocaleString('id-ID'), 21));
+    lines.push(padRight('', W - 45) + padRight('Jumlah', 22) + ': ' + padLeft('Rp ' + Number(subtotal).toLocaleString('id-ID'), 21));
     if (d.bpjs > 0) {
       lines.push(padRight('', W - 45) + padRight('BPJS', 22) + ': ' + padLeft('- Rp ' + Number(d.bpjs).toLocaleString('id-ID'), 21));
     }
