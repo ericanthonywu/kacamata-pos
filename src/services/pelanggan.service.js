@@ -8,9 +8,12 @@ exports.search = function (q) { return repo.search(q); };
 exports.create = async function (data) {
   if (!(data.nama || '').trim()) throw Object.assign(new Error('Nama pelanggan harus diisi'), { status: 400 });
   const nama = data.nama.trim();
-  const existing = await repo.findByName(nama);
+  const no_telp = (data.no_telp || '').trim() || null;
+
+  const existing = await repo.findByNameAndPhone(nama, no_telp);
   if (existing) return existing;
-  return repo.create({ nama, no_telp: (data.no_telp || '').trim() || null });
+
+  return repo.create({ nama, no_telp });
 };
 
 exports.update = function (id, data) {
