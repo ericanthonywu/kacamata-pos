@@ -1,0 +1,160 @@
+<%- include('../partials/top') %>
+<%- include('../partials/sidebar') %>
+
+<div class="content-wrapper">
+  <div class="page-header d-flex justify-content-between align-items-center mb-4">
+    <div>
+      <h4 class="fw-bold mb-1">Transfer Stock</h4>
+      <p class="text-muted small mb-0">Kelola dan riwayat transfer stok antar cabang</p>
+    </div>
+    <button class="btn btn-primary" data-bs-toggle="modal" data-bs-target="#modalTransfer">
+      <i class="bi bi-arrow-left-right me-1"></i> Transfer Stok Baru
+    </button>
+  </div>
+
+  <div class="card border-0 shadow-sm">
+    <div class="card-body">
+      <div class="table-responsive">
+        <table id="tableTransfer" class="table table-hover align-middle w-100">
+          <thead>
+            <tr>
+              <th>Kode</th>
+              <th>Tanggal</th>
+              <th>Dari Cabang</th>
+              <th>Ke Cabang</th>
+              <th>Barang Asal</th>
+              <th>Barang Tujuan</th>
+              <th>Jumlah</th>
+              <th>Dibuat Oleh</th>
+              <th>Catatan</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
+    </div>
+  </div>
+</div>
+
+<!-- Modal Transfer Stock -->
+<div class="modal fade" id="modalTransfer" tabindex="-1">
+  <div class="modal-dialog modal-lg">
+    <div class="modal-content">
+      <form id="formTransfer">
+        <div class="modal-header">
+          <h5 class="modal-title fw-bold">Transfer Stok Barcode / Item</h5>
+          <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+        </div>
+        <div class="modal-body">
+          <div class="row g-3">
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Cabang Asal</label>
+              <input type="text" class="form-control" value="<%= currentUser.cabang_nama %>" readonly disabled>
+            </div>
+            <div class="col-md-6">
+              <label class="form-label small fw-semibold">Cabang Tujuan <span class="text-danger">*</span></label>
+              <select name="ke_cabang_id" class="form-select" required>
+                <option value="">-- Pilih Cabang Tujuan --</option>
+                <% targetCabangList.forEach(c => { %>
+                  <option value="<%= c.id %>"><%= c.nama %></option>
+                <% }) %>
+              </select>
+            </div>
+            <div class="col-md-8">
+              <label class="form-label small fw-semibold">Pilih Barang (Stok Saat Ini) <span class="text-danger">*</span></label>
+              <select name="barang_id_asal" id="selectBarangAsal" class="form-select" required>
+                <option value="">-- Pilih Barang --</option>
+                <% barangList.forEach(b => { %>
+                  <option value="<%= b.id %>" data-qty="<%= b.qty %>">
+                    <%= b.nama_barang %> [<%= b.barcode_id || '-' %>] (Stok: <%= b.qty %>)
+                  </option>
+                <% }) %>
+              </select>
+            </div>
+            <div class="col-md-4">
+              <label class="form-label small fw-semibold">Jumlah Transfer <span class="text-danger">*</span></label>
+              <input type="number" name="jumlah" id="inputJumlah" class="form-control" min="1" value="1" required>
+            </div>
+            <div class="col-12">
+              <label class="form-label small fw-semibold">Catatan</label>
+              <textarea name="catatan" class="form-control" rows="2" placeholder="Catatan transfer stok..."></textarea>
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer">
+          <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Batal</button>
+          <button type="submit" class="btn btn-primary" id="btnSubmitTransfer">Konfirmasi Transfer</button>
+        </div>
+      </form>
+    </div>
+  </div>
+</div>
+
+<%- include('../partials/bottom') %>
+
+<script>
+  $(document).ready(function () {
+    const table = $('#tableTransfer').DataTable({
+      processing: true,
+      serverSide: true,
+      ajax: '/transfer-stock/dt',
+      columns: [
+        { data: 'kode_transfer', className: 'fw-bold' },
+        {
+          data: 'created_at',
+          render: function (data) {
+            return data ? new Date(data).toLocaleString('id-ID') : '-';
+          }
+        },
+        { data: 'dari_cabang_nama' },
+        { data: 'ke_cabang_nama' },
+        {
+          data: null,
+          render: function (row) {
+            return row.barang_asal_nama + ' <small class="text-muted">(' + (row.barang_asal_barcode || '-') + ')</small>';
+          }
+        },
+        {
+          data: null,
+          render: function (row) {
+            return row.barang_tujuan_nama + ' <small class="text-muted">(' + (row.barang_tujuan_barcode || '-') + ')</small>';
+          }
+        },
+        { data: 'jumlah', className: 'fw-bold text-center' },
+        { data: 'created_by_nama', render: function (d) { return d || 'Admin'; } },
+        { data: 'catatan', render: function (d) { return d || '-'; } }
+      ],
+      order: [[1, 'desc']]
+    });
+
+    $('#formTransfer').on('submit', function (e) {
+      e.preventDefault();
+      const $btn = $('#btnSubmitTransfer');
+      $btn.prop('disabled', true).html('<span class="spinner-border spinner-border-sm me-1"></span>Memproses...');
+
+      $.ajax({
+        url: '/transfer-stock',
+        type: 'POST',
+        data: $(this).serialize(),
+        success: function (res) {
+          if (res.success) {
+            showToast('Transfer stok berhasil!', 'success');
+            $('#modalTransfer').modal('hide');
+            $('#formTransfer')[0].reset();
+            table.ajax.reload();
+            setTimeout(function() { location.reload(); }, 1000);
+          } else {
+            showToast(res.message || 'Gagal transfer stok', 'danger');
+          }
+        },
+        error: function (xhr) {
+          const msg = xhr.responseJSON ? xhr.responseJSON.message : 'Terjadi kesalahan server';
+          showToast(msg, 'danger');
+        },
+        complete: function () {
+          $btn.prop('disabled', false).text('Konfirmasi Transfer');
+        }
+      });
+    });
+  });
+</script>

@@ -13,11 +13,15 @@ function applyOpticalSort(query) {
     .orderByRaw(orderAdd);
 }
 
-exports.findAll = function (filters = {}) {
+exports.findAll = function (filters = {}, cabangId = null) {
   let query = db(TABLE)
     .select('barang.*', 'kategori.nama as kategori_nama')
     .leftJoin('kategori', 'barang.kategori_id', 'kategori.id')
     .whereNull('barang.deleted_at');
+
+  if (cabangId) {
+    query = query.where('barang.cabang_id', cabangId);
+  }
     
   if (filters.kategori_id) {
     query = query.where('barang.kategori_id', filters.kategori_id);
@@ -26,12 +30,16 @@ exports.findAll = function (filters = {}) {
   return applyOpticalSort(query.orderBy('barang.nama_barang', 'asc'));
 };
 
-exports.getDatatablesData = async function (params) {
+exports.getDatatablesData = async function (params, cabangId = null) {
   const { start, length, search, order, kategori_id, minus_stock, columns: dtColumns } = params;
   
   let baseQuery = db(TABLE)
     .leftJoin('kategori', 'barang.kategori_id', 'kategori.id')
     .whereNull('barang.deleted_at');
+
+  if (cabangId) {
+    baseQuery = baseQuery.where('barang.cabang_id', cabangId);
+  }
 
   if (kategori_id) {
     baseQuery = baseQuery.where('barang.kategori_id', kategori_id);
@@ -117,11 +125,15 @@ exports.findById = function (id) {
     .first();
 };
 
-exports.search = function (q, kategori_nama) {
+exports.search = function (q, kategori_nama, cabangId = null) {
   let query = db(TABLE)
     .select('barang.*', 'kategori.nama as kategori_nama')
     .leftJoin('kategori', 'barang.kategori_id', 'kategori.id')
     .whereNull('barang.deleted_at');
+
+  if (cabangId) {
+    query = query.where('barang.cabang_id', cabangId);
+  }
 
   if (kategori_nama) {
     const kats = kategori_nama.split(',').map(k => k.trim());

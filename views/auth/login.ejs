@@ -24,6 +24,18 @@
         <% } %>
           <form method="POST" action="/login">
             <div class="mb-3">
+              <label class="form-label small">Cabang</label>
+              <select name="cabang_id" class="form-select" required>
+                <% if (cabangList && cabangList.length) { %>
+                  <% cabangList.forEach(c => { %>
+                    <option value="<%= c.id %>"><%= c.nama %></option>
+                  <% }) %>
+                <% } else { %>
+                  <option value="1">Cabang Utama</option>
+                <% } %>
+              </select>
+            </div>
+            <div class="mb-3">
               <label class="form-label small">Username</label>
               <input type="text" name="username" class="form-control" placeholder="Masukkan username" autofocus
                 required>

@@ -1,10 +1,8 @@
 const db = require('../config/database');
-const TABLE = 'kategori';
+const TABLE = 'cabang';
 
-exports.findAll = function (cabangId = null) {
-  let q = db(TABLE);
-  if (cabangId) q = q.where('cabang_id', cabangId);
-  return q.orderBy('nama', 'asc');
+exports.findAll = function () {
+  return db(TABLE).orderBy('id', 'asc');
 };
 
 exports.findById = function (id) {

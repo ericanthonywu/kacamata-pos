@@ -1,12 +1,12 @@
 const repo = require('../repositories/barang.repository');
 const bhfRepo = require('../repositories/bukti-hitung-fisik.repository');
 
-exports.getAll = function (filters) { return repo.findAll(filters); };
-exports.getDatatablesData = function (params) { return repo.getDatatablesData(params); };
+exports.getAll = function (filters, cabangId) { return repo.findAll(filters, cabangId); };
+exports.getDatatablesData = function (params, cabangId) { return repo.getDatatablesData(params, cabangId); };
 exports.getById = function (id) { return repo.findById(id); };
-exports.search = function (q, kategori_nama) { return repo.search(q, kategori_nama); };
+exports.search = function (q, kategori_nama, cabangId) { return repo.search(q, kategori_nama, cabangId); };
 
-exports.create = async function (data) {
+exports.create = async function (data, userCabangId) {
   if (!data.nama_barang || !data.nama_barang.trim()) throw Object.assign(new Error('Nama barang harus diisi'), { status: 400 });
   const barcode_id = await repo.generateBarcodeId();
   return repo.create({
@@ -21,13 +21,14 @@ exports.create = async function (data) {
     add_r: data.add_r || null,
     add_l: data.add_l || null,
     barcode_id,
+    cabang_id: userCabangId || 1,
   });
 };
 
 exports.update = async function (id, data, options = {}) {
   if (!data.nama_barang || !data.nama_barang.trim()) throw Object.assign(new Error('Nama barang harus diisi'), { status: 400 });
 
-  const { log_hitung_fisik, user_nama } = options;
+  const { log_hitung_fisik, user_nama, cabang_id } = options;
 
   // If logging requested, fetch current barang to compare qty
   let oldBarang = null;
@@ -65,6 +66,7 @@ exports.update = async function (id, data, options = {}) {
         qty_sesudah: newQty,
         selisih: newQty - oldQty,
         diubah_oleh: user_nama || '',
+        cabang_id: cabang_id || oldBarang.cabang_id || 1,
       });
     }
   }

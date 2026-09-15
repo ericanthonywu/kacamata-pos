@@ -1,21 +1,27 @@
 const penggunaService = require('../services/pengguna.service');
+const cabangService = require('../services/cabang.service');
 
-exports.loginPage = function (req, res) {
-  if (req.session.user) return res.redirect('/');
-  // res.locals.error is already populated globally in app.js
-  res.render('auth/login', { layout: false });
+exports.loginPage = async function (req, res, next) {
+  try {
+    if (req.session.user) return res.redirect('/');
+    const cabangList = await cabangService.getAll();
+    res.render('auth/login', { layout: false, cabangList });
+  } catch (err) {
+    next(err);
+  }
 };
 
 exports.login = async function (req, res) {
   try {
-    const { username, password } = req.body;
-    if (!username || !password) {
-      req.flash('error', 'Username dan password harus diisi');
+    const { username, password, cabang_id } = req.body;
+    if (!username || !password || !cabang_id) {
+      req.flash('error', 'Cabang, username, dan password harus diisi');
       return res.redirect('/login');
     }
-    const user = await penggunaService.authenticate(username, password);
+    const cabangIdNum = parseInt(cabang_id, 10);
+    const user = await penggunaService.authenticate(username, password, cabangIdNum);
     if (!user) {
-      req.flash('error', 'Username atau password salah');
+      req.flash('error', 'Username, password, atau cabang salah');
       return res.redirect('/login');
     }
     req.session.user = user;
