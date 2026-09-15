@@ -1,11 +1,20 @@
 const db = require('../config/database');
 const TABLE = 'pelanggan';
 
-exports.findAll = function () { return db(TABLE).orderBy('nama', 'asc'); };
+exports.findAll = function (cabangId = null) {
+  let q = db(TABLE);
+  if (cabangId) q = q.where('cabang_id', cabangId);
+  return q.orderBy('nama', 'asc');
+};
 exports.findById = function (id) { return db(TABLE).where('id', id).first(); };
-exports.findByName = function (nama) { return db(TABLE).where('nama', 'ilike', nama).first(); };
-exports.findByNameAndPhone = function (nama, no_telp) {
-  const q = db(TABLE).where('nama', 'ilike', nama);
+exports.findByName = function (nama, cabangId = null) {
+  let q = db(TABLE).where('nama', 'ilike', nama);
+  if (cabangId) q = q.where('cabang_id', cabangId);
+  return q.first();
+};
+exports.findByNameAndPhone = function (nama, no_telp, cabangId = null) {
+  let q = db(TABLE).where('nama', 'ilike', nama);
+  if (cabangId) q = q.where('cabang_id', cabangId);
   if (no_telp) {
     return q.where('no_telp', no_telp).first();
   }
@@ -13,11 +22,14 @@ exports.findByNameAndPhone = function (nama, no_telp) {
     this.whereNull('no_telp').orWhere('no_telp', '');
   }).first();
 };
-exports.search = function (q) {
-  return db(TABLE)
-    .where('nama', 'ilike', `%${q}%`)
-    .orWhere('no_telp', 'ilike', `%${q}%`)
-    .orderBy('nama', 'asc').limit(20);
+exports.search = function (q, cabangId = null) {
+  let query = db(TABLE)
+    .where(function () {
+      this.where('nama', 'ilike', `%${q}%`)
+        .orWhere('no_telp', 'ilike', `%${q}%`);
+    });
+  if (cabangId) query = query.where('cabang_id', cabangId);
+  return query.orderBy('nama', 'asc').limit(20);
 };
 exports.create = function (data) { return db(TABLE).insert(data).returning('*').then(r => r[0]); };
 exports.update = function (id, data) { return db(TABLE).where('id', id).update(data).returning('*').then(r => r[0]); };

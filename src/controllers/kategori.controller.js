@@ -3,14 +3,16 @@ const { ok, fail } = require('../utils/response');
 
 exports.index = async function (req, res, next) {
   try {
-    const data = await service.getAll();
+    const cabangId = req.session.user ? req.session.user.cabang_id : null;
+    const data = await service.getAll(cabangId);
     res.render('kategori/index', { title: 'Kategori', data, activePage: 'kategori' });
   } catch (err) { next(err); }
 };
 
 exports.store = async function (req, res) {
   try {
-    const result = await service.create(req.body);
+    const userCabangId = req.session.user ? req.session.user.cabang_id : null;
+    const result = await service.create(req.body, userCabangId);
     ok(res, result, 201);
   } catch (err) { fail(res, err); }
 };

@@ -7,14 +7,16 @@ const { ok, fail } = require('../utils/response');
 
 exports.index = async function (req, res, next) {
   try {
-    const metodePembayaran = await metodePembayaranService.getAll();
+    const cabangId = req.session.user ? req.session.user.cabang_id : null;
+    const metodePembayaran = await metodePembayaranService.getAll({}, cabangId);
     res.render('penjualan/index', { title: 'Penjualan', activePage: 'penjualan', metodePembayaran });
   } catch (err) { next(err); }
 };
 
 exports.datatables = async function (req, res) {
   try {
-    const result = await penjualanService.getDatatablesData(req.query);
+    const cabangId = req.session.user ? req.session.user.cabang_id : null;
+    const result = await penjualanService.getDatatablesData(req.query, cabangId);
     res.json({
       draw: parseInt(req.query.draw),
       recordsTotal: result.recordsTotal,
@@ -34,7 +36,8 @@ exports.pelunasanDpIndex = async function (req, res, next) {
 
 exports.pelunasanDpDatatables = async function (req, res) {
   try {
-    const result = await penjualanService.getPelunasanDpDatatables(req.query);
+    const cabangId = req.session.user ? req.session.user.cabang_id : null;
+    const result = await penjualanService.getPelunasanDpDatatables(req.query, cabangId);
     res.json({
       draw: parseInt(req.query.draw),
       recordsTotal: result.recordsTotal,
@@ -55,8 +58,9 @@ exports.tokoIndex = async function (req, res, next) {
 
 exports.tokoDatatables = async function (req, res) {
   try {
+    const cabangId = req.session.user ? req.session.user.cabang_id : null;
     const query = { ...req.query, is_toko: 'true' };
-    const result = await penjualanService.getDatatablesData(query);
+    const result = await penjualanService.getDatatablesData(query, cabangId);
     res.json({
       draw: parseInt(req.query.draw),
       recordsTotal: result.recordsTotal,
@@ -71,9 +75,10 @@ exports.tokoDatatables = async function (req, res) {
 
 exports.tokoCreateForm = async function (req, res, next) {
   try {
+    const cabangId = req.session.user ? req.session.user.cabang_id : null;
     const [pelanggan, metodePembayaran] = await Promise.all([
-      pelangganService.getAll(),
-      metodePembayaranService.getAll()
+      pelangganService.getAll(cabangId),
+      metodePembayaranService.getAll({}, cabangId)
     ]);
     const barangList = [];
     res.render('penjualan/toko-form', {
@@ -86,10 +91,11 @@ exports.tokoCreateForm = async function (req, res, next) {
 
 exports.createForm = async function (req, res, next) {
   try {
+    const cabangId = req.session.user ? req.session.user.cabang_id : null;
     const [pelanggan, salesList, metodePembayaran] = await Promise.all([
-      pelangganService.getAll(),
-      salesService.getActive(),
-      metodePembayaranService.getAll()
+      pelangganService.getAll(cabangId),
+      salesService.getActive(cabangId),
+      metodePembayaranService.getAll({}, cabangId)
     ]);
     const barangList = []; // empty array for SSR
     res.render('penjualan/form', {
@@ -102,7 +108,8 @@ exports.createForm = async function (req, res, next) {
 
 exports.store = async function (req, res) {
   try {
-    const result = await penjualanService.create(req.body, req.session.user.id);
+    const userCabangId = req.session.user ? req.session.user.cabang_id : null;
+    const result = await penjualanService.create(req.body, req.session.user.id, userCabangId);
     ok(res, result, 201);
   } catch (err) { fail(res, err); }
 };

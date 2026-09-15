@@ -11,9 +11,9 @@ const salesRepo = require('../repositories/sales.repository');
 const { buildKomisiRows } = require('../utils/komisi.helper');
 const { todayStr } = require('../utils/date.helper');
 
-exports.getAll = function () { return penjualanRepo.findAll(); };
-exports.getDatatablesData = function (params) { return penjualanRepo.getDatatablesData(params); };
-exports.getPelunasanDpDatatables = function (params) { return penjualanRepo.getPelunasanDpDatatablesData(params); };
+exports.getAll = function (cabangId) { return penjualanRepo.findAll(cabangId); };
+exports.getDatatablesData = function (params, cabangId) { return penjualanRepo.getDatatablesData(params, cabangId); };
+exports.getPelunasanDpDatatables = function (params, cabangId) { return penjualanRepo.getPelunasanDpDatatablesData(params, cabangId); };
 
 exports.getById = async function (id) {
   const penjualan = await penjualanRepo.findById(id);
@@ -25,12 +25,14 @@ exports.getById = async function (id) {
   return { ...penjualan, detail, pembayaran };
 };
 
-exports.create = async function (data, userId) {
+exports.create = async function (data, userId, userCabangId) {
   if (!data.items || data.items.length === 0)
     throw Object.assign(new Error('Minimal satu item harus diisi'), { status: 400 });
 
   let subtotal = 0;
   const items = data.items.filter(i => i.barang_id || i.tipe === 'lain_lain');
+
+  const cabangId = userCabangId || 1;
 
   // --- Stock validation ---
   const qtyMap = {};
@@ -61,7 +63,7 @@ exports.create = async function (data, userId) {
 
   const bpjsAmount = parseFloat(data.bpjs) || 0;
   const total = subtotal - bpjsAmount;
-  const no_nota = await penjualanRepo.generateNotaNumber(data.is_b2b);
+  const no_nota = await penjualanRepo.generateNotaNumber(data.is_b2b, cabangId);
 
   const penjualanData = {
     no_nota,
@@ -87,6 +89,7 @@ exports.create = async function (data, userId) {
     pd: data.pd || null,
     is_b2b: data.is_b2b || false,
     metode_bayar_id: data.metode_bayar || null,
+    cabang_id: cabangId,
   };
 
   const penjualan = await db.transaction(async (trx) => {
@@ -102,6 +105,7 @@ exports.create = async function (data, userId) {
       diskon: item.diskon || 0,
       jumlah: item.jumlah || 1,
       keterangan: item.keterangan || null,
+      cabang_id: cabangId,
     }));
     await penjualanDetailRepo.insertMany(trx, detailRows);
 
@@ -124,12 +128,14 @@ exports.create = async function (data, userId) {
         jumlah_bayar: penjualanData.total,
         keterangan: 'Pembayaran lunas',
         metode_bayar_id: penjualanData.metode_bayar_id,
+        cabang_id: cabangId,
       });
       await kasRepo.insert(trx, {
         tipe: 'masuk', kategori: 'pembayaran_lunas', jumlah: penjualanData.total,
         tanggal: penjualanData.order_date, referensi_id: pp.id, referensi_tipe: 'pembayaran_penjualan',
         penjualan_id: penjualan.id, no_referensi: penjualanData.no_nota, keterangan: 'Pembayaran lunas',
         metode_bayar_id: penjualanData.metode_bayar_id,
+        cabang_id: cabangId,
       });
     } else if (penjualanData.status_bayar === 'dp' && penjualanData.dp > 0) {
       const pp = await pembayaranPenjualanRepo.insert(trx, {
@@ -138,12 +144,14 @@ exports.create = async function (data, userId) {
         jumlah_bayar: penjualanData.dp,
         keterangan: 'Down Payment',
         metode_bayar_id: penjualanData.metode_bayar_id,
+        cabang_id: cabangId,
       });
       await kasRepo.insert(trx, {
         tipe: 'masuk', kategori: 'down_payment', jumlah: penjualanData.dp,
         tanggal: penjualanData.order_date, referensi_id: pp.id, referensi_tipe: 'pembayaran_penjualan',
         penjualan_id: penjualan.id, no_referensi: penjualanData.no_nota, keterangan: 'Down Payment',
         metode_bayar_id: penjualanData.metode_bayar_id,
+        cabang_id: cabangId,
       });
     }
 
@@ -151,7 +159,7 @@ exports.create = async function (data, userId) {
     if (penjualanData.sales_id && penjualanData.status_bayar === 'lunas') {
       const sales = await salesRepo.findById(penjualanData.sales_id);
       if (sales) {
-        const komisiRows = buildKomisiRows(penjualan.id, sales, items);
+        const komisiRows = buildKomisiRows(penjualan.id, sales, items).map(kr => ({ ...kr, cabang_id: cabangId }));
         await komisiSalesRepo.insertMany(trx, komisiRows);
       }
     }

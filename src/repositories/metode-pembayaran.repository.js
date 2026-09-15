@@ -1,9 +1,10 @@
 const db = require('../config/database');
 const TABLE = 'metode_pembayaran';
 
-exports.findAll = function ({ includeDeleted = false } = {}) {
+exports.findAll = function ({ includeDeleted = false } = {}, cabangId = null) {
   let q = db(TABLE).orderBy('id', 'asc');
   if (!includeDeleted) q = q.whereNull('deleted_at');
+  if (cabangId) q = q.where('cabang_id', cabangId);
   return q;
 };
 

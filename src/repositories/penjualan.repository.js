@@ -2,16 +2,17 @@ const db = require('../config/database');
 const { todayCompact } = require('../utils/date.helper');
 const TABLE = 'penjualan';
 
-exports.findAll = function () {
-  return db(TABLE)
+exports.findAll = function (cabangId = null) {
+  let q = db(TABLE)
     .select('penjualan.*', 'pelanggan.nama as pelanggan_nama', 'sales.nama as sales_nama', 'pengguna.nama as created_by_nama')
     .leftJoin('pelanggan', 'penjualan.pelanggan_id', 'pelanggan.id')
     .leftJoin('sales', 'penjualan.sales_id', 'sales.id')
-    .leftJoin('pengguna', 'penjualan.created_by', 'pengguna.id')
-    .orderBy('penjualan.created_at', 'desc');
+    .leftJoin('pengguna', 'penjualan.created_by', 'pengguna.id');
+  if (cabangId) q = q.where('penjualan.cabang_id', cabangId);
+  return q.orderBy('penjualan.created_at', 'desc');
 };
 
-exports.getDatatablesData = async function (params) {
+exports.getDatatablesData = async function (params, cabangId = null) {
   const { start, length, search, order, start_date, end_date, status, is_toko } = params;
 
   let baseQuery = db(TABLE)
@@ -19,6 +20,10 @@ exports.getDatatablesData = async function (params) {
     .leftJoin('sales', 'penjualan.sales_id', 'sales.id')
     .leftJoin('pengguna', 'penjualan.created_by', 'pengguna.id')
     .leftJoin('metode_pembayaran', 'penjualan.metode_bayar_id', 'metode_pembayaran.id');
+
+  if (cabangId) {
+    baseQuery = baseQuery.where('penjualan.cabang_id', cabangId);
+  }
 
   if (is_toko === 'true' || is_toko === true) {
     baseQuery = baseQuery.where('penjualan.is_b2b', true);
@@ -114,14 +119,13 @@ exports.findByIdWithTrx = function (trx, id) {
   return trx(TABLE).where('id', id).first();
 };
 
-exports.generateNotaNumber = async function (is_b2b) {
+exports.generateNotaNumber = async function (is_b2b, cabangId = null) {
   const today = todayCompact();
   const tag = is_b2b ? 'B2B' : 'INV';
   const prefix = `${tag}-${today}-`;
-  const lastNota = await db(TABLE)
-    .where('no_nota', 'like', `${prefix}%`)
-    .orderBy('no_nota', 'desc')
-    .first();
+  let q = db(TABLE).where('no_nota', 'like', `${prefix}%`);
+  if (cabangId) q = q.where('cabang_id', cabangId);
+  const lastNota = await q.orderBy('no_nota', 'desc').first();
 
   let seq = 1;
   if (lastNota && lastNota.no_nota) {
@@ -132,10 +136,9 @@ exports.generateNotaNumber = async function (is_b2b) {
   return prefix + String(seq).padStart(4, '0');
 };
 
-exports.getPelunasanDpDatatablesData = async function (params) {
+exports.getPelunasanDpDatatablesData = async function (params, cabangId = null) {
   const { start, length, search, order, start_date, end_date } = params;
 
-  // Reusable raw expressions for pembayaran subqueries
   const sqlPelunasanDate = db.raw('(SELECT MAX(tanggal_bayar) FROM pembayaran_penjualan WHERE penjualan_id = penjualan.id)');
   const sqlTotalBayar = db.raw('((SELECT SUM(jumlah_bayar) FROM pembayaran_penjualan WHERE penjualan_id = penjualan.id) - penjualan.dp)');
 
@@ -148,6 +151,8 @@ exports.getPelunasanDpDatatablesData = async function (params) {
         .whereRaw('kas.penjualan_id = penjualan.id')
         .andWhere('kas.kategori', 'pelunasan');
     });
+
+  if (cabangId) baseQuery = baseQuery.where('penjualan.cabang_id', cabangId);
 
   if (start_date) baseQuery = baseQuery.whereRaw('(SELECT MAX(DATE(tanggal_bayar)) FROM pembayaran_penjualan WHERE penjualan_id = penjualan.id) >= ?', [start_date]);
   if (end_date) baseQuery = baseQuery.whereRaw('(SELECT MAX(DATE(tanggal_bayar)) FROM pembayaran_penjualan WHERE penjualan_id = penjualan.id) <= ?', [end_date]);
@@ -171,7 +176,6 @@ exports.getPelunasanDpDatatablesData = async function (params) {
   ).sum('total_bayar as grandTotal').first();
   const grandTotal = grandTotalRes ? parseFloat(grandTotalRes.grandTotal || 0) : 0;
 
-  // Column mapping for ordering
   const columnMap = {
     no_nota: 'penjualan.no_nota',
     tanggal_pelunasan: sqlPelunasanDate,
@@ -207,7 +211,6 @@ exports.getPelunasanDpDatatablesData = async function (params) {
   return { recordsTotal, recordsFiltered, data, grandTotal };
 };
 
-/** Check if any penjualan exists for a given pelanggan_id. */
 exports.existsByPelangganId = async function (pelangganId) {
   const result = await db.raw(
     'SELECT EXISTS(SELECT 1 FROM penjualan WHERE pelanggan_id = ?) as exists',
@@ -216,23 +219,21 @@ exports.existsByPelangganId = async function (pelangganId) {
   return result.rows[0].exists;
 };
 
-/** Read-only: daily transaction count within a date range (for trend chart). */
-exports.getDailyTrend = function (from, to) {
-  return db(TABLE)
+exports.getDailyTrend = function (from, to, cabangId = null) {
+  let q = db(TABLE)
     .select(
       db.raw("to_char(order_date, 'YYYY-MM-DD') as tanggal"),
       db.raw('COUNT(*) as jumlah')
     )
     .where('is_b2b', false)
     .where('order_date', '>=', from)
-    .where('order_date', '<=', to)
-    .groupByRaw('1')
-    .orderByRaw('1 ASC');
+    .where('order_date', '<=', to);
+  if (cabangId) q = q.where('cabang_id', cabangId);
+  return q.groupByRaw('1').orderByRaw('1 ASC');
 };
 
-/** Read-only: most recent pelanggan transactions. */
-exports.getRecentPelanggan = function (limit) {
-  return db(TABLE)
+exports.getRecentPelanggan = function (limit, cabangId = null) {
+  let q = db(TABLE)
     .select(
       'pelanggan.nama',
       'pelanggan.no_telp',
@@ -240,9 +241,9 @@ exports.getRecentPelanggan = function (limit) {
       'penjualan.order_date'
     )
     .innerJoin('pelanggan', 'penjualan.pelanggan_id', 'pelanggan.id')
-    .where('penjualan.is_b2b', false)
-    .orderBy('penjualan.order_date', 'desc')
+    .where('penjualan.is_b2b', false);
+  if (cabangId) q = q.where('penjualan.cabang_id', cabangId);
+  return q.orderBy('penjualan.order_date', 'desc')
     .orderBy('penjualan.created_at', 'desc')
     .limit(limit || 5);
 };
-

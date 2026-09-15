@@ -88,7 +88,8 @@ router.get('/api/dashboard/kategori-breakdown', auth, async (req, res) => {
 // Stock Gudang (read-only, reuses barang data)
 router.get('/stock-gudang', auth, async (req, res, next) => {
   try {
-    const kategoriList = await kategoriService.getAll();
+    const cabangId = req.session.user ? req.session.user.cabang_id : null;
+    const kategoriList = await kategoriService.getAll(cabangId);
     res.render('stock-gudang/index', { title: 'Stock Gudang', kategoriList, activePage: 'stock-gudang' });
   } catch (err) { next(err); }
 });
@@ -103,6 +104,7 @@ router.use('/sales', requireAdmin, require('./sales.routes'));
 router.use('/pengguna', requireAdmin, require('./pengguna.routes'));
 router.use('/penjualan', require('./penjualan.routes'));
 router.use('/pembelian', require('./pembelian.routes'));
+router.use('/transfer-stock', auth, require('./transfer-stock.routes'));
 router.use('/pembelian-retur', requireAdmin, require('./pembelian-retur.routes'));
 router.use('/penjualan-retur', requireAdmin, require('./penjualan-retur.routes'));
 router.use('/pembayaran-pembelian', requireAdmin, require('./pembayaran-pembelian.routes'));
