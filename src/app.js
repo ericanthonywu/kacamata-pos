@@ -38,7 +38,7 @@ app.use((req, res, next) => {
     const cleanPath = targetPath.startsWith(PREFIX)
       ? targetPath
       : (PREFIX + (targetPath === '/' ? '/' : (targetPath.startsWith('/') ? targetPath : '/' + targetPath)));
-    return res.redirect(301, 'https://srv1743851.hstgr.cloud' + cleanPath);
+    return res.redirect(302, 'https://srv1743851.hstgr.cloud' + cleanPath);
   }
 
   req.basePath = PREFIX;
