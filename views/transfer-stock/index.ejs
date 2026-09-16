@@ -2,8 +2,8 @@
 
 <div class="d-flex justify-content-between align-items-center mb-4">
   <div>
-    <h5 class="mb-1">Transfer Stok (Penerimaan dari Pusat)</h5>
-    <small class="text-muted">Riwayat stok barang yang dikirim dan ditransfer langsung dari Pusat (kacamata-pos-pusat)</small>
+    <h5 class="mb-1">Transfer Stok (Penerimaan dari Gudang KL)</h5>
+    <small class="text-muted">Riwayat stok barang yang dikirim dan ditransfer langsung dari Gudang KL (Pusat)</small>
   </div>
   <div class="d-flex align-items-center gap-2">
     <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2">
@@ -21,7 +21,7 @@
     <div class="card p-3 border shadow-sm">
       <div class="text-muted small">Total Penerimaan</div>
       <div class="fw-bold fs-4 text-primary"><%= incomingList.length %> Transaksi</div>
-      <div class="small text-muted mt-1">Batch pengiriman dari pusat</div>
+      <div class="small text-muted mt-1">Batch pengiriman dari Gudang KL</div>
     </div>
   </div>
   <div class="col-sm-6 col-md-4">
@@ -30,13 +30,13 @@
       <div class="fw-bold fs-4 text-success">
         <%= incomingList.reduce(function(acc, t) { return acc + (t.total_qty || 0); }, 0) %> Pcs
       </div>
-      <div class="small text-muted mt-1">Total stok masuk ke cabang</div>
+      <div class="small text-muted mt-1">Total stok masuk ke Cabang Ketapang</div>
     </div>
   </div>
   <div class="col-sm-12 col-md-4">
     <div class="card p-3 border shadow-sm">
-      <div class="text-muted small">Arah & Host Pusat</div>
-      <div class="fw-bold fs-5 text-body">Pusat &rarr; Cabang</div>
+      <div class="text-muted small">Arah & Host Gudang KL</div>
+      <div class="fw-bold fs-5 text-body">Gudang KL &rarr; Cabang Ketapang</div>
       <div class="small text-muted mt-1">Host: <code><%= (pusatConfig && pusatConfig.host) || 'http://localhost:9090' %></code></div>
     </div>
   </div>
@@ -45,7 +45,7 @@
 <!-- Incoming Transfers Table -->
 <div class="card shadow-sm border">
   <div class="card-header bg-transparent fw-bold py-3 d-flex justify-content-between align-items-center">
-    <span><i class="bi bi-inbox me-2 text-primary"></i>Riwayat Penerimaan Stok dari Pusat</span>
+    <span><i class="bi bi-inbox me-2 text-primary"></i>Riwayat Penerimaan Stok dari Gudang KL</span>
     <span class="badge bg-primary"><%= incomingList.length %> Data</span>
   </div>
   <div class="card-body p-0">
