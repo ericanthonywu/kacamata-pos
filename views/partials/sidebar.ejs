@@ -1,3 +1,4 @@
+<% const bp = typeof basePath !== 'undefined' ? basePath : ''; %>
 <nav class="sidebar">
   <div class="sidebar-brand">
     <i class="bi bi-eyeglasses"></i>
@@ -7,26 +8,26 @@
   <div class="sidebar-menu-container">
     <div class="sidebar-section">
     <div class="sidebar-label">Menu Utama</div>
-    <a href="/" class="sidebar-link <%= activePage === 'dashboard' ? 'active' : '' %>">
+    <a href="<%= bp %>/" class="sidebar-link <%= activePage === 'dashboard' ? 'active' : '' %>">
       <i class="bi bi-grid-1x2"></i> Dashboard
     </a>
-    <a href="/penjualan" class="sidebar-link <%= activePage === 'penjualan' ? 'active' : '' %>">
+    <a href="<%= bp %>/penjualan" class="sidebar-link <%= activePage === 'penjualan' ? 'active' : '' %>">
       <i class="bi bi-receipt"></i> Data Penjualan
     </a>
-    <a href="/penjualan/baru" class="sidebar-link <%= activePage === 'penjualan-baru' ? 'active' : '' %>">
+    <a href="<%= bp %>/penjualan/baru" class="sidebar-link <%= activePage === 'penjualan-baru' ? 'active' : '' %>">
       <i class="bi bi-plus-square"></i> Tambah Penjualan
     </a>
-    <a href="/penjualan/toko" class="sidebar-link <%= activePage === 'penjualan-toko' ? 'active' : '' %>">
+    <a href="<%= bp %>/penjualan/toko" class="sidebar-link <%= activePage === 'penjualan-toko' ? 'active' : '' %>">
       <i class="bi bi-shop"></i> Penjualan Toko (B2B)
     </a>
-    <a href="/pembelian" class="sidebar-link <%= activePage === 'pembelian' ? 'active' : '' %>">
+    <a href="<%= bp %>/pembelian" class="sidebar-link <%= activePage === 'pembelian' ? 'active' : '' %>">
       <i class="bi bi-cart-plus"></i> Pembelian
     </a>
-    <a href="/laporan/kas" class="sidebar-link <%= activePage === 'laporan-kas' ? 'active' : '' %>">
+    <a href="<%= bp %>/laporan/kas" class="sidebar-link <%= activePage === 'laporan-kas' ? 'active' : '' %>">
       <i class="bi bi-graph-up"></i> Laporan Kas
     </a>
     <% if (currentUser.hak_akses === 'admin') { %>
-    <a href="/laporan/komisi" class="sidebar-link <%= activePage === 'laporan-komisi' ? 'active' : '' %>">
+    <a href="<%= bp %>/laporan/komisi" class="sidebar-link <%= activePage === 'laporan-komisi' ? 'active' : '' %>">
       <i class="bi bi-award"></i> Laporan Komisi
     </a>
     <% } %>
@@ -35,10 +36,10 @@
   <% if (currentUser.hak_akses === 'admin') { %>
   <div class="sidebar-section">
     <div class="sidebar-label">Retur</div>
-    <a href="/penjualan-retur" class="sidebar-link <%= activePage === 'penjualan-retur' ? 'active' : '' %>">
+    <a href="<%= bp %>/penjualan-retur" class="sidebar-link <%= activePage === 'penjualan-retur' ? 'active' : '' %>">
       <i class="bi bi-arrow-return-left"></i> Retur Penjualan
     </a>
-    <a href="/pembelian-retur" class="sidebar-link <%= activePage === 'pembelian-retur' ? 'active' : '' %>">
+    <a href="<%= bp %>/pembelian-retur" class="sidebar-link <%= activePage === 'pembelian-retur' ? 'active' : '' %>">
       <i class="bi bi-arrow-return-right"></i> Retur Pembelian
     </a>
   </div>
@@ -47,14 +48,14 @@
   <div class="sidebar-section">
     <div class="sidebar-label">Hutang / Piutang</div>
     <% if (currentUser.hak_akses === 'admin') { %>
-    <a href="/pembayaran-pembelian" class="sidebar-link <%= activePage === 'hutang-pembelian' ? 'active' : '' %>">
+    <a href="<%= bp %>/pembayaran-pembelian" class="sidebar-link <%= activePage === 'hutang-pembelian' ? 'active' : '' %>">
       <i class="bi bi-wallet2"></i> Hutang Pembelian
     </a>
     <% } %>
-    <a href="/pembayaran-penjualan" class="sidebar-link <%= activePage === 'hutang-penjualan' ? 'active' : '' %>">
+    <a href="<%= bp %>/pembayaran-penjualan" class="sidebar-link <%= activePage === 'hutang-penjualan' ? 'active' : '' %>">
       <i class="bi bi-cash-coin"></i> Hutang Penjualan
     </a>
-    <a href="/penjualan/pelunasan-dp" class="sidebar-link <%= activePage === 'pelunasan_dp' ? 'active' : '' %>">
+    <a href="<%= bp %>/penjualan/pelunasan-dp" class="sidebar-link <%= activePage === 'pelunasan_dp' ? 'active' : '' %>">
       <i class="bi bi-check-circle"></i> Pelunasan DP
     </a>
   </div>
@@ -62,35 +63,35 @@
   <div class="sidebar-section">
     <div class="sidebar-label">Master Data</div>
     <% if (currentUser.hak_akses === 'admin') { %>
-    <a href="/kategori" class="sidebar-link <%= activePage === 'kategori' ? 'active' : '' %>">
+    <a href="<%= bp %>/kategori" class="sidebar-link <%= activePage === 'kategori' ? 'active' : '' %>">
       <i class="bi bi-folder"></i> Kategori
     </a>
     <% } %>
-    <a href="/barang" class="sidebar-link <%= activePage === 'barang' ? 'active' : '' %>">
+    <a href="<%= bp %>/barang" class="sidebar-link <%= activePage === 'barang' ? 'active' : '' %>">
       <i class="bi bi-box-seam"></i> Barang
     </a>
-    <a href="/metode-pembayaran" class="sidebar-link <%= activePage === 'metode-pembayaran' ? 'active' : '' %>">
+    <a href="<%= bp %>/metode-pembayaran" class="sidebar-link <%= activePage === 'metode-pembayaran' ? 'active' : '' %>">
       <i class="bi bi-credit-card"></i> Metode Pembayaran
     </a>
-    <a href="/stock-gudang" class="sidebar-link <%= activePage === 'stock-gudang' ? 'active' : '' %>">
+    <a href="<%= bp %>/stock-gudang" class="sidebar-link <%= activePage === 'stock-gudang' ? 'active' : '' %>">
       <i class="bi bi-house-gear"></i> Stock Gudang
     </a>
-    <a href="/transfer-stock" class="sidebar-link <%= activePage === 'transfer-stock' ? 'active' : '' %>">
+    <a href="<%= bp %>/transfer-stock" class="sidebar-link <%= activePage === 'transfer-stock' ? 'active' : '' %>">
       <i class="bi bi-arrow-left-right"></i> Transfer Stock
     </a>
-    <a href="/bukti-hitung-fisik" class="sidebar-link <%= activePage === 'bukti-hitung-fisik' ? 'active' : '' %>">
+    <a href="<%= bp %>/bukti-hitung-fisik" class="sidebar-link <%= activePage === 'bukti-hitung-fisik' ? 'active' : '' %>">
       <i class="bi bi-journal-check"></i> Bukti Hitung Fisik
     </a>
     <% if (currentUser.hak_akses === 'admin') { %>
-    <a href="/supplier" class="sidebar-link <%= activePage === 'supplier' ? 'active' : '' %>">
+    <a href="<%= bp %>/supplier" class="sidebar-link <%= activePage === 'supplier' ? 'active' : '' %>">
       <i class="bi bi-truck"></i> Supplier
     </a>
     <% } %>
-    <a href="/pelanggan" class="sidebar-link <%= activePage === 'pelanggan' ? 'active' : '' %>">
+    <a href="<%= bp %>/pelanggan" class="sidebar-link <%= activePage === 'pelanggan' ? 'active' : '' %>">
       <i class="bi bi-people"></i> Pelanggan
     </a>
     <% if (currentUser.hak_akses === 'admin') { %>
-    <a href="/sales" class="sidebar-link <%= activePage === 'sales' ? 'active' : '' %>">
+    <a href="<%= bp %>/sales" class="sidebar-link <%= activePage === 'sales' ? 'active' : '' %>">
       <i class="bi bi-person-badge"></i> Sales
     </a>
     <% } %>
@@ -99,9 +100,24 @@
   <% if (currentUser.hak_akses === 'admin') { %>
   <div class="sidebar-section">
     <div class="sidebar-label">Pengaturan</div>
-    <a href="/pengguna" class="sidebar-link <%= activePage === 'pengguna' ? 'active' : '' %>">
+    <a href="<%= bp %>/pengguna" class="sidebar-link <%= activePage === 'pengguna' ? 'active' : '' %>">
       <i class="bi bi-gear"></i> Pengguna
     </a>
+  </div>
+  <% } %>
+
+  <% if (currentUser && currentUser.hak_akses === 'admin') { %>
+  <div class="sidebar-section">
+    <div class="sidebar-label">Akses Cabang Lain</div>
+    <% if (bp === '/pontianak') { %>
+    <a href="/ketapang/" class="sidebar-link text-warning">
+      <i class="bi bi-shop"></i> Cabang Ketapang &rarr;
+    </a>
+    <% } else { %>
+    <a href="/pontianak/" class="sidebar-link text-info">
+      <i class="bi bi-building"></i> Pusat Pontianak &rarr;
+    </a>
+    <% } %>
   </div>
   <% } %>
   </div>
@@ -119,7 +135,7 @@
           <%= (currentUser && currentUser.hak_akses) ? currentUser.hak_akses : '-' %>
         </div>
       </div>
-      <a href="/logout" class="btn btn-sm btn-outline-secondary ms-auto" title="Logout">
+      <a href="<%= bp %>/logout" class="btn btn-sm btn-outline-secondary ms-auto" title="Logout">
         <i class="bi bi-box-arrow-right"></i>
       </a>
     </div>

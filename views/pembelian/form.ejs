@@ -518,7 +518,7 @@
       data: JSON.stringify(payload),
       success: function (res) {
         if (res.success) {
-          window.location.href = '/pembelian';
+          window.appRedirect('/pembelian');
         } else {
           resetBtn(btn);
         }

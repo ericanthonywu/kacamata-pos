@@ -1,4 +1,44 @@
-/* app.js — Shared jQuery utilities */
+/* app.js — Shared jQuery utilities & Base Path / Redirection */
+
+// Prefix & Redirection helpers
+(function () {
+  function getPrefix() {
+    if (typeof window.__APP_PREFIX__ === 'string' && window.__APP_PREFIX__) {
+      return window.__APP_PREFIX__;
+    }
+    if (window.location.pathname.startsWith('/pontianak')) return '/pontianak';
+    if (window.location.pathname.startsWith('/ketapang')) return '/ketapang';
+    return '';
+  }
+
+  window.getAppPrefix = getPrefix;
+  window.__APP_PREFIX__ = getPrefix();
+
+  window.appUrl = function (path) {
+    var prefix = window.getAppPrefix();
+    if (!path) return prefix || '/';
+    if (path.startsWith('http://') || path.startsWith('https://') || path.startsWith('//')) return path;
+    if (!path.startsWith('/')) path = '/' + path;
+    if (prefix && (path === prefix || path.startsWith(prefix + '/'))) return path;
+    return prefix + path;
+  };
+
+  window.appRedirect = function (path) {
+    window.location.href = window.appUrl(path);
+  };
+})();
+
+// jQuery AJAX prefilter — ensures relative AJAX URLs work with prefix
+if (typeof $ !== 'undefined' && $.ajaxPrefilter) {
+  $.ajaxPrefilter(function (options) {
+    var prefix = window.getAppPrefix ? window.getAppPrefix() : (window.__APP_PREFIX__ || '');
+    if (prefix && options.url && options.url.startsWith('/') && !options.url.startsWith('//')) {
+      if (!options.url.startsWith(prefix + '/') && options.url !== prefix) {
+        options.url = prefix + options.url;
+      }
+    }
+  });
+}
 
 // DataTables Indonesian language
 var dtLanguageID = {
@@ -85,7 +125,7 @@ function printNotaData(d) {
     lines.push('');
 
     // Header: 3 columns
-    lines.push(padRight('NO INVOICE:', 20) + centerText('OPTIK SENTRAL KETAPANG', W - 40) + padLeft('dikirim', 20));
+    lines.push(padRight('NO INVOICE:', 20) + centerText('OPTIK SENTRAL PONTIANAK', W - 40) + padLeft('dikirim', 20));
     lines.push(padRight(no, 20) + centerText('JL.R.SUPRAPTO NO.41 KETAPANG', W - 40) + padLeft(orderDate, 20));
     lines.push(padRight('', 20) + centerText('TELP : 085350509540', W - 40) + padLeft('', 20));
 

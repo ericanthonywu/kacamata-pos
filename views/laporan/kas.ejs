@@ -348,11 +348,11 @@
         if ($('#filterFrom').val()) params.set('from', $('#filterFrom').val());
         if ($('#filterTo').val()) params.set('to', $('#filterTo').val());
         if ($('#filterSales').val()) params.set('sales_id', $('#filterSales').val());
-        window.location.href = '/laporan/kas?' + params.toString();
+        window.appRedirect('/laporan/kas?' + params.toString());
       }
 
       function resetFilter() {
-        window.location.href = '/laporan/kas';
+        window.appRedirect('/laporan/kas');
       }
 
       function fmtRp(v) { return 'Rp ' + Number(v || 0).toLocaleString('id-ID'); }

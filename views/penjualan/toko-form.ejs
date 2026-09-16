@@ -236,7 +236,7 @@
           sessionStorage.setItem('penjualan_warnings', JSON.stringify(res.data.warnings));
         }
         if (res.success && withPrint) printNotaData(res.data);
-        window.location.href = '/penjualan/toko';
+        window.appRedirect('/penjualan/toko');
       },
       error: function (xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal menyimpan', 'danger'); resetBtn(btn); }
     });

@@ -132,7 +132,7 @@
         $.ajax({
           url: '/penjualan-retur', method: 'POST', contentType: 'application/json',
           data: JSON.stringify({ penjualan_id: penjualanId, tanggal_retur: $('#tanggal_retur').val(), metode_bayar_id: metodeBayarId, items: items }),
-          success: function (res) { if (res.success) window.location.href = '/penjualan-retur'; else resetBtn(btn); },
+          success: function (res) { if (res.success) window.appRedirect('/penjualan-retur'); else resetBtn(btn); },
           error: function (xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal', 'danger'); resetBtn(btn); }
         });
       }
