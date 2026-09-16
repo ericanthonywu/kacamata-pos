@@ -9,8 +9,9 @@ const store = new KnexSessionStore({
 });
 
 module.exports = session({
+  name: process.env.SESSION_NAME || 'kacamata_cabang_sid',
   store: store,
-  secret: process.env.SESSION_SECRET || 'default-secret',
+  secret: process.env.SESSION_SECRET || 'kacamata-cabang-session-secret',
   resave: false,
   saveUninitialized: false,
   cookie: {
