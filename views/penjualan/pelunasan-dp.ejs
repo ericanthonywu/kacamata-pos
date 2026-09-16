@@ -167,7 +167,7 @@
           orderable: false,
           className: 'text-center',
           render: function (data, type, row) {
-            return '<a href="/penjualan/' + row.id + '" class="btn btn-sm btn-outline-info" onclick="showDetail(event, ' + row.id + ')" title="Lihat Detail"><i class="bi bi-eye"></i></a>';
+            return '<a href="<%= bp %>/penjualan/' + row.id + '" class="btn btn-sm btn-outline-info" onclick="showDetail(event, ' + row.id + ')" title="Lihat Detail"><i class="bi bi-eye"></i></a>';
           }
         }
       ],

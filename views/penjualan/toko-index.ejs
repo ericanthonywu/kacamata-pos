@@ -18,7 +18,7 @@
         <button class="btn btn-sm btn-outline-danger" onclick="resetFilter()"><i class="bi bi-x-circle"></i>
           Reset</button>
       </div>
-      <a href="/penjualan/toko/baru" class="btn btn-primary btn-sm"><i class="bi bi-plus"></i> Penjualan Toko Baru</a>
+      <a href="<%= bp %>/penjualan/toko/baru" class="btn btn-primary btn-sm"><i class="bi bi-plus"></i> Penjualan Toko Baru</a>
     </div>
 
     <div class="row mb-3">
@@ -187,8 +187,8 @@
                   return 'Belum Lunas';
                 }
                 if (data === 'lunas') return '<span class="badge bg-success">✅ Lunas</span>';
-                if (data === 'dp') return '<a href="/pembayaran-penjualan/bayar/' + row.id + '" class="badge bg-warning text-dark text-decoration-none">⏳ DP</a>';
-                return '<a href="/pembayaran-penjualan/bayar/' + row.id + '" class="badge bg-danger text-decoration-none">❌ Belum Lunas</a>';
+                if (data === 'dp') return '<a href="<%= bp %>/pembayaran-penjualan/bayar/' + row.id + '" class="badge bg-warning text-dark text-decoration-none">⏳ DP</a>';
+                return '<a href="<%= bp %>/pembayaran-penjualan/bayar/' + row.id + '" class="badge bg-danger text-decoration-none">❌ Belum Lunas</a>';
               }
             },
             {
@@ -198,10 +198,10 @@
                 var html = '<button class="btn btn-sm btn-outline-info me-1" onclick="showDetail(' + row.id + ')" title="Detail"><i class="bi bi-eye"></i></button>';
                 html += '<button class="btn btn-sm btn-outline-secondary me-1" onclick="printNota(' + row.id + ')" title="Print Nota"><i class="bi bi-printer"></i></button>';
                 if (row.status_bayar !== 'lunas') {
-                  html += '<a href="/pembayaran-penjualan/bayar/' + row.id + '" class="btn btn-sm btn-outline-success me-1" title="Bayar"><i class="bi bi-wallet2"></i></a>';
+                  html += '<a href="<%= bp %>/pembayaran-penjualan/bayar/' + row.id + '" class="btn btn-sm btn-outline-success me-1" title="Bayar"><i class="bi bi-wallet2"></i></a>';
                 }
                 <% if (currentUser && currentUser.hak_akses === 'admin') { %>
-                html += '<a href="/penjualan-retur/baru?penjualan_id=' + row.id + '" class="btn btn-sm btn-outline-warning me-1" title="Retur"><i class="bi bi-arrow-return-left"></i></a>';
+                html += '<a href="<%= bp %>/penjualan-retur/baru?penjualan_id=' + row.id + '" class="btn btn-sm btn-outline-warning me-1" title="Retur"><i class="bi bi-arrow-return-left"></i></a>';
                 html += '<button class="btn btn-sm btn-outline-danger btn-del" data-id="' + row.id + '" data-url="/penjualan/' + row.id + '" title="Hapus"><i class="bi bi-trash"></i></button>';
                 <% } %>
                 return html;

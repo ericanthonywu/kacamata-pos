@@ -1,5 +1,5 @@
 <% function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); } const isAdmin=currentUser &&
-  currentUser.hak_akses==='admin' ; %>
+  currentUser.hak_akses==='admin' ; const bp = typeof basePath !== 'undefined' ? basePath : ''; %>
   <%- include('./partials/top', { title, activePage }) %>
 
     <div class="d-flex justify-content-between align-items-center mb-4">
@@ -7,7 +7,7 @@
         <h3 class="fw-bold mb-1">Selamat Datang, <%= currentUser ? currentUser.nama : '' %> 👋</h3>
         <p class="text-muted mb-0">Panel admin OPTIK SENTRAL KETAPANG — kelola data toko Anda.</p>
       </div>
-      <a href="/penjualan/baru" class="btn btn-primary shadow"
+      <a href="<%= bp %>/penjualan/baru" class="btn btn-primary shadow"
         style="border-radius: 10px; padding: 10px 20px; font-weight: 600;">
         <i class="bi bi-plus-lg me-1"></i> Tambah Penjualan
       </a>
@@ -33,7 +33,7 @@
                   </strong> pembelian belum lunas — total sisa: <strong class="text-danger">
                     <%= fmtRp(totalHutangPembelian) %>
                   </strong></p>
-                <a href="/pembayaran-pembelian" class="btn btn-outline-danger btn-sm"><i class="bi bi-wallet2"></i>
+                <a href="<%= bp %>/pembayaran-pembelian" class="btn btn-outline-danger btn-sm"><i class="bi bi-wallet2"></i>
                   Lihat & Bayar</a>
               </div>
             </div>
@@ -50,7 +50,7 @@
                       </strong> penjualan DP belum lunas — total sisa: <strong class="text-warning">
                         <%= fmtRp(totalHutangPenjualan) %>
                       </strong></p>
-                    <a href="/pembayaran-penjualan" class="btn btn-outline-warning btn-sm"><i class="bi bi-wallet2"></i>
+                    <a href="<%= bp %>/pembayaran-penjualan" class="btn btn-outline-warning btn-sm"><i class="bi bi-wallet2"></i>
                       Lihat & Bayar</a>
                   </div>
                 </div>
@@ -243,28 +243,28 @@
                 <div class="stat-card">
                   <i class="bi bi-plus-square stat-icon text-primary"></i>
                   <div class="stat-label fw-semibold">Tambah Penjualan</div>
-                  <a href="/penjualan/baru" class="stretched-link"></a>
+                  <a href="<%= bp %>/penjualan/baru" class="stretched-link"></a>
                 </div>
               </div>
               <div class="col">
                 <div class="stat-card">
                   <i class="bi bi-house-gear stat-icon text-success"></i>
                   <div class="stat-label fw-semibold">Cek Stock Gudang</div>
-                  <a href="/stock-gudang" class="stretched-link"></a>
+                  <a href="<%= bp %>/stock-gudang" class="stretched-link"></a>
                 </div>
               </div>
               <div class="col">
                 <div class="stat-card">
                   <i class="bi bi-cash-coin stat-icon text-warning"></i>
                   <div class="stat-label fw-semibold">Proses Pelunasan</div>
-                  <a href="/pembayaran-penjualan" class="stretched-link"></a>
+                  <a href="<%= bp %>/pembayaran-penjualan" class="stretched-link"></a>
                 </div>
               </div>
               <div class="col">
                 <div class="stat-card">
                   <i class="bi bi-people stat-icon text-info"></i>
                   <div class="stat-label fw-semibold">Data Pelanggan</div>
-                  <a href="/pelanggan" class="stretched-link"></a>
+                  <a href="<%= bp %>/pelanggan" class="stretched-link"></a>
                 </div>
               </div>
             </div>

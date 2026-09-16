@@ -18,7 +18,7 @@
         <button class="btn btn-sm btn-outline-danger" onclick="resetFilter()"><i class="bi bi-x-circle"></i>
           Reset</button>
       </div>
-      <a href="/penjualan/baru" class="btn btn-primary btn-sm"><i class="bi bi-plus"></i> Penjualan Baru</a>
+      <a href="<%= bp %>/penjualan/baru" class="btn btn-primary btn-sm"><i class="bi bi-plus"></i> Penjualan Baru</a>
     </div>
 
     <div class="card p-3">
@@ -185,8 +185,8 @@
                   return 'Belum Lunas';
                 }
                 if (data === 'lunas') return '<span class="badge bg-success">✅ Lunas</span>';
-                if (data === 'dp') return '<a href="/pembayaran-penjualan/bayar/' + row.id + '" class="badge bg-warning text-dark text-decoration-none">⏳ DP</a>';
-                return '<a href="/pembayaran-penjualan/bayar/' + row.id + '" class="badge bg-danger text-decoration-none">❌ Belum Lunas</a>';
+                if (data === 'dp') return '<a href="<%= bp %>/pembayaran-penjualan/bayar/' + row.id + '" class="badge bg-warning text-dark text-decoration-none">⏳ DP</a>';
+                return '<a href="<%= bp %>/pembayaran-penjualan/bayar/' + row.id + '" class="badge bg-danger text-decoration-none">❌ Belum Lunas</a>';
               }
             },
             {
@@ -206,12 +206,12 @@
                 html += '<li><a class="dropdown-item" href="#" onclick="event.preventDefault(); showDetail(' + row.id + ')"><i class="bi bi-eye me-2 text-info"></i>Lihat Detail</a></li>';
                 html += '<li><a class="dropdown-item" href="#" onclick="event.preventDefault(); printNota(' + row.id + ')"><i class="bi bi-printer me-2 text-secondary"></i>Print Nota</a></li>';
                 if (row.status_bayar !== 'lunas') {
-                  html += '<li><a class="dropdown-item" href="/pembayaran-penjualan/bayar/' + row.id + '"><i class="bi bi-wallet2 me-2 text-success"></i>Bayar</a></li>';
+                  html += '<li><a class="dropdown-item" href="<%= bp %>/pembayaran-penjualan/bayar/' + row.id + '"><i class="bi bi-wallet2 me-2 text-success"></i>Bayar</a></li>';
                 }
                 html += '<li><a class="dropdown-item" href="#" onclick="event.preventDefault(); showUbahMetode(' + row.id + ')"><i class="bi bi-credit-card me-2 text-primary"></i>Set Metode Bayar</a></li>';
                 <% if (currentUser && currentUser.hak_akses === 'admin') { %>
                   html += '<li><hr class="dropdown-divider"></li>';
-                  html += '<li><a class="dropdown-item" href="/penjualan-retur/baru?penjualan_id=' + row.id + '"><i class="bi bi-arrow-return-left me-2 text-warning"></i>Retur</a></li>';
+                  html += '<li><a class="dropdown-item" href="<%= bp %>/penjualan-retur/baru?penjualan_id=' + row.id + '"><i class="bi bi-arrow-return-left me-2 text-warning"></i>Retur</a></li>';
                   html += '<li><a class="dropdown-item text-danger" href="#" onclick="event.preventDefault(); confirmDelete(' + row.id + ', \'/penjualan/' + row.id + '\')"><i class="bi bi-trash me-2"></i>Hapus</a></li>';
                 <% } %>
                 html += '</ul></div>';

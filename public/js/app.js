@@ -40,6 +40,31 @@ if (typeof $ !== 'undefined' && $.ajaxPrefilter) {
   });
 }
 
+// Global Link & Form Interceptor — ensures relative links and forms stay inside active prefix
+if (typeof $ !== 'undefined') {
+  $(document).on('click', 'a', function (e) {
+    var href = $(this).attr('href');
+    if (!href || href === '#' || href.startsWith('#') || href.startsWith('javascript:') || href.startsWith('tel:') || href.startsWith('mailto:')) return;
+    if (href.startsWith('http://') || href.startsWith('https://') || href.startsWith('//')) return;
+    var prefix = window.getAppPrefix ? window.getAppPrefix() : (window.__APP_PREFIX__ || '');
+    if (prefix && href.startsWith('/') && !href.startsWith(prefix + '/') && href !== prefix) {
+      if (href.startsWith('/ketapang') || href.startsWith('/pontianak')) return;
+      e.preventDefault();
+      window.location.href = prefix + href;
+    }
+  });
+
+  $(document).on('submit', 'form', function () {
+    var action = $(this).attr('action');
+    if (!action || action === '#' || action.startsWith('http://') || action.startsWith('https://') || action.startsWith('//')) return;
+    var prefix = window.getAppPrefix ? window.getAppPrefix() : (window.__APP_PREFIX__ || '');
+    if (prefix && action.startsWith('/') && !action.startsWith(prefix + '/') && action !== prefix) {
+      if (action.startsWith('/ketapang') || action.startsWith('/pontianak')) return;
+      $(this).attr('action', prefix + action);
+    }
+  });
+}
+
 // DataTables Indonesian language
 var dtLanguageID = {
   search: 'Cari:',

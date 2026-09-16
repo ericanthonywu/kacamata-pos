@@ -11,7 +11,7 @@
         <input type="date" name="end_date" value="<%= query.end_date || '' %>" class="form-control form-control-sm"
           style="width:140px">
         <button type="submit" class="btn btn-sm btn-secondary"><i class="bi bi-search"></i> Terapkan</button>
-        <a href="/pembayaran-pembelian" class="btn btn-sm btn-outline-danger"><i class="bi bi-x-circle"></i> Reset</a>
+        <a href="<%= bp %>/pembayaran-pembelian" class="btn btn-sm btn-outline-danger"><i class="bi bi-x-circle"></i> Reset</a>
       </form>
     </div>
 
@@ -78,7 +78,7 @@
                     <%= fmtRp(sisa) %>
                   </td>
                   <td>
-                    <a href="/pembayaran-pembelian/bayar/<%= p.id %>" class="btn btn-sm btn-success"><i
+                    <a href="<%= bp %>/pembayaran-pembelian/bayar/<%= p.id %>" class="btn btn-sm btn-success"><i
                         class="bi bi-wallet2"></i> Bayar</a>
                   </td>
                 </tr>

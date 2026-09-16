@@ -14,7 +14,7 @@ function fmtDate(d) { return d ? new Date(d).toLocaleDateString('id-ID') : '-'; 
     <button class="btn btn-sm btn-outline-danger" onclick="resetFilter()"><i class="bi bi-x-circle"></i> Reset</button>
   </div>
   <% if (currentUser.hak_akses === 'admin') { %>
-  <a href="/pembelian/baru" class="btn btn-primary btn-sm"><i class="bi bi-plus"></i> Pembelian Baru</a>
+  <a href="<%= bp %>/pembelian/baru" class="btn btn-primary btn-sm"><i class="bi bi-plus"></i> Pembelian Baru</a>
   <% } %>
 </div>
 
@@ -169,7 +169,7 @@ $(function() {
             return data === 'lunas' ? 'Lunas' : 'Belum Lunas';
           }
           if (data === 'lunas') return '<span class="badge bg-success">✅ Lunas</span>';
-          return '<a href="/pembayaran-pembelian/bayar/'+row.id+'" class="badge bg-danger text-decoration-none">❌ Belum Lunas</a>';
+          return '<a href="<%= bp %>/pembayaran-pembelian/bayar/'+row.id+'" class="badge bg-danger text-decoration-none">❌ Belum Lunas</a>';
         }
       },
       { 
@@ -187,9 +187,9 @@ $(function() {
           html += '<li><a class="dropdown-item" href="#" onclick="event.preventDefault(); printBarcodes(' + row.id + ', &quot;single&quot;)"><i class="bi bi-layout-sidebar me-2"></i>Single (Kiri saja)</a></li></ul></div>';
           if (window.userRole === 'admin') {
             if (row.status_bayar !== 'lunas') {
-              html += '<a href="/pembayaran-pembelian/bayar/' + row.id + '" class="btn btn-sm btn-outline-success" title="Bayar"><i class="bi bi-wallet2"></i></a>';
+              html += '<a href="<%= bp %>/pembayaran-pembelian/bayar/' + row.id + '" class="btn btn-sm btn-outline-success" title="Bayar"><i class="bi bi-wallet2"></i></a>';
             }
-            html += '<a href="/pembelian-retur/baru?pembelian_id=' + row.id + '" class="btn btn-sm btn-outline-warning" title="Retur"><i class="bi bi-arrow-return-left"></i></a>';
+            html += '<a href="<%= bp %>/pembelian-retur/baru?pembelian_id=' + row.id + '" class="btn btn-sm btn-outline-warning" title="Retur"><i class="bi bi-arrow-return-left"></i></a>';
           }
           html += '</div>';
           return html;
