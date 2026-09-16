@@ -1,314 +1,534 @@
 <% function fmtRp(v) { return 'Rp ' + Number(v||0).toLocaleString('id-ID'); } %>
-  <%- include('../partials/top', { title, activePage }) %>
-    <%- include('../partials/select2') %>
+<%- include('../partials/top', { title, activePage }) %>
+<%- include('../partials/select2') %>
 
+<style>
+  #tblKatalog tbody tr { cursor: pointer; }
+</style>
+
+<div class="d-flex justify-content-between align-items-center mb-3">
+  <div></div>
+  <a href="/pembelian" class="btn btn-secondary btn-sm"><i class="bi bi-arrow-left"></i> Kembali</a>
+</div>
+
+<div class="row g-3">
+  <!-- LEFT: Info Pembelian & Summary -->
+  <div class="col-md-4">
+    <div class="card p-3 mb-3">
+      <h6 class="mb-3">Info Pembelian</h6>
+      <div class="mb-3">
+        <label class="form-label small">Supplier <span class="text-danger">*</span></label>
+        <select class="form-select" id="supplier_id">
+          <option value="">-- Pilih Supplier --</option>
+          <% supplierList.forEach(function(s) { %>
+            <option value="<%= s.id %>"><%= s.nama %></option>
+          <% }); %>
+        </select>
+      </div>
+      <div class="mb-3">
+        <label class="form-label small">Tanggal Pembelian</label>
+        <input type="date" class="form-control" id="tanggal_pembelian" value="<%= todayStr() %>">
+      </div>
+    </div>
+
+    <!-- Summary -->
+    <div class="card p-3">
       <div class="d-flex justify-content-between align-items-center mb-3">
-        <div></div>
-        <a href="/pembelian" class="btn btn-secondary btn-sm"><i class="bi bi-arrow-left"></i> Kembali</a>
-      </div>
-
-
-      <div class="row g-3">
-        <!-- LEFT: Info Pembelian -->
-        <div class="col-md-4">
-          <div class="card p-3">
-            <h6 class="mb-3">Info Pembelian</h6>
-            <div class="mb-3">
-              <label class="form-label small">Supplier <span class="text-danger">*</span></label>
-              <select class="form-select" id="supplier_id">
-                <option value="">-- Pilih Supplier --</option>
-                <% supplierList.forEach(function(s) { %>
-                  <option value="<%= s.id %>">
-                    <%= s.nama %>
-                  </option>
-                  <% }); %>
-              </select>
-            </div>
-            <div class="mb-3">
-              <label class="form-label small">Tanggal Pembelian</label>
-              <input type="date" class="form-control" id="tanggal_pembelian"
-                value="<%= todayStr() %>">
-            </div>
-          </div>
-        </div>
-
-        <!-- RIGHT: Items -->
-        <div class="col-md-8">
-          <div class="card p-3 mb-3">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-              <h6 class="mb-0">📦 Item Pembelian</h6>
-              <div class="d-flex gap-2">
-                <button class="btn btn-sm btn-outline-secondary" type="button" onclick="showAddBarangModal()"><i class="bi bi-box-seam"></i> Buat Barang Baru</button>
-                <button class="btn btn-sm btn-outline-primary" onclick="addItem()"><i class="bi bi-plus"></i> Tambah
-                  Item</button>
-              </div>
-            </div>
-            <div id="itemList">
-              <!-- Items will be added here dynamically -->
-            </div>
-            <div id="emptyMsg" class="text-center text-muted py-3">
-              <i class="bi bi-inbox" style="font-size:1.5rem"></i>
-              <div class="small mt-1">Belum ada item. Klik "Tambah Item" untuk mulai.</div>
-            </div>
-          </div>
-
-          <!-- Summary -->
-          <div class="card p-3">
-            <div class="d-flex justify-content-between align-items-center mb-3">
-              <div class="small text-muted">Pilih lunas jika sudah dibayar penuh. Jika tidak, akan masuk Hutang.</div>
-              <div class="form-check mb-0">
-                <input class="form-check-input" type="checkbox" id="status_bayar">
-                <label class="form-check-label small fw-bold" for="status_bayar">Tandai Lunas</label>
-              </div>
-            </div>
-            <hr class="mt-0">
-            <div class="row g-2 align-items-center">
-              <div class="col-6"><strong class="fs-5">TOTAL</strong></div>
-              <div class="col-6 text-end fw-bold fs-5 text-success" id="totalDisplay">Rp 0</div>
-            </div>
-            <div class="d-flex gap-2 mt-3">
-              <button class="btn btn-success flex-fill" onclick="savePembelian(this)"><i class="bi bi-check-lg"></i>
-                Simpan</button>
-            </div>
-          </div>
+        <div class="small text-muted">Pilih lunas jika sudah dibayar penuh. Jika tidak, akan masuk Hutang.</div>
+        <div class="form-check mb-0">
+          <input class="form-check-input" type="checkbox" id="status_bayar">
+          <label class="form-check-label small fw-bold" for="status_bayar">Tandai Lunas</label>
         </div>
       </div>
+      <hr class="mt-0">
+      <div class="row g-2 align-items-center mb-2">
+        <div class="col-6 text-muted small">Total Item</div>
+        <div class="col-6 text-end small fw-semibold" id="totalItemDisplay">0 item</div>
+      </div>
+      <div class="row g-2 align-items-center">
+        <div class="col-6"><strong class="fs-5">TOTAL</strong></div>
+        <div class="col-6 text-end fw-bold fs-5 text-success" id="totalDisplay">Rp 0</div>
+      </div>
+      <div class="d-flex gap-2 mt-3">
+        <button class="btn btn-success flex-fill" onclick="savePembelian(this)">
+          <i class="bi bi-check-lg"></i> Simpan
+        </button>
+      </div>
+    </div>
+  </div>
 
-      <script>
-        $(function () {
-          $('#supplier_id').select2({ theme: 'bootstrap-5', placeholder: '-- Pilih Supplier --', allowClear: true });
-        });
+  <!-- RIGHT: Katalog & Temporary Table -->
+  <div class="col-md-8">
+    <!-- Top: Pilih Barang (Katalog) -->
+    <div class="card p-3 mb-3">
+      <div class="d-flex justify-content-between align-items-center mb-2">
+        <h6 class="mb-0">Pilih Barang</h6>
+        <div class="d-flex gap-2">
+          <select class="form-select form-select-sm" id="filterKategori" style="width: auto;">
+            <option value="">Semua Kategori</option>
+            <% kategoriList.forEach(function(k) { %>
+              <option value="<%= k.id %>"><%= k.nama %></option>
+            <% }); %>
+          </select>
+          <button class="btn btn-sm btn-outline-secondary" type="button" onclick="showAddBarangModal()">
+            <i class="bi bi-box-seam"></i> Buat Barang Baru
+          </button>
+        </div>
+      </div>
+      <table id="tblKatalog" class="table table-hover table-sm mb-0" style="width:100%">
+        <thead>
+          <tr>
+            <th>Nama Barang</th>
+            <th>Kategori</th>
+            <th class="text-center" style="width:60px">Stok</th>
+            <th class="text-end" style="width:110px">Harga Jual</th>
+            <th class="text-end" style="width:70px">Aksi</th>
+          </tr>
+        </thead>
+        <tbody></tbody>
+      </table>
+    </div>
 
-        var itemIndex = 0;
+    <!-- Bottom: Temporary Table -->
+    <div class="card p-3">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="mb-0">Item Pembelian</h6>
+        <button type="button" class="btn btn-sm btn-outline-danger" id="btnClearAll" onclick="clearTemporaryList()" style="display:none;">
+          <i class="bi bi-trash"></i> Kosongkan
+        </button>
+      </div>
+      <div id="tblTemporaryWrapper" style="display:none;">
+        <div class="table-responsive">
+          <table id="tblTemporary" class="table table-sm align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Barang</th>
+                <th style="width:60px" class="text-center">Stok</th>
+                <th style="width:80px">Qty</th>
+                <th style="width:125px">Harga Beli</th>
+                <th style="width:125px">Harga Jual</th>
+                <th style="width:110px" class="text-end">Subtotal</th>
+                <th style="width:40px" class="text-center"></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      <div id="emptyMsg" class="text-center text-muted py-3">
+        <i class="bi bi-inbox" style="font-size:1.5rem"></i>
+        <div class="small mt-1">Belum ada item dipilih. Klik tombol "+" pada tabel di atas untuk memasukkan barang.</div>
+      </div>
+    </div>
+  </div>
+</div>
 
-        function addItem() {
-          var idx = itemIndex++;
-          var html = '<div class="border rounded p-2 mb-2 item-row" data-idx="' + idx + '">' +
-            '<div class="row g-2 align-items-end mb-2">' +
-            '<div class="col"><label class="form-label small">Barang</label>' +
-            '<select class="form-select form-select-sm item-barang" data-idx="' + idx + '"><option value="">-- Pilih Barang --</option></select></div>' +
-            '<div class="col-auto d-flex align-items-end">' +
-            '<button class="btn btn-sm btn-outline-danger" onclick="removeItem(' + idx + ')"><i class="bi bi-trash"></i></button></div>' +
-            '</div>' +
-            '<div class="row g-2 align-items-end">' +
-            '<div class="col-md-2"><label class="form-label small">Qty</label>' +
-            '<input type="number" class="form-control form-control-sm item-jumlah calc-input" data-idx="' + idx + '" value="1" min="1"></div>' +
-            '<div class="col-md-3"><label class="form-label small">Harga Beli</label>' +
-            '<input type="text" class="form-control form-control-sm item-harga calc-input input-currency" data-idx="' + idx + '" value="0"></div>' +
-            '<div class="col-md-3"><label class="form-label small">Harga Jual</label>' +
-            '<input type="text" class="form-control form-control-sm item-harga-jual input-currency" data-idx="' + idx + '" value="0"></div>' +
-            '<div class="col-md-4"><label class="form-label small">Subtotal</label>' +
-            '<div class="form-control-plaintext form-control-sm fw-bold item-subtotal" data-idx="' + idx + '">Rp 0</div></div>' +
-            '</div>' +
-            '</div>';
-          $('#itemList').append(html);
+<!-- Form Modal Tambah Barang Baru -->
+<div class="modal fade" id="formModal" tabindex="-1">
+  <div class="modal-dialog modal-dialog-centered">
+    <div class="modal-content">
+      <div class="modal-header">
+        <h5 class="modal-title">Tambah Barang Baru</h5>
+        <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+      </div>
+      <div class="modal-body">
+        <div class="mb-3">
+          <label class="form-label small">Nama Barang <span class="text-danger">*</span></label>
+          <input type="text" class="form-control" id="nama_barang">
+        </div>
+        <div class="row">
+          <div class="col-md-6 mb-3">
+            <label class="form-label small">Kategori</label>
+            <select class="form-select" id="kategori_id">
+              <option value="">-- Pilih --</option>
+              <% kategoriList.forEach(function(k) { %>
+                <option value="<%= k.id %>" data-nama="<%= k.nama.toLowerCase() %>"><%= k.nama %></option>
+              <% }); %>
+            </select>
+          </div>
+          <div class="col-md-3 mb-3">
+            <label class="form-label small">Qty</label>
+            <input type="number" class="form-control" id="qty" value="0" min="0">
+          </div>
+          <div class="col-md-3 mb-3">
+            <label class="form-label small">Harga Jual</label>
+            <input type="text" class="form-control input-currency" id="harga_jual" min="0" value="0">
+          </div>
+        </div>
+        <div id="resep-container" style="display: none;">
+          <div class="row g-2 mb-2">
+            <div class="col-12">
+              <hr class="my-1">
+              <div class="small fw-bold text-muted mb-1">Resep Kanan (R)</div>
+            </div>
+            <div class="col-4"><input type="text" class="form-control form-control-sm" id="sph_r" placeholder="SPH"></div>
+            <div class="col-4"><input type="text" class="form-control form-control-sm" id="cyl_r" placeholder="CYL"></div>
+            <div class="col-4"><input type="text" class="form-control form-control-sm" id="add_r" placeholder="ADD"></div>
+          </div>
+          <div class="row g-2 mb-3">
+            <div class="col-12">
+              <div class="small fw-bold text-muted mb-1">Resep Kiri (L)</div>
+            </div>
+            <div class="col-4"><input type="text" class="form-control form-control-sm" id="sph_l" placeholder="SPH"></div>
+            <div class="col-4"><input type="text" class="form-control form-control-sm" id="cyl_l" placeholder="CYL"></div>
+            <div class="col-4"><input type="text" class="form-control form-control-sm" id="add_l" placeholder="ADD"></div>
+          </div>
+        </div>
+      </div>
+      <div class="modal-footer">
+        <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
+        <button class="btn btn-primary btn-sm" id="btnSaveBarang">Simpan Barang</button>
+      </div>
+    </div>
+  </div>
+</div>
 
-          $('.item-barang[data-idx="' + idx + '"]').select2({
-            theme: 'bootstrap-5',
-            placeholder: '-- Pilih Barang --',
-            allowClear: true,
-            ajax: {
-              url: '/barang/search',
-              dataType: 'json',
-              delay: 250,
-              data: function (params) {
-                return { q: params.term };
-              },
-              processResults: function (data) {
-                return {
-                  results: $.map(data.data, function (item) {
-                    return {
-                      id: item.id,
-                      text: item.nama_barang +
-                        (item.sph_r || item.sph_l || item.cyl_r || item.cyl_l || item.add_r || item.add_l ? ' (SPH : ' + (item.sph_r || item.sph_l || '') + ' CYL : ' + (item.cyl_r || item.cyl_l || '') + ' ADD : ' + (item.add_r || item.add_l || '') + ')' : '') +
-                        ' (Stok: ' + item.qty + ')',
-                      item: item
-                    }
-                  })
-                };
-              },
-              cache: true
+<script>
+  var selectedItems = [];
+  var tblKatalog;
+  var formModal = new bootstrap.Modal(document.getElementById('formModal'));
+
+  $(function () {
+    $('#supplier_id').select2({
+      theme: 'bootstrap-5',
+      placeholder: '-- Pilih Supplier --',
+      allowClear: true
+    });
+
+    tblKatalog = $('#tblKatalog').DataTable({
+      processing: true,
+      serverSide: true,
+      pageLength: 5,
+      lengthMenu: [[5, 10, 25], [5, 10, 25]],
+      ajax: {
+        url: '/barang/dt',
+        data: function (d) {
+          d.kategori_id = $('#filterKategori').val();
+        }
+      },
+      order: [[0, 'asc']],
+      language: dtLanguageID,
+      searchDelay: 350,
+      columns: [
+        {
+          data: 'nama_barang',
+          render: function (d, type, row) {
+            var t = '<div class="fw-medium">' + escapeHtml(d || '-') + '</div>';
+            if (row.barcode_id) {
+              t += '<small class="text-muted font-monospace">' + escapeHtml(row.barcode_id) + '</small>';
             }
-          }).on('select2:select', function (e) {
-            var b = e.params.data.item;
-            $('.item-harga-jual[data-idx=' + idx + ']').val(parseInt(b.harga_jual) || 0).trigger('input');
-            calcTotal();
-          }).on('select2:unselect', function (e) {
-            $('.item-harga-jual[data-idx=' + idx + ']').val(0).trigger('input');
-            calcTotal();
-          });
-          $('#emptyMsg').hide();
-          calcTotal();
-        }
-
-        function removeItem(idx) {
-          $('.item-row[data-idx=' + idx + ']').remove();
-          if ($('.item-row').length === 0) $('#emptyMsg').show();
-          calcTotal();
-        }
-
-        // Removed onBarangChange
-
-        function calcTotal() {
-          var total = 0;
-          $('.item-row').each(function () {
-            var idx = $(this).data('idx');
-            var h = parseFloat($('.item-harga[data-idx=' + idx + ']').val().replace(/[^0-9]/g, '')) || 0;
-            var j = parseInt($('.item-jumlah[data-idx=' + idx + ']').val()) || 1;
-            var sub = h * j;
-            total += sub;
-            $('.item-subtotal[data-idx=' + idx + ']').text(fmtRp(sub));
-          });
-          $('#totalDisplay').text(fmtRp(total));
-        }
-
-        $(document).on('input', '.calc-input', calcTotal);
-
-        function savePembelian(btn) {
-          var supplierId = $('#supplier_id').val();
-          if (!supplierId) { showToast('Pilih supplier terlebih dahulu', 'danger'); return; }
-
-          var items = [];
-          $('.item-row').each(function () {
-            var idx = $(this).data('idx');
-            var bid = $('.item-barang[data-idx=' + idx + ']').val();
-            if (!bid) return;
-            items.push({
-              barang_id: parseInt(bid),
-              jumlah: parseInt($('.item-jumlah[data-idx=' + idx + ']').val()) || 1,
-              harga_beli: parseFloat($('.item-harga[data-idx=' + idx + ']').val().replace(/[^0-9]/g, '')) || 0,
-              harga_jual: parseFloat($('.item-harga-jual[data-idx=' + idx + ']').val().replace(/[^0-9]/g, '')) || 0,
-            });
-          });
-
-          if (items.length === 0) { showToast('Tambah minimal satu item barang', 'danger'); return; }
-
-          if (!setBtnLoading(btn)) return;
-
-          var payload = {
-            supplier_id: supplierId,
-            tanggal_pembelian: $('#tanggal_pembelian').val(),
-            status_bayar: $('#status_bayar').is(':checked') ? 'lunas' : 'belum_lunas',
-            items: items,
-          };
-
-          $.ajax({
-            url: '/pembelian', method: 'POST', contentType: 'application/json', data: JSON.stringify(payload),
-            success: function (res) {
-              if (res.success) window.location.href = '/pembelian';
-              else resetBtn(btn);
-            },
-            error: function (xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal menyimpan', 'danger'); resetBtn(btn); }
-          });
-        }
-      </script>
-
-      <!-- Form Modal -->
-      <div class="modal fade" id="formModal" tabindex="-1">
-        <div class="modal-dialog modal-dialog-centered">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h5 class="modal-title">Tambah Barang Baru</h5><button type="button" class="btn-close" data-bs-dismiss="modal"></button>
-            </div>
-            <div class="modal-body">
-              <div class="mb-3">
-                <label class="form-label small">Nama Barang</label>
-                <input type="text" class="form-control" id="nama_barang">
-              </div>
-              <div class="row">
-                <div class="col-md-6 mb-3"><label class="form-label small">Kategori</label>
-                  <select class="form-select" id="kategori_id">
-                    <option value="">-- Pilih --</option>
-                    <% kategoriList.forEach(function(k) { %>
-                      <option value="<%= k.id %>" data-nama="<%= k.nama.toLowerCase() %>">
-                        <%= k.nama %>
-                      </option>
-                      <% }); %>
-                  </select>
-                </div>
-                <div class="col-md-3 mb-3"><label class="form-label small">Qty</label><input type="number"
-                    class="form-control" id="qty" value="0" min="0"></div>
-                <div class="col-md-3 mb-3"><label class="form-label small">Harga Jual</label><input type="text"
-                    class="form-control input-currency" id="harga_jual" min="0" value="0"></div>
-              </div>
-              <div id="resep-container" style="display: none;">
-                <div class="row g-2 mb-2">
-                  <div class="col-12">
-                    <hr class="my-1">
-                    <div class="small fw-bold text-muted mb-1">Resep Kanan (R)</div>
-                  </div>
-                  <div class="col-4"><input type="text" class="form-control form-control-sm" id="sph_r" placeholder="SPH">
-                  </div>
-                  <div class="col-4"><input type="text" class="form-control form-control-sm" id="cyl_r" placeholder="CYL">
-                  </div>
-                  <div class="col-4"><input type="text" class="form-control form-control-sm" id="add_r" placeholder="ADD">
-                  </div>
-                </div>
-                <div class="row g-2 mb-3">
-                  <div class="col-12">
-                    <div class="small fw-bold text-muted mb-1">Resep Kiri (L)</div>
-                  </div>
-                  <div class="col-4"><input type="text" class="form-control form-control-sm" id="sph_l" placeholder="SPH">
-                  </div>
-                  <div class="col-4"><input type="text" class="form-control form-control-sm" id="cyl_l" placeholder="CYL">
-                  </div>
-                  <div class="col-4"><input type="text" class="form-control form-control-sm" id="add_l" placeholder="ADD">
-                  </div>
-                </div>
-              </div>
-            </div>
-            <div class="modal-footer">
-              <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Batal</button>
-              <button class="btn btn-primary btn-sm" id="btnSaveBarang">Simpan Barang</button>
-            </div>
-          </div>
-        </div>
-      </div>
-      <script>
-        var formModal = new bootstrap.Modal(document.getElementById('formModal'));
-        function showAddBarangModal() {
-          $('#nama_barang').val('');
-          $('#kategori_id').val('');
-          $('#qty').val(0);
-          $('#harga_jual').val(0).trigger('input');
-          $('#sph_r, #cyl_r, #add_r, #sph_l, #cyl_l, #add_l').val('');
-          $('#resep-container').hide();
-          formModal.show();
-        }
-
-        $('#kategori_id').on('change', function() {
-          var selectedKategori = $(this).find('option:selected').data('nama');
-          if (selectedKategori === 'lensa') {
-            $('#resep-container').show();
-          } else {
-            $('#resep-container').hide();
+            var sph = row.sph_r || row.sph_l || '';
+            var cyl = row.cyl_r || row.cyl_l || '';
+            var add = row.add_r || row.add_l || '';
+            if (sph || cyl || add) {
+              t += ' <span class="text-muted small">(SPH: ' + escapeHtml(sph || '-') + ' CYL: ' + escapeHtml(cyl || '-') + ' ADD: ' + escapeHtml(add || '-') + ')</span>';
+            }
+            return t;
           }
-        });
+        },
+        {
+          data: 'kategori_nama',
+          render: function (d) {
+            return '<span class="badge bg-info bg-opacity-25 text-info">' + escapeHtml(d || '-') + '</span>';
+          }
+        },
+        {
+          data: 'qty',
+          className: 'text-center',
+          render: function (d) {
+            return '<span class="' + (d <= 0 ? 'text-danger fw-bold' : '') + '">' + d + '</span>';
+          }
+        },
+        {
+          data: 'harga_jual',
+          className: 'text-end',
+          render: function (d) { return fmtRp(d); }
+        },
+        {
+          data: 'id',
+          orderable: false,
+          className: 'text-end text-nowrap',
+          render: function (id) {
+            return '<button type="button" class="btn btn-sm btn-outline-primary btn-pilih-barang" data-id="' + id + '" title="Pilih Barang"><i class="bi bi-plus"></i></button>';
+          }
+        }
+      ],
+      drawCallback: function () {
+        refreshCatalogBadges();
+      }
+    });
 
-        $('#btnSaveBarang').on('click', function () {
-          var btn = this;
-          if (!setBtnLoading(btn)) return;
-          var payload = {
-            nama_barang: $('#nama_barang').val(),
-            kategori_id: $('#kategori_id').val() || null,
-            qty: parseInt($('#qty').val()) || 0,
-            harga_jual: $('#harga_jual').data('raw-value') || $('#harga_jual').val().replace(/[^0-9]/g, ''),
-            sph_r: $('#sph_r').val(), cyl_r: $('#cyl_r').val(), add_r: $('#add_r').val(),
-            sph_l: $('#sph_l').val(), cyl_l: $('#cyl_l').val(), add_l: $('#add_l').val(),
-          };
-          $.ajax({
-            url: '/barang', method: 'POST',
-            contentType: 'application/json', data: JSON.stringify(payload),
-            success: function (res) {
-              if (res.success) {
-                formModal.hide();
-                showToast('Barang berhasil ditambahkan', 'success');
-              }
-              resetBtn(btn);
-            },
-            error: function (xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal menyimpan barang', 'danger'); resetBtn(btn); }
-          });
-        });
-      </script>
+    $('#filterKategori').on('change', function () {
+      tblKatalog.ajax.reload();
+    });
 
-      <%- include('../partials/bottom') %>
+    $('#tblKatalog tbody').on('click', '.btn-pilih-barang', function (e) {
+      e.stopPropagation();
+      var tr = $(this).closest('tr');
+      var rowData = tblKatalog.row(tr).data();
+      if (rowData) addItem(rowData);
+    });
+
+    $('#tblKatalog tbody').on('click', 'tr', function (e) {
+      if ($(e.target).closest('button, a, input, select').length) return;
+      var rowData = tblKatalog.row(this).data();
+      if (rowData) addItem(rowData);
+    });
+
+    $(document).on('input change', '.item-jumlah', function () {
+      var id = parseInt($(this).data('id'));
+      var val = parseInt($(this).val()) || 1;
+      if (val < 1) { val = 1; $(this).val(1); }
+      var it = selectedItems.find(function (i) { return i.barang_id === id; });
+      if (it) {
+        it.jumlah = val;
+        calcTotal();
+        refreshCatalogBadges();
+      }
+    });
+
+    $(document).on('input', '.item-harga', function () {
+      var id = parseInt($(this).data('id'));
+      var val = parseFloat($(this).data('raw-value')) || parseFloat($(this).val().replace(/[^0-9]/g, '')) || 0;
+      var it = selectedItems.find(function (i) { return i.barang_id === id; });
+      if (it) {
+        it.harga_beli = val;
+        calcTotal();
+      }
+    });
+
+    $(document).on('input', '.item-harga-jual', function () {
+      var id = parseInt($(this).data('id'));
+      var val = parseFloat($(this).data('raw-value')) || parseFloat($(this).val().replace(/[^0-9]/g, '')) || 0;
+      var it = selectedItems.find(function (i) { return i.barang_id === id; });
+      if (it) {
+        it.harga_jual = val;
+      }
+    });
+
+    $('#kategori_id').on('change', function () {
+      var selectedKategori = $(this).find('option:selected').data('nama');
+      if (selectedKategori === 'lensa') {
+        $('#resep-container').show();
+      } else {
+        $('#resep-container').hide();
+      }
+    });
+
+    $('#btnSaveBarang').on('click', function () {
+      var btn = this;
+      if (!setBtnLoading(btn)) return;
+      var payload = {
+        nama_barang: $('#nama_barang').val(),
+        kategori_id: $('#kategori_id').val() || null,
+        qty: parseInt($('#qty').val()) || 0,
+        harga_jual: $('#harga_jual').data('raw-value') || $('#harga_jual').val().replace(/[^0-9]/g, ''),
+        sph_r: $('#sph_r').val(), cyl_r: $('#cyl_r').val(), add_r: $('#add_r').val(),
+        sph_l: $('#sph_l').val(), cyl_l: $('#cyl_l').val(), add_l: $('#add_l').val(),
+      };
+      $.ajax({
+        url: '/barang', method: 'POST',
+        contentType: 'application/json', data: JSON.stringify(payload),
+        success: function (res) {
+          if (res.success) {
+            formModal.hide();
+            showToast('Barang berhasil ditambahkan', 'success');
+            if (res.data) addItem(res.data);
+            tblKatalog.ajax.reload(null, false);
+          }
+          resetBtn(btn);
+        },
+        error: function (xhr) {
+          showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal menyimpan barang', 'danger');
+          resetBtn(btn);
+        }
+      });
+    });
+  });
+
+  function addItem(barang) {
+    var existing = selectedItems.find(function (i) { return i.barang_id === barang.id; });
+    if (existing) {
+      existing.jumlah += 1;
+      var $tr = $('#row-item-' + barang.id);
+      $tr.find('.item-jumlah').val(existing.jumlah);
+    } else {
+      var newItem = {
+        barang_id: barang.id,
+        nama_barang: barang.nama_barang,
+        barcode_id: barang.barcode_id || '',
+        kategori_nama: barang.kategori_nama || '',
+        stok: (barang.qty !== undefined && barang.qty !== null) ? barang.qty : 0,
+        sph_r: barang.sph_r, sph_l: barang.sph_l,
+        cyl_r: barang.cyl_r, cyl_l: barang.cyl_l,
+        add_r: barang.add_r, add_l: barang.add_l,
+        jumlah: 1,
+        harga_beli: 0,
+        harga_jual: parseFloat(barang.harga_jual) || 0
+      };
+      selectedItems.push(newItem);
+      renderItemRow(newItem);
+    }
+    calcTotal();
+    refreshCatalogBadges();
+  }
+
+  function renderItemRow(item) {
+    var desc = '<div class="fw-medium">' + escapeHtml(item.nama_barang) + '</div>';
+    if (item.barcode_id) {
+      desc += '<small class="text-muted font-monospace">' + escapeHtml(item.barcode_id) + '</small>';
+    }
+    var sph = item.sph_r || item.sph_l || '';
+    var cyl = item.cyl_r || item.cyl_l || '';
+    var add = item.add_r || item.add_l || '';
+    if (sph || cyl || add) {
+      desc += ' <small class="text-muted d-block">(SPH: ' + escapeHtml(sph || '-') + ' CYL: ' + escapeHtml(cyl || '-') + ' ADD: ' + escapeHtml(add || '-') + ')</small>';
+    }
+
+    var subtotal = (item.jumlah || 1) * (item.harga_beli || 0);
+
+    var html = '<tr id="row-item-' + item.barang_id + '">' +
+      '<td>' + desc + '</td>' +
+      '<td class="text-center text-muted small">' + item.stok + '</td>' +
+      '<td><input type="number" class="form-control form-control-sm item-jumlah calc-input" data-id="' + item.barang_id + '" value="' + item.jumlah + '" min="1"></td>' +
+      '<td><input type="text" class="form-control form-control-sm item-harga calc-input input-currency" data-id="' + item.barang_id + '" value="' + Number(item.harga_beli || 0).toLocaleString('id-ID') + '"></td>' +
+      '<td><input type="text" class="form-control form-control-sm item-harga-jual input-currency" data-id="' + item.barang_id + '" value="' + Number(item.harga_jual || 0).toLocaleString('id-ID') + '"></td>' +
+      '<td class="text-end fw-bold item-subtotal">' + fmtRp(subtotal) + '</td>' +
+      '<td class="text-center"><button type="button" class="btn btn-sm btn-outline-danger" onclick="removeItem(' + item.barang_id + ')"><i class="bi bi-trash"></i></button></td>' +
+    '</tr>';
+
+    $('#tblTemporary tbody').append(html);
+  }
+
+  function removeItem(id) {
+    selectedItems = selectedItems.filter(function (i) { return i.barang_id !== id; });
+    $('#row-item-' + id).remove();
+    calcTotal();
+    refreshCatalogBadges();
+  }
+
+  function clearTemporaryList() {
+    if (selectedItems.length === 0) return;
+    if (!confirm('Kosongkan semua item terpilih?')) return;
+    selectedItems = [];
+    $('#tblTemporary tbody').empty();
+    calcTotal();
+    refreshCatalogBadges();
+  }
+
+  function calcTotal() {
+    var total = 0;
+    var totalQty = 0;
+    var totalItem = selectedItems.length;
+
+    for (var i = 0; i < selectedItems.length; i++) {
+      var it = selectedItems[i];
+      var j = parseInt(it.jumlah) || 1;
+      var h = parseFloat(it.harga_beli) || 0;
+      var sub = j * h;
+      total += sub;
+      totalQty += j;
+      $('#row-item-' + it.barang_id + ' .item-subtotal').text(fmtRp(sub));
+    }
+
+    $('#totalDisplay').text(fmtRp(total));
+    $('#totalItemDisplay').text(totalItem + ' item (' + totalQty + ' pcs)');
+
+    if (totalItem > 0) {
+      $('#emptyMsg').hide();
+      $('#tblTemporaryWrapper').show();
+      $('#btnClearAll').show();
+    } else {
+      $('#tblTemporaryWrapper').hide();
+      $('#emptyMsg').show();
+      $('#btnClearAll').hide();
+    }
+  }
+
+  function refreshCatalogBadges() {
+    $('#tblKatalog tbody tr').each(function () {
+      var rowData = tblKatalog.row(this).data();
+      if (!rowData) return;
+      var existing = selectedItems.find(function (i) { return i.barang_id === rowData.id; });
+      var $cell = $(this).find('td:last-child');
+      var $badge = $cell.find('.badge-selected-count');
+      if (existing) {
+        if ($badge.length) {
+          $badge.text(existing.jumlah);
+        } else {
+          $cell.prepend('<span class="badge bg-success me-1 badge-selected-count">' + existing.jumlah + '</span>');
+        }
+      } else {
+        $badge.remove();
+      }
+    });
+  }
+
+  function showAddBarangModal() {
+    $('#nama_barang').val('');
+    $('#kategori_id').val('');
+    $('#qty').val(0);
+    $('#harga_jual').val(0).trigger('input');
+    $('#sph_r, #cyl_r, #add_r, #sph_l, #cyl_l, #add_l').val('');
+    $('#resep-container').hide();
+    formModal.show();
+  }
+
+  function savePembelian(btn) {
+    var supplierId = $('#supplier_id').val();
+    if (!supplierId) {
+      showToast('Pilih supplier terlebih dahulu', 'danger');
+      return;
+    }
+
+    if (selectedItems.length === 0) {
+      showToast('Pilih minimal satu item barang', 'danger');
+      return;
+    }
+
+    var items = [];
+    for (var i = 0; i < selectedItems.length; i++) {
+      var it = selectedItems[i];
+      var jumlah = parseInt(it.jumlah) || 0;
+      if (jumlah <= 0) {
+        showToast('Kuantitas untuk "' + it.nama_barang + '" minimal 1', 'danger');
+        return;
+      }
+      items.push({
+        barang_id: it.barang_id,
+        jumlah: jumlah,
+        harga_beli: parseFloat(it.harga_beli) || 0,
+        harga_jual: parseFloat(it.harga_jual) || 0
+      });
+    }
+
+    if (!setBtnLoading(btn)) return;
+
+    var payload = {
+      supplier_id: parseInt(supplierId),
+      tanggal_pembelian: $('#tanggal_pembelian').val(),
+      status_bayar: $('#status_bayar').is(':checked') ? 'lunas' : 'belum_lunas',
+      items: items
+    };
+
+    $.ajax({
+      url: '/pembelian',
+      method: 'POST',
+      contentType: 'application/json',
+      data: JSON.stringify(payload),
+      success: function (res) {
+        if (res.success) {
+          window.location.href = '/pembelian';
+        } else {
+          resetBtn(btn);
+        }
+      },
+      error: function (xhr) {
+        showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal menyimpan', 'danger');
+        resetBtn(btn);
+      }
+    });
+  }
+</script>
+
+<%- include('../partials/bottom') %>
