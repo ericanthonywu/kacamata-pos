@@ -109,6 +109,12 @@ router.use('/pembayaran-pembelian', requireAdmin, require('./pembayaran-pembelia
 router.use('/pembayaran-penjualan', require('./pembayaran-penjualan.routes'));
 router.use('/laporan', require('./laporan.routes'));
 router.use('/bukti-hitung-fisik', require('./bukti-hitung-fisik.routes'));
+router.use('/transfer-stock', auth, require('./transfer-stock.routes'));
+
+// Stock Transfer Inter-App API (Called by Pusat)
+const transferStockController = require('../controllers/transfer-stock.controller');
+router.get('/api/stock-transfer/items', transferStockController.getApiItems);
+router.post('/api/stock-transfer/receive', transferStockController.receiveFromPusat);
 
 // Print API
 router.post('/api/print/raw', auth, (req, res) => {

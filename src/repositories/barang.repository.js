@@ -108,8 +108,8 @@ exports.getDatatablesData = async function (params) {
   };
 };
 
-exports.findById = function (id) {
-  return db(TABLE)
+exports.findById = function (id, trx) {
+  return (trx || db)(TABLE)
     .select('barang.*', 'kategori.nama as kategori_nama')
     .leftJoin('kategori', 'barang.kategori_id', 'kategori.id')
     .where('barang.id', id)

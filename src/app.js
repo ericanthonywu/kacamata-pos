@@ -39,7 +39,7 @@ app.use('/', routes);
 app.use(errorHandler);
 
 const server = app.listen(PORT, () => {
-  console.log(`\n🚀 OPTIK SENTRAL running on http://localhost:${PORT}`);
+  console.log(`\n🚀 OPTIK SENTRAL KETAPANG running on http://localhost:${PORT}`);
 });
 
 // Graceful Shutdown

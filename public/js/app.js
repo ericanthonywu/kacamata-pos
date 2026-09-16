@@ -85,7 +85,7 @@ function printNotaData(d) {
     lines.push('');
 
     // Header: 3 columns
-    lines.push(padRight('NO INVOICE:', 20) + centerText('OPTIK SENTRAL', W - 40) + padLeft('dikirim', 20));
+    lines.push(padRight('NO INVOICE:', 20) + centerText('OPTIK SENTRAL KETAPANG', W - 40) + padLeft('dikirim', 20));
     lines.push(padRight(no, 20) + centerText('JL.R.SUPRAPTO NO.41 KETAPANG', W - 40) + padLeft(orderDate, 20));
     lines.push(padRight('', 20) + centerText('TELP : 085350509540', W - 40) + padLeft('', 20));
 
