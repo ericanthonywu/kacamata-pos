@@ -35,7 +35,13 @@ exports.getExportItems = async function () {
     nama_barang: b.nama_barang,
     barcode_id: b.barcode_id || '',
     category: b.kategori_nama || 'Umum',
-    stock: b.qty
+    stock: b.qty,
+    sph_r: b.sph_r || null,
+    sph_l: b.sph_l || null,
+    cyl_r: b.cyl_r || null,
+    cyl_l: b.cyl_l || null,
+    add_r: b.add_r || null,
+    add_l: b.add_l || null
   }));
 };
 
