@@ -6,7 +6,7 @@ const os = require('os');
 const { exec } = require('child_process');
 
 const auth = require('../middleware/auth');
-const { requireAdmin } = require('../middleware/rbac');
+const { requireAdmin, requireAdminOrGudang } = require('../middleware/rbac');
 
 const pembayaranPembelianService = require('../services/pembayaran-pembelian.service');
 const pembayaranPenjualanService = require('../services/pembayaran-penjualan.service');
@@ -20,6 +20,11 @@ router.use('/', require('./auth.routes'));
 // Dashboard
 router.get('/', auth, async (req, res, next) => {
   try {
+    // Gudang role: redirect directly to stock-gudang
+    if (req.session.user.hak_akses === 'gudang') {
+      return res.redirect('/stock-gudang');
+    }
+
     const today = todayStr();
     const fom = firstDayOfMonth();
     const isAdmin = req.session.user.hak_akses === 'admin';
@@ -109,7 +114,7 @@ router.use('/pembayaran-pembelian', requireAdmin, require('./pembayaran-pembelia
 router.use('/pembayaran-penjualan', require('./pembayaran-penjualan.routes'));
 router.use('/laporan', require('./laporan.routes'));
 router.use('/bukti-hitung-fisik', require('./bukti-hitung-fisik.routes'));
-router.use('/transfer-stock', auth, require('./transfer-stock.routes'));
+router.use('/transfer-stock', auth, requireAdmin, require('./transfer-stock.routes'));
 
 // Stock Transfer Inter-App API (Called by Pusat)
 const transferStockController = require('../controllers/transfer-stock.controller');

@@ -28,7 +28,7 @@
             <td class="font-monospace">
               <%= item.username %>
             </td>
-            <td><span class="badge <%= item.hak_akses === 'admin' ? 'bg-info' : 'bg-success' %>">
+            <td><span class="badge <%= item.hak_akses === 'admin' ? 'bg-info' : item.hak_akses === 'gudang' ? 'bg-warning text-dark' : 'bg-success' %>">
                 <%= item.hak_akses %>
               </span></td>
             <td>
@@ -62,6 +62,7 @@
               <select class="form-select" id="hak_akses">
                 <option value="admin">Admin</option>
                 <option value="kasir">Kasir</option>
+                <option value="gudang">Gudang</option>
               </select>
             </div>
           </div>

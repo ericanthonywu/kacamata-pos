@@ -1,4 +1,6 @@
 <% const bp = typeof basePath !== 'undefined' ? basePath : ''; %>
+<% const isAdmin = currentUser && currentUser.hak_akses === 'admin'; %>
+<% const isGudang = currentUser && currentUser.hak_akses === 'gudang'; %>
 <nav class="sidebar">
   <div class="sidebar-brand">
     <i class="bi bi-eyeglasses"></i>
@@ -6,6 +8,15 @@
   </div>
 
   <div class="sidebar-menu-container">
+    <% if (isGudang) { %>
+    <%-- Gudang role: only show Stock Gudang --%>
+    <div class="sidebar-section">
+      <div class="sidebar-label">Stok</div>
+      <a href="<%= bp %>/stock-gudang" class="sidebar-link <%= activePage === 'stock-gudang' ? 'active' : '' %>">
+        <i class="bi bi-house-gear"></i> Stock Gudang
+      </a>
+    </div>
+    <% } else { %>
     <div class="sidebar-section">
     <div class="sidebar-label">Menu Utama</div>
     <a href="<%= bp %>/" class="sidebar-link <%= activePage === 'dashboard' ? 'active' : '' %>">
@@ -26,14 +37,14 @@
     <a href="<%= bp %>/laporan/kas" class="sidebar-link <%= activePage === 'laporan-kas' ? 'active' : '' %>">
       <i class="bi bi-graph-up"></i> Laporan Kas
     </a>
-    <% if (currentUser.hak_akses === 'admin') { %>
+    <% if (isAdmin) { %>
     <a href="<%= bp %>/laporan/komisi" class="sidebar-link <%= activePage === 'laporan-komisi' ? 'active' : '' %>">
       <i class="bi bi-award"></i> Laporan Komisi
     </a>
     <% } %>
   </div>
 
-  <% if (currentUser.hak_akses === 'admin') { %>
+  <% if (isAdmin) { %>
   <div class="sidebar-section">
     <div class="sidebar-label">Retur</div>
     <a href="<%= bp %>/penjualan-retur" class="sidebar-link <%= activePage === 'penjualan-retur' ? 'active' : '' %>">
@@ -47,7 +58,7 @@
 
   <div class="sidebar-section">
     <div class="sidebar-label">Hutang / Piutang</div>
-    <% if (currentUser.hak_akses === 'admin') { %>
+    <% if (isAdmin) { %>
     <a href="<%= bp %>/pembayaran-pembelian" class="sidebar-link <%= activePage === 'hutang-pembelian' ? 'active' : '' %>">
       <i class="bi bi-wallet2"></i> Hutang Pembelian
     </a>
@@ -62,7 +73,7 @@
 
   <div class="sidebar-section">
     <div class="sidebar-label">Master Data</div>
-    <% if (currentUser.hak_akses === 'admin') { %>
+    <% if (isAdmin) { %>
     <a href="<%= bp %>/kategori" class="sidebar-link <%= activePage === 'kategori' ? 'active' : '' %>">
       <i class="bi bi-folder"></i> Kategori
     </a>
@@ -76,13 +87,15 @@
     <a href="<%= bp %>/stock-gudang" class="sidebar-link <%= activePage === 'stock-gudang' ? 'active' : '' %>">
       <i class="bi bi-house-gear"></i> Stock Gudang
     </a>
+    <% if (isAdmin) { %>
     <a href="<%= bp %>/transfer-stock" class="sidebar-link <%= activePage === 'transfer-stock' ? 'active' : '' %>">
       <i class="bi bi-arrow-left-right"></i> Transfer Stock
     </a>
+    <% } %>
     <a href="<%= bp %>/bukti-hitung-fisik" class="sidebar-link <%= activePage === 'bukti-hitung-fisik' ? 'active' : '' %>">
       <i class="bi bi-journal-check"></i> Bukti Hitung Fisik
     </a>
-    <% if (currentUser.hak_akses === 'admin') { %>
+    <% if (isAdmin) { %>
     <a href="<%= bp %>/supplier" class="sidebar-link <%= activePage === 'supplier' ? 'active' : '' %>">
       <i class="bi bi-truck"></i> Supplier
     </a>
@@ -90,14 +103,14 @@
     <a href="<%= bp %>/pelanggan" class="sidebar-link <%= activePage === 'pelanggan' ? 'active' : '' %>">
       <i class="bi bi-people"></i> Pelanggan
     </a>
-    <% if (currentUser.hak_akses === 'admin') { %>
+    <% if (isAdmin) { %>
     <a href="<%= bp %>/sales" class="sidebar-link <%= activePage === 'sales' ? 'active' : '' %>">
       <i class="bi bi-person-badge"></i> Sales
     </a>
     <% } %>
   </div>
 
-  <% if (currentUser.hak_akses === 'admin') { %>
+  <% if (isAdmin) { %>
   <div class="sidebar-section">
     <div class="sidebar-label">Pengaturan</div>
     <a href="<%= bp %>/pengguna" class="sidebar-link <%= activePage === 'pengguna' ? 'active' : '' %>">
@@ -106,7 +119,7 @@
   </div>
   <% } %>
 
-  <% if (currentUser && currentUser.hak_akses === 'admin') { %>
+  <% if (currentUser && isAdmin) { %>
   <div class="sidebar-section">
     <div class="sidebar-label">Akses Cabang Lain</div>
     <% if (bp === '/pontianak') { %>
@@ -119,6 +132,7 @@
     </a>
     <% } %>
   </div>
+  <% } %>
   <% } %>
   </div>
 

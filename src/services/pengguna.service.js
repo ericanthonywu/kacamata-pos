@@ -15,22 +15,26 @@ exports.authenticate = async function (username, password) {
   return { id: user.id, nama: user.nama, username: user.username, hak_akses: user.hak_akses };
 };
 
+const VALID_ROLES = ['admin', 'kasir', 'gudang'];
+
 exports.create = async function (data) {
   if (!(data.nama || '').trim() || !(data.username || '').trim() || !data.password)
     throw Object.assign(new Error('Nama, username, dan password harus diisi'), { status: 400 });
+  const hak_akses = VALID_ROLES.includes(data.hak_akses) ? data.hak_akses : 'kasir';
   const hash = await bcrypt.hash(data.password, 10);
   return repo.create({
     nama: data.nama.trim(),
     username: data.username.trim(),
     password_hash: hash,
-    hak_akses: data.hak_akses || 'kasir',
+    hak_akses,
   });
 };
 
 exports.update = async function (id, data) {
   if (!(data.nama || '').trim() || !(data.username || '').trim())
     throw Object.assign(new Error('Nama dan username harus diisi'), { status: 400 });
-  const payload = { nama: data.nama.trim(), username: data.username.trim(), hak_akses: data.hak_akses || 'kasir' };
+  const hak_akses = VALID_ROLES.includes(data.hak_akses) ? data.hak_akses : 'kasir';
+  const payload = { nama: data.nama.trim(), username: data.username.trim(), hak_akses };
   if (data.password) payload.password_hash = await bcrypt.hash(data.password, 10);
   return repo.update(id, payload);
 };
