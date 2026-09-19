@@ -7,7 +7,7 @@
 const net = require('net');
 const dns = require('dns').promises;
 
-const PROBE_TIMEOUT_MS = 3000;
+const PROBE_TIMEOUT_MS = 10000;
 
 // Resolve to `address` if a TCP connect to address:port succeeds, else null.
 function tcpProbe(address, port) {
