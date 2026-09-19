@@ -17,13 +17,27 @@ const { todayStr, firstDayOfMonth } = require('../utils/date.helper');
 // Auth routes
 router.use('/', require('./auth.routes'));
 
+// Role 'gudang' hanya diizinkan cek stok (/stock-gudang, /barang/dt, dan /logout)
+router.use((req, res, next) => {
+  if (req.session && req.session.user && req.session.user.hak_akses === 'gudang') {
+    const p = req.path;
+    const isAllowed = p === '/stock-gudang' ||
+                      p.startsWith('/stock-gudang/') ||
+                      p === '/barang/dt' ||
+                      p === '/logout';
+    if (!isAllowed) {
+      if (req.xhr || (req.headers.accept && req.headers.accept.includes('application/json'))) {
+        return res.status(403).json({ success: false, message: 'Akses ditolak untuk role gudang' });
+      }
+      return res.redirect('/stock-gudang');
+    }
+  }
+  next();
+});
+
 // Dashboard
 router.get('/', auth, async (req, res, next) => {
   try {
-    // Gudang role: redirect directly to stock-gudang
-    if (req.session.user.hak_akses === 'gudang') {
-      return res.redirect('/stock-gudang');
-    }
 
     const today = todayStr();
     const fom = firstDayOfMonth();
