@@ -256,6 +256,41 @@ throw Object.assign(new Error('Human-readable message'), { status: 400 });
 - **DataTables** (server-side) for all list pages — AJAX to `/module/dt`
 - `ok(res, data)` / `fail(res, err)` for all JSON API responses
 - Error thrown in service → `{ status: 400 }` → picked up by `errorHandler.js`
+- **EJS Comment Syntax**:
+  - ✅ Gunakan `<%# komentar EJS %>` (tidak di-render ke HTML)
+  - ✅ Gunakan `<!-- komentar HTML -->` jika ingin tetap ada di HTML browser
+  - ❌ **DILARANG** pakai `<%-- ... --%>` (format JSP/ColdFusion) karena EJS menganggap `--` sebagai operator decrement JS yang memicu `SyntaxError: missing ) after argument list`.
+
+---
+
+## Git & Deployment Workflow (CRITICAL)
+
+> **STRICT RULE: DILARANG KERAS mengedit/menulis kode langsung di server production!**
+> Mengedit langsung di server menyebabkan working tree dirty dan merge conflict saat `git pull` (`error: Your local changes would be overwritten by merge`).
+
+### Alur Wajib Perubahan Kode:
+1. **Local Development**: Selalu koding dan perbaiki issue di mesin lokal.
+2. **Local Verification**:
+   ```bash
+   node -e "require('./src/routes/index.routes')" && echo "Routes OK"
+   ```
+3. **Commit & Push dari Local**:
+   ```bash
+   git add .
+   git commit -m "deskripsi perubahan"
+   git push origin main
+   ```
+4. **Pull & Restart di Server** (`ssh root@187.77.121.132`):
+   ```bash
+   cd /root/kacamata-pos # atau /root/kacamata-pos-pusat
+   git pull origin main
+   pm2 restart kacamata-pos # atau kacamata-pos-pusat
+   ```
+   *Jika server tidak sengaja dirty/konflik:*
+   ```bash
+   git fetch origin && git reset --hard origin/main
+   pm2 restart <app-name>
+   ```
 
 ---
 
@@ -268,6 +303,8 @@ throw Object.assign(new Error('Human-readable message'), { status: 400 });
 5. ❌ Do NOT use `COUNT` when `EXISTS` is sufficient
 6. ❌ Do NOT duplicate komisi calculation — use `buildKomisiRows()` from `komisi.helper.js`
 7. ❌ Do NOT create a repository that writes to more than one table
+8. ❌ Do NOT code or modify files directly on the production server — always commit & push from local
+9. ❌ Do NOT use `<%-- ... --%>` for comments in EJS (always use `<%# ... %>`)
 
 ---
 
