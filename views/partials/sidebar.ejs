@@ -72,6 +72,18 @@
   </div>
 
   <div class="sidebar-section">
+    <div class="sidebar-label">Stok</div>
+    <a href="<%= bp %>/stock-gudang" class="sidebar-link <%= activePage === 'stock-gudang' ? 'active' : '' %>">
+      <i class="bi bi-house-gear"></i> Stock Gudang
+    </a>
+    <% if (isAdmin) { %>
+    <a href="<%= bp %>/transfer-stock" class="sidebar-link <%= activePage === 'transfer-stock' ? 'active' : '' %>">
+      <i class="bi bi-arrow-left-right"></i> Transfer Stock
+    </a>
+    <% } %>
+  </div>
+
+  <div class="sidebar-section">
     <div class="sidebar-label">Master Data</div>
     <% if (isAdmin) { %>
     <a href="<%= bp %>/kategori" class="sidebar-link <%= activePage === 'kategori' ? 'active' : '' %>">
@@ -84,14 +96,6 @@
     <a href="<%= bp %>/metode-pembayaran" class="sidebar-link <%= activePage === 'metode-pembayaran' ? 'active' : '' %>">
       <i class="bi bi-credit-card"></i> Metode Pembayaran
     </a>
-    <a href="<%= bp %>/stock-gudang" class="sidebar-link <%= activePage === 'stock-gudang' ? 'active' : '' %>">
-      <i class="bi bi-house-gear"></i> Stock Gudang
-    </a>
-    <% if (isAdmin) { %>
-    <a href="<%= bp %>/transfer-stock" class="sidebar-link <%= activePage === 'transfer-stock' ? 'active' : '' %>">
-      <i class="bi bi-arrow-left-right"></i> Transfer Stock
-    </a>
-    <% } %>
     <a href="<%= bp %>/bukti-hitung-fisik" class="sidebar-link <%= activePage === 'bukti-hitung-fisik' ? 'active' : '' %>">
       <i class="bi bi-journal-check"></i> Bukti Hitung Fisik
     </a>
