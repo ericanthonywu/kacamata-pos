@@ -149,7 +149,7 @@ exports.create = async function (data, userId) {
 
     // 5. Save komisi sales
     if (penjualanData.sales_id && penjualanData.status_bayar === 'lunas') {
-      const sales = await salesRepo.findById(penjualanData.sales_id);
+      const sales = await salesRepo.findById(penjualanData.sales_id, trx);
       if (sales) {
         const komisiRows = buildKomisiRows(penjualan.id, sales, items);
         await komisiSalesRepo.insertMany(trx, komisiRows);

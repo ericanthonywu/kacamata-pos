@@ -25,6 +25,11 @@ module.exports = {
     createTimeoutMillis: 60000,
     idleTimeoutMillis: 60000,
     reapIntervalMillis: 10000,
+    afterCreate: (conn, done) => {
+      conn.query("SET idle_in_transaction_session_timeout = '60000'", (err) => {
+        done(err, conn);
+      });
+    },
   },
   migrations: {
     directory: './db/migrations',
