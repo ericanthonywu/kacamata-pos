@@ -56,7 +56,7 @@ exports.create = async function (data) {
     // 4. Handle komisi if it just became lunas
     if (newStatus === 'lunas' && penjualan.status_bayar !== 'lunas' && penjualan.sales_id) {
       const detailItems = await penjualanDetailRepo.findRawByPenjualanId(penjualan.id, trx);
-      const sales = await salesRepo.findById(penjualan.sales_id);
+      const sales = await salesRepo.findById(penjualan.sales_id, trx);
       if (sales) {
         const komisiRows = buildKomisiRows(penjualan.id, sales, detailItems);
         await komisiSalesRepo.insertMany(trx, komisiRows);

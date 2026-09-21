@@ -254,10 +254,23 @@
               placeholder: '-- Cari Barang --',
               allowClear: true,
               dropdownParent: $('#bulkModal'),
+              language: {
+                noResults: function () {
+                  return 'Ketik nama barang / barcode untuk mencari...';
+                }
+              },
               ajax: {
                 url: '/barang/search',
                 dataType: 'json',
                 delay: 250,
+                transport: function (params, success, failure) {
+                  var term = (params.data && params.data.q) ? $.trim(params.data.q) : '';
+                  if (!term) {
+                    success({ success: true, data: [] });
+                    return;
+                  }
+                  return $.ajax(params).then(success).fail(failure);
+                },
                 data: function (params) { return { q: params.term || '' }; },
                 processResults: function (data) {
                   return {

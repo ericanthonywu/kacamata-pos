@@ -208,9 +208,9 @@
               <div class="col-6 text-end fw-bold fs-5 text-success" id="totalDisplay">Rp 0</div>
             </div>
             <div class="d-flex gap-2 mt-3">
-              <button class="btn btn-primary flex-fill" onclick="savePenjualan(true, this)"><i class="bi bi-printer"></i>
+              <button class="btn btn-primary flex-fill btn-action-save" onclick="savePenjualan(true, this)"><i class="bi bi-printer"></i>
                 Simpan & Print</button>
-              <button class="btn btn-success flex-fill" onclick="savePenjualan(false, this)">Simpan</button>
+              <button class="btn btn-success flex-fill btn-action-save" onclick="savePenjualan(false, this)">Simpan</button>
             </div>
           </div>
         </div>
@@ -253,10 +253,23 @@
               theme: 'bootstrap-5',
               placeholder: '-- Pilih --',
               allowClear: true,
+              language: {
+                noResults: function () {
+                  return 'Ketik nama barang / barcode untuk mencari...';
+                }
+              },
               ajax: {
                 url: '/barang/search',
                 dataType: 'json',
                 delay: 250,
+                transport: function (params, success, failure) {
+                  var term = (params.data && params.data.q) ? $.trim(params.data.q) : '';
+                  if (!term) {
+                    success({ success: true, data: [] });
+                    return;
+                  }
+                  return $.ajax(params).then(success).fail(failure);
+                },
                 data: function (params) {
                   return {
                     q: params.term,
@@ -278,7 +291,7 @@
                         id: item.id,
                         text: text,
                         item: item
-                      }
+                      };
                     })
                   };
                 },
@@ -432,6 +445,7 @@
           if (!metodeBayar) { showToast('Metode bayar wajib dipilih', 'danger'); return; }
 
           if (!setBtnLoading(btn)) return;
+          $('.btn-action-save').prop('disabled', true);
 
           var payload = {
             pelanggan_id: pelangganId,
@@ -456,7 +470,11 @@
               if (res.success && withPrint) printNotaData(res.data);
               window.appRedirect('/penjualan');
             },
-            error: function (xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal menyimpan', 'danger'); resetBtn(btn); }
+            error: function (xhr) {
+              $('.btn-action-save').prop('disabled', false);
+              showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal menyimpan', 'danger');
+              resetBtn(btn);
+            }
           });
         }
       </script>

@@ -96,11 +96,11 @@ exports.create = async function (data) {
 };
 
 exports.del = async function (id) {
-  return db.transaction(async (trx) => {
-    // Get penjualan_id before deleting
-    const retur = await penjualanReturRepo.findById(id);
-    const penjualanId = retur ? retur.penjualan_id : null;
+  // Get penjualan_id before deleting
+  const retur = await penjualanReturRepo.findById(id);
+  const penjualanId = retur ? retur.penjualan_id : null;
 
+  return db.transaction(async (trx) => {
     // 1. Revert stock from retur details
     const details = await penjualanReturDetailRepo.findRawByReturIds(trx, [id]);
     for (const item of details) {

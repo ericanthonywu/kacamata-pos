@@ -114,6 +114,10 @@ exports.findByIdWithTrx = function (trx, id) {
   return trx(TABLE).where('id', id).first();
 };
 
+exports.findByNoNota = function (no_nota) {
+  return db(TABLE).where('no_nota', no_nota).first();
+};
+
 exports.generateNotaNumber = async function (is_b2b) {
   const today = todayCompact();
   const tag = is_b2b ? 'B2B' : 'INV';

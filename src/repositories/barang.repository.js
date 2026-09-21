@@ -117,7 +117,21 @@ exports.findById = function (id, trx) {
     .first();
 };
 
-exports.search = function (q, kategori_nama) {
+exports.findByIds = function (ids, trx) {
+  if (!ids || ids.length === 0) return Promise.resolve([]);
+  return (trx || db)(TABLE)
+    .select('barang.*', 'kategori.nama as kategori_nama')
+    .leftJoin('kategori', 'barang.kategori_id', 'kategori.id')
+    .whereIn('barang.id', ids)
+    .whereNull('barang.deleted_at');
+};
+
+exports.search = function (q, kategori_nama, limit = 50) {
+  const searchTerm = (q || '').trim();
+  if (!searchTerm) {
+    return Promise.resolve([]);
+  }
+
   let query = db(TABLE)
     .select('barang.*', 'kategori.nama as kategori_nama')
     .leftJoin('kategori', 'barang.kategori_id', 'kategori.id')
@@ -134,10 +148,11 @@ exports.search = function (q, kategori_nama) {
   }
 
   return applyOpticalSort(query.andWhere(function() {
-      this.where('barang.nama_barang', 'ilike', `%${q}%`)
-          .orWhere('barang.barcode_id', 'ilike', `%${q}%`);
+      this.where('barang.nama_barang', 'ilike', `%${searchTerm}%`)
+          .orWhere('barang.barcode_id', 'ilike', `%${searchTerm}%`);
     })
-    .orderBy('barang.nama_barang', 'asc'));
+    .orderBy('barang.nama_barang', 'asc'))
+    .limit(limit);
 };
 
 exports.create = function (data) {
