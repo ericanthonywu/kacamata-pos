@@ -135,6 +135,10 @@ const transferStockController = require('../controllers/transfer-stock.controlle
 router.get('/api/stock-transfer/items', transferStockController.getApiItems);
 router.post('/api/stock-transfer/receive', transferStockController.receiveFromPusat);
 
+// Penjualan Nota API (Called by kacamata-pos-print microservice)
+const penjualanController = require('../controllers/penjualan.controller');
+router.get('/api/penjualan/nota/:no_nota', penjualanController.getByNoNota);
+
 // Print API
 router.post('/api/print/raw', auth, (req, res) => {
   const { textData, printerName } = req.body;

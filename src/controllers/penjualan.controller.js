@@ -115,6 +115,14 @@ exports.show = async function (req, res) {
   } catch (err) { fail(res, err); }
 };
 
+exports.getByNoNota = async function (req, res) {
+  try {
+    const data = await penjualanService.getByNoNota(req.params.no_nota);
+    if (!data) return fail(res, 'Nota tidak ditemukan', 404);
+    ok(res, data);
+  } catch (err) { fail(res, err); }
+};
+
 exports.destroy = async function (req, res) {
   try {
     await penjualanService.del(req.params.id);

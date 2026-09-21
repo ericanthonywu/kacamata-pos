@@ -241,20 +241,28 @@ function printNotaData(d) {
     lines.push('* KACAMATA YANG TIDAK DIAMBIL DALAM JANGKA WAKTU 2 BULAN MAKA UANG MUKA');
     lines.push('  AKAN DINYATAKAN HANGUS DAN DILUAR RESIKO KAMI');
 
-    var textData = lines.join('\r\n') + '\r\n\r\n'; // Minimal form feed to prevent second page spill
+    // Feature flag: set localStorage 'LOCAL_PRINT_SERVICE' to '1' to enable kacamata-pos-print
+    var useLocalPrintService = localStorage.getItem('LOCAL_PRINT_SERVICE') === '1';
 
+    if (useLocalPrintService && d && d.no_nota) {
+      // New behavior: open new tab ke kacamata-pos-print service di localhost
+      var printHost = localStorage.getItem('print_service_host') || 'http://localhost:3000';
+      var printUrl = printHost + '/print/' + encodeURIComponent(d.no_nota);
+      window.open(printUrl, '_blank');
+      showToast("Membuka proses cetak nota...", "info");
+      return;
+    }
+
+    // Default (lama): kirim raw text langsung ke server POS via API
+    var textData = lines.join('\r\n') + '\r\n\r\n';
     var printerName = localStorage.getItem('raw_printer_name') || 'LX310';
 
-    // Send raw text to local backend Node.js
     $.ajax({
       url: '/api/print/raw',
       method: 'POST',
       contentType: 'application/json',
-      data: JSON.stringify({
-        textData: textData,
-        printerName: printerName
-      }),
-      success: function (res) {
+      data: JSON.stringify({ textData: textData, printerName: printerName }),
+      success: function () {
         showToast("Sudah berhasil di print", "success");
       },
       error: function (xhr) {

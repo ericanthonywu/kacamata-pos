@@ -25,6 +25,14 @@ exports.getById = async function (id) {
   return { ...penjualan, detail, pembayaran };
 };
 
+exports.getByNoNota = async function (noNota) {
+  const penjualan = await penjualanRepo.findByNoNota(noNota);
+  if (!penjualan) return null;
+  const res = await exports.getById(penjualan.id);
+  if (!res) return null;
+  return { ...res, store_name: 'OPTIK SENTRAL PONTIANAK' };
+};
+
 function isTransientDbError(err) {
   if (!err) return false;
   const msg = (err.message || '').toLowerCase();
