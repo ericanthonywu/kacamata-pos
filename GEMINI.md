@@ -5,6 +5,43 @@
 
 ---
 
+## Dual-Project Sync (CRITICAL — Read Before Coding)
+
+This repository (`kacamata-pos`) is the **Cabang (branch)** app.  
+The companion repo at `../kacamata-pos-pusat` is the **Pusat (head office)** app.
+
+Both apps share the **same tech stack and architecture** but connect to different databases.
+
+### Before writing any code, ask:
+
+> **"Does this change belong to one project or both?"**
+
+| Scenario | Apply to |
+|---|---|
+| Bug in shared frontend utility (`public/js/app.js`) | ✅ **BOTH** |
+| Bug in shared EJS partial (`views/partials/`) if pusat has same partial | ✅ **BOTH** |
+| Business logic specific to cabang workflow | ❌ cabang only |
+| Business logic specific to pusat workflow (e.g. transfer-stock pusat side) | ❌ pusat only |
+| New shared feature (e.g. print, DataTables, health-check, UI component) | ✅ **BOTH** |
+| DB migration / seed for cabang schema | ❌ cabang only (`db/migrations/`) |
+| DB migration / seed for pusat schema | ❌ pusat only |
+| GEMINI.md / project rule update that applies universally | ✅ **BOTH** |
+
+### Verification checklist before every code change:
+1. ☐ Identify which project(s) are affected (see table above)
+2. ☐ If both → open **both** `public/js/app.js`, views, or service files side-by-side
+3. ☐ Apply the same fix to both, then run `node -e "require('./src/routes/index.routes')" && echo OK` in each project
+4. ☐ Commit & push both repos before deploying
+
+### Key differences between cabang and pusat:
+- **cabang** (`kacamata-pos`): DB = `kacamata`, PORT=8080, prefix `/ketapang`
+- **pusat** (`kacamata-pos-pusat`): DB = `kacamata-pusat`, PORT=9090, prefix `/pontianak`
+- pusat has extra routes: `transfer-stock`, `stock-gudang`, inter-app API to cabang
+- cabang has extra routes: `/api/stock-transfer/receive` (receives from pusat)
+
+---
+
+
 ## Tech Stack
 
 | Layer | Technology |

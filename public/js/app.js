@@ -123,7 +123,7 @@ function printNotaData(d) {
     var lensaRItem = (d.detail || []).find(function (i) { return i.tipe === 'lensa_r'; });
     var lensaLItem = (d.detail || []).find(function (i) { return i.tipe === 'lensa_l'; });
     var aksesorisItem = (d.detail || []).find(function (i) { return i.tipe === 'aksesoris'; });
-    var lainLainItem = (d.detail || []).find(function (i) { return i.tipe === 'lain_lain'; });
+    var lainLainItems = (d.detail || []).filter(function (i) { return i.tipe === 'lain_lain'; });
 
     var subtotal = d.subtotal || d.total || 0;
     var total = d.total || 0;
@@ -178,10 +178,11 @@ function printNotaData(d) {
       lines.push(padRight(itemNum + '. AKSESORIS: ' + (aksesorisItem.nama_barang || '-'), W - 25) + padLeft('Rp ' + Number(aksesorisItem.harga * aksesorisItem.jumlah).toLocaleString('id-ID'), 25));
       itemNum++;
     }
-    if (lainLainItem) {
-      lines.push(padRight(itemNum + '. LAIN-LAIN: ' + (lainLainItem.keterangan || '-'), W - 25) + padLeft('Rp ' + Number(lainLainItem.harga * lainLainItem.jumlah).toLocaleString('id-ID'), 25));
+    lainLainItems.forEach(function (item) {
+      var namaItem = item.nama_barang || item.keterangan || '-';
+      lines.push(padRight(itemNum + '. LAIN-LAIN: ' + namaItem, W - 25) + padLeft('Rp ' + Number(item.harga * item.jumlah).toLocaleString('id-ID'), 25));
       itemNum++;
-    }
+    });
 
     // Totals (right-aligned)
     lines.push(padRight('', W - 45) + padRight('Jumlah', 22) + ': ' + padLeft('Rp ' + Number(subtotal).toLocaleString('id-ID'), 21));
@@ -246,11 +247,34 @@ function printNotaData(d) {
     var disableLocalPrint = localStorage.getItem('LOCAL_PRINT_SERVICE') === '0';
 
     if (!disableLocalPrint && d && d.no_nota) {
-      // Default behavior: open new tab ke kacamata-pos-print service di localhost
+      // Health-check: ping print service sebelum buka tab baru
+      // Jika service tidak aktif, langsung fallback ke browser print
       var printHost = localStorage.getItem('print_service_host') || 'http://localhost:3000';
       var printUrl = printHost + '/print/' + encodeURIComponent(d.no_nota);
-      window.open(printUrl, '_blank');
-      showToast("Membuka proses cetak nota...", "info");
+
+      var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      var timeoutId = controller ? setTimeout(function () { controller.abort(); }, 1500) : null;
+
+      fetch(printHost + '/api/config', {
+        method: 'GET',
+        signal: controller ? controller.signal : undefined
+      }).then(function (r) {
+        if (timeoutId) clearTimeout(timeoutId);
+        if (r.ok) {
+          // Service aktif — buka tab print
+          window.open(printUrl, '_blank');
+          showToast('Membuka proses cetak nota...', 'info');
+        } else {
+          // Service merespons tapi error — fallback ke browser print
+          showToast('Print service tidak tersedia, menggunakan browser print...', 'warning');
+          printNotaBrowser(lines);
+        }
+      }).catch(function () {
+        if (timeoutId) clearTimeout(timeoutId);
+        // Service tidak aktif (connection refused / timeout) — fallback ke browser print
+        showToast('Print service (localhost:3000) tidak aktif, menggunakan browser print...', 'warning');
+        printNotaBrowser(lines);
+      });
       return;
     }
 
