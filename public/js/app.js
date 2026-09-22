@@ -269,61 +269,55 @@ async function printNotaData(d) {
       lines.push('  AKAN DINYATAKAN HANGUS DAN DILUAR RESIKO KAMI');
     }
 
-    // Default: gunakan local print service (kacamata-pos-print) dengan buka tab baru
-    // Dapat dinonaktifkan jika localStorage 'LOCAL_PRINT_SERVICE' === '0'
+    // Siapkan raw text data dari baris-baris nota
+    const textData = lines.join('\r\n') + '\r\n\r\n';
     const disableLocalPrint = localStorage.getItem('LOCAL_PRINT_SERVICE') === '0';
+    const printHost = localStorage.getItem('print_service_host') || 'http://localhost:3000';
+    const printerName = localStorage.getItem('raw_printer_name') || 'LX310';
 
-    if (!disableLocalPrint && d && d.no_nota) {
-      // Health-check: ping print service sebelum buka tab baru
-      // Jika service tidak aktif, langsung fallback ke browser print
-      const printHost = localStorage.getItem('print_service_host') || 'http://localhost:3000';
-      const printUrl = printHost + '/print/' + encodeURIComponent(d.no_nota);
-
+    if (!disableLocalPrint) {
       const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
-      const timeoutId = controller ? setTimeout(() => controller.abort(), 1500) : null;
+      const timeoutId = controller ? setTimeout(() => controller.abort(), 3000) : null;
 
       try {
-        const r = await fetch(printHost + '/api/config', {
-          method: 'GET',
+        const response = await fetch(printHost + '/api/print', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json'
+          },
+          body: JSON.stringify({
+            text: textData,
+            printerName: printerName
+          }),
           signal: controller ? controller.signal : undefined
         });
+
         if (timeoutId) clearTimeout(timeoutId);
-        if (r.ok) {
-          window.open(printUrl, '_blank');
-          showToast('Membuka proses cetak nota...', 'info');
+
+        if (response.ok) {
+          const result = await response.json();
+          if (result.success) {
+            showToast('Nota berhasil dikirim ke printer (' + printerName + ')!', 'success');
+            return;
+          }
+          throw new Error(result.message || 'Gagal mencetak');
         } else {
-          showToast('Print service tidak tersedia, menggunakan browser print...', 'warning');
-          printNotaBrowser(lines);
+          const errData = await response.json().catch(() => ({}));
+          throw new Error(errData.message || ('HTTP ' + response.status));
         }
       } catch (err) {
         if (timeoutId) clearTimeout(timeoutId);
-        showToast('Print service (localhost:3000) tidak aktif, menggunakan browser print...', 'warning');
+        console.warn('Local print service tidak aktif atau gagal:', err.message);
+        showToast('Print service (localhost:3000) tidak aktif / gagal. Menggunakan cetak browser...', 'warning');
         printNotaBrowser(lines);
-      }
-      return;
-    }
-
-    // Fallback lama: kirim raw text ke server POS via API
-    const textData = lines.join('\r\n') + '\r\n\r\n';
-    const printerName = localStorage.getItem('raw_printer_name') || 'LX310';
-
-    try {
-      await $.ajax({
-        url: '/api/print/raw',
-        method: 'POST',
-        contentType: 'application/json',
-        data: JSON.stringify({ textData: textData, printerName: printerName })
-      });
-      showToast("Sudah berhasil di print", "success");
-    } catch (xhr) {
-      const msg = (xhr.responseJSON && xhr.responseJSON.message) || 'Gagal nge-print';
-      showToast(msg, "danger");
-      if (confirm("Gagal nge-print otomatis. Mau print manual lewat browser?")) {
-        printNotaBrowser(lines);
+        return;
       }
     }
+
+    // Jika local print service dinonaktifkan di localStorage, langsung cetak lewat browser
+    printNotaBrowser(lines);
   } catch (err) {
-    alert("Maaf, terjadi kesalahan saat mau nge-print: " + err.message);
+    alert("Maaf, terjadi kesalahan saat memproses nota: " + err.message);
     console.error(err);
   }
 }

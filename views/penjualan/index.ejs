@@ -204,7 +204,7 @@
                 html += '</button>';
                 html += '<ul class="dropdown-menu dropdown-menu-end shadow-sm">';
                 html += '<li><a class="dropdown-item" href="#" onclick="event.preventDefault(); showDetail(' + row.id + ')"><i class="bi bi-eye me-2 text-info"></i>Lihat Detail</a></li>';
-                html += '<li><a class="dropdown-item" href="#" onclick="event.preventDefault(); printNota(' + row.id + ')"><i class="bi bi-printer me-2 text-secondary"></i>Print Nota</a></li>';
+                html += '<li><a class="dropdown-item" href="#" onclick="event.preventDefault(); printNota(' + row.id + ', this)"><i class="bi bi-printer me-2 text-secondary"></i>Print Nota</a></li>';
                 if (row.status_bayar !== 'lunas') {
                   html += '<li><a class="dropdown-item" href="<%= bp %>/pembayaran-penjualan/bayar/' + row.id + '"><i class="bi bi-wallet2 me-2 text-success"></i>Bayar</a></li>';
                 }
@@ -235,12 +235,25 @@
         $('#tblPenjualan').DataTable().ajax.reload();
       }
 
-      async function printNota(id) {
+      async function printNota(id, btn) {
+        var originalHtml = null;
+        if (btn) {
+          originalHtml = $(btn).html();
+          $(btn).addClass('disabled').html('<span class="spinner-border spinner-border-sm me-1"></span>Mencetak...');
+        }
         try {
           const res = await $.get('/penjualan/' + id);
-          if (res.success) await printNotaData(res.data);
+          if (res.success) {
+            await printNotaData(res.data);
+          } else {
+            showToast(res.message || 'Gagal memuat data nota', 'danger');
+          }
         } catch (err) {
-          showToast('Gagal memuat data nota', 'danger');
+          showToast('Gagal memuat data nota: ' + (err.message || 'Error server'), 'danger');
+        } finally {
+          if (btn && originalHtml !== null) {
+            $(btn).removeClass('disabled').html(originalHtml);
+          }
         }
       }
 
@@ -288,6 +301,7 @@
         var myModal = new bootstrap.Modal(document.getElementById('detailModal'));
         myModal.show();
         $('#detailBody').html('<div class="text-center"><div class="spinner-border text-primary" role="status"></div></div>');
+        $('#detailFooter').hide();
 
         $.get('/penjualan/' + id, function (res) {
           if (!res.success) {
@@ -354,6 +368,10 @@
           }
 
           $('#detailBody').html(html);
+          $('#btnDetailPrint').off('click').on('click', function () {
+            printNota(d.id, this);
+          });
+          $('#detailFooter').show();
         }).fail(function () {
           $('#detailBody').html('<div class="alert alert-danger">Terjadi kesalahan.</div>');
         });
@@ -374,6 +392,10 @@
             <div class="text-center">
               <div class="spinner-border text-primary" role="status"></div>
             </div>
+          </div>
+          <div class="modal-footer" id="detailFooter" style="display: none;">
+            <button type="button" class="btn btn-primary btn-sm" id="btnDetailPrint"><i class="bi bi-printer me-1"></i> Print Nota</button>
+            <button type="button" class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button>
           </div>
         </div>
       </div>
