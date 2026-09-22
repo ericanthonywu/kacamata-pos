@@ -162,10 +162,12 @@
       }
     }).on('select2:select', function (e) {
       var b = e.params.data.item;
+      $(this).data('selected-item', b);
       // Gunakan harga jual
       $('.item-harga[data-idx=' + idx + ']').val(parseInt(b.harga_jual) || 0).trigger('input');
       calcTotal();
     }).on('select2:unselect', function (e) {
+      $(this).removeData('selected-item');
       $('.item-harga[data-idx=' + idx + ']').val(0).trigger('input');
       calcTotal();
     });
@@ -215,11 +217,11 @@
       var bid = $sel.val();
       if (!bid) return;
       var selData = $sel.select2('data');
-      var itemObj = (selData && selData[0] && selData[0].item) ? selData[0].item : {};
+      var itemObj = $sel.data('selected-item') || (selData && selData[0] && selData[0].item) || {};
       var katNama = (itemObj.kategori_nama || '').toLowerCase();
       var tipe = 'lain_lain';
       if (katNama.includes('frame')) tipe = 'frame';
-      else if (katNama.includes('lensa')) tipe = 'lensa_r';
+      else if (katNama.includes('lensa')) tipe = 'lensa';
       else if (katNama.includes('softlens')) tipe = 'softlens';
       else if (katNama.includes('aksesoris')) tipe = 'aksesoris';
       else if (katNama) tipe = katNama.replace(/\s+/g, '_');

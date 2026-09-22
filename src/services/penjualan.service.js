@@ -114,7 +114,7 @@ exports.create = async function (data, userId) {
         if (b && b.kategori_nama) {
           const kn = b.kategori_nama.toLowerCase();
           if (kn.includes('frame')) tipe = 'frame';
-          else if (kn.includes('lensa')) tipe = 'lensa_r';
+          else if (kn.includes('lensa')) tipe = 'lensa';
           else if (kn.includes('softlens')) tipe = 'softlens';
           else if (kn.includes('aksesoris')) tipe = 'aksesoris';
           else tipe = kn.replace(/\s+/g, '_');
