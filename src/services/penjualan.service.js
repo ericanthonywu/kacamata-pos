@@ -30,7 +30,7 @@ exports.getByNoNota = async function (noNota) {
   if (!penjualan) return null;
   const res = await exports.getById(penjualan.id);
   if (!res) return null;
-  return { ...res, store_name: 'OPTIK SENTRAL PONTIANAK' };
+  return { ...res, store_name: 'OPTIK SENTRAL KETAPANG' };
 };
 
 exports.create = async function (data, userId) {
@@ -107,15 +107,29 @@ exports.create = async function (data, userId) {
     const createdPenjualan = await penjualanRepo.insert(trx, penjualanData);
 
     // 2. Insert detail items
-    const detailRows = items.map(item => ({
-      penjualan_id: createdPenjualan.id,
-      tipe: item.tipe,
-      barang_id: item.barang_id,
-      harga: item.harga || 0,
-      diskon: item.diskon || 0,
-      jumlah: item.jumlah || 1,
-      keterangan: item.keterangan || null,
-    }));
+    const detailRows = items.map(item => {
+      let tipe = item.tipe || 'lain_lain';
+      if ((!item.tipe || item.tipe === 'lain_lain') && item.barang_id && barangMap.has(parseInt(item.barang_id, 10))) {
+        const b = barangMap.get(parseInt(item.barang_id, 10));
+        if (b && b.kategori_nama) {
+          const kn = b.kategori_nama.toLowerCase();
+          if (kn.includes('frame')) tipe = 'frame';
+          else if (kn.includes('lensa')) tipe = 'lensa_r';
+          else if (kn.includes('softlens')) tipe = 'softlens';
+          else if (kn.includes('aksesoris')) tipe = 'aksesoris';
+          else tipe = kn.replace(/\s+/g, '_');
+        }
+      }
+      return {
+        penjualan_id: createdPenjualan.id,
+        tipe: tipe,
+        barang_id: item.barang_id,
+        harga: item.harga || 0,
+        diskon: item.diskon || 0,
+        jumlah: item.jumlah || 1,
+        keterangan: item.keterangan || null,
+      };
+    });
     await penjualanDetailRepo.insertMany(trx, detailRows);
 
     // 3. Decrement stock (grouped by unique barang)
