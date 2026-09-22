@@ -241,11 +241,12 @@ function printNotaData(d) {
     lines.push('* KACAMATA YANG TIDAK DIAMBIL DALAM JANGKA WAKTU 2 BULAN MAKA UANG MUKA');
     lines.push('  AKAN DINYATAKAN HANGUS DAN DILUAR RESIKO KAMI');
 
-    // Feature flag: set localStorage 'LOCAL_PRINT_SERVICE' to '1' to enable kacamata-pos-print
-    var useLocalPrintService = localStorage.getItem('LOCAL_PRINT_SERVICE') === '1';
+    // Default: gunakan local print service (kacamata-pos-print) dengan buka tab baru
+    // Dapat dinonaktifkan jika localStorage 'LOCAL_PRINT_SERVICE' === '0'
+    var disableLocalPrint = localStorage.getItem('LOCAL_PRINT_SERVICE') === '0';
 
-    if (useLocalPrintService && d && d.no_nota) {
-      // New behavior: open new tab ke kacamata-pos-print service di localhost
+    if (!disableLocalPrint && d && d.no_nota) {
+      // Default behavior: open new tab ke kacamata-pos-print service di localhost
       var printHost = localStorage.getItem('print_service_host') || 'http://localhost:3000';
       var printUrl = printHost + '/print/' + encodeURIComponent(d.no_nota);
       window.open(printUrl, '_blank');
