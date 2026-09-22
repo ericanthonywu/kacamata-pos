@@ -33,33 +33,10 @@ exports.getByNoNota = async function (noNota) {
   return { ...res, store_name: 'OPTIK SENTRAL PONTIANAK' };
 };
 
-function isTransientDbError(err) {
-  if (!err) return false;
-  const msg = (err.message || '').toLowerCase();
-  const code = err.code || '';
-  return (
-    code === 'ECONNRESET' ||
-    code === 'ETIMEDOUT' ||
-    code === 'EPIPE' ||
-    code === '57P01' || // admin_shutdown
-    code === '57P02' || // crash_shutdown
-    code === '57P03' || // cannot_connect_now
-    code === '40P01' || // deadlock_detected
-    code === '40001' || // serialization_failure
-    msg.includes('connection terminated') ||
-    msg.includes('connection ended') ||
-    msg.includes('query read timeout') ||
-    msg.includes('timeout acquiring a connection') ||
-    msg.includes('canceling statement due to statement timeout') ||
-    msg.includes('statement timeout')
-  );
-}
-
 exports.create = async function (data, userId) {
   if (!data.items || data.items.length === 0)
     throw Object.assign(new Error('Minimal satu item harus diisi'), { status: 400 });
 
-  let subtotal = 0;
   const items = data.items.filter(i => i.barang_id || i.tipe === 'lain_lain');
 
   // --- Stock validation (batched in 1 query) ---
@@ -76,27 +53,24 @@ exports.create = async function (data, userId) {
   const barangMap = new Map(existingBarangList.map(b => [b.id, b]));
 
   for (const barangId of barangIds) {
-    if (!barangMap.has(barangId)) {
+    if (!barangMap.has(barangId))
       throw Object.assign(new Error(`Barang dengan ID ${barangId} tidak ditemukan`), { status: 400 });
-    }
   }
 
+  // --- Hitung subtotal + kumpulkan warning stok kosong ---
+  let subtotal = 0;
   const warnings = [];
   for (const item of items) {
     subtotal += ((parseFloat(item.harga) || 0) - (parseFloat(item.diskon) || 0)) * (parseInt(item.jumlah, 10) || 1);
-    if (item.barang_id) {
-      const barang = barangMap.get(parseInt(item.barang_id, 10));
-      if (barang && barang.qty <= 0) {
-        warnings.push(`Pemberitahuan: Stok barang "${barang.nama_barang}" saat ini sedang kosong (0). Transaksi tetap berhasil dicatat.`);
-      }
-    }
+    const barang = item.barang_id ? barangMap.get(parseInt(item.barang_id, 10)) : null;
+    if (barang && barang.qty <= 0)
+      warnings.push(`Pemberitahuan: Stok barang "${barang.nama_barang}" saat ini sedang kosong (0). Transaksi tetap berhasil dicatat.`);
   }
 
-  // Pre-fetch sales if applicable to minimize transaction duration
+  // Pre-fetch sales jika status lunas (minimasi durasi transaksi)
   let salesRecord = null;
-  if (data.sales_id && (data.status_bayar || 'lunas') === 'lunas') {
+  if (data.sales_id && (data.status_bayar || 'lunas') === 'lunas')
     salesRecord = await salesRepo.findById(data.sales_id);
-  }
 
   const bpjsAmount = parseFloat(data.bpjs) || 0;
   const total = subtotal - bpjsAmount;
@@ -128,97 +102,69 @@ exports.create = async function (data, userId) {
     metode_bayar_id: data.metode_bayar || null,
   };
 
-  const MAX_RETRIES = 2;
-  let lastError = null;
+  const penjualan = await db.transaction(async (trx) => {
+    // 1. Insert penjualan
+    const createdPenjualan = await penjualanRepo.insert(trx, penjualanData);
 
-  for (let attempt = 0; attempt <= MAX_RETRIES; attempt++) {
-    try {
-      // Check if previous attempt already committed on database before retrying
-      if (attempt > 0) {
-        const existing = await penjualanRepo.findByNoNota(no_nota);
-        if (existing) {
-          const res = await exports.getById(existing.id);
-          res.warnings = warnings;
-          return res;
-        }
-        // Small backoff before retry (300ms, 600ms)
-        await new Promise(r => setTimeout(r, attempt * 300));
-      }
+    // 2. Insert detail items
+    const detailRows = items.map(item => ({
+      penjualan_id: createdPenjualan.id,
+      tipe: item.tipe,
+      barang_id: item.barang_id,
+      harga: item.harga || 0,
+      diskon: item.diskon || 0,
+      jumlah: item.jumlah || 1,
+      keterangan: item.keterangan || null,
+    }));
+    await penjualanDetailRepo.insertMany(trx, detailRows);
 
-      const penjualan = await db.transaction(async (trx) => {
-        // 1. Insert penjualan
-        const createdPenjualan = await penjualanRepo.insert(trx, penjualanData);
+    // 3. Decrement stock (grouped by unique barang)
+    for (const [barangIdStr, totalQty] of Object.entries(qtyMap))
+      await barangRepo.decrementQty(parseInt(barangIdStr, 10), totalQty, trx);
 
-        // 2. Insert detail items
-        const detailRows = items.map(item => ({
-          penjualan_id: createdPenjualan.id,
-          tipe: item.tipe,
-          barang_id: item.barang_id,
-          harga: item.harga || 0,
-          diskon: item.diskon || 0,
-          jumlah: item.jumlah || 1,
-          keterangan: item.keterangan || null,
-        }));
-        await penjualanDetailRepo.insertMany(trx, detailRows);
-
-        // 3. Decrement stock (grouped by unique barang)
-        for (const [barangIdStr, totalQty] of Object.entries(qtyMap)) {
-          await barangRepo.decrementQty(parseInt(barangIdStr, 10), totalQty, trx);
-        }
-
-        // 4. Auto-create first payment + kas record
-        if (penjualanData.status_bayar === 'lunas') {
-          const pp = await pembayaranPenjualanRepo.insert(trx, {
-            penjualan_id: createdPenjualan.id,
-            tanggal_bayar: penjualanData.order_date,
-            jumlah_bayar: penjualanData.total,
-            keterangan: 'Pembayaran lunas',
-            metode_bayar_id: penjualanData.metode_bayar_id,
-          });
-          await kasRepo.insert(trx, {
-            tipe: 'masuk', kategori: 'pembayaran_lunas', jumlah: penjualanData.total,
-            tanggal: penjualanData.order_date, referensi_id: pp.id, referensi_tipe: 'pembayaran_penjualan',
-            penjualan_id: createdPenjualan.id, no_referensi: penjualanData.no_nota, keterangan: 'Pembayaran lunas',
-            metode_bayar_id: penjualanData.metode_bayar_id,
-          });
-        } else if (penjualanData.status_bayar === 'dp' && penjualanData.dp > 0) {
-          const pp = await pembayaranPenjualanRepo.insert(trx, {
-            penjualan_id: createdPenjualan.id,
-            tanggal_bayar: penjualanData.order_date,
-            jumlah_bayar: penjualanData.dp,
-            keterangan: 'Down Payment',
-            metode_bayar_id: penjualanData.metode_bayar_id,
-          });
-          await kasRepo.insert(trx, {
-            tipe: 'masuk', kategori: 'down_payment', jumlah: penjualanData.dp,
-            tanggal: penjualanData.order_date, referensi_id: pp.id, referensi_tipe: 'pembayaran_penjualan',
-            penjualan_id: createdPenjualan.id, no_referensi: penjualanData.no_nota, keterangan: 'Down Payment',
-            metode_bayar_id: penjualanData.metode_bayar_id,
-          });
-        }
-
-        // 5. Save komisi sales
-        if (salesRecord) {
-          const komisiRows = buildKomisiRows(createdPenjualan.id, salesRecord, items);
-          await komisiSalesRepo.insertMany(trx, komisiRows);
-        }
-
-        return createdPenjualan;
+    // 4. Auto-create first payment + kas record
+    if (penjualanData.status_bayar === 'lunas') {
+      const pp = await pembayaranPenjualanRepo.insert(trx, {
+        penjualan_id: createdPenjualan.id,
+        tanggal_bayar: penjualanData.order_date,
+        jumlah_bayar: penjualanData.total,
+        keterangan: 'Pembayaran lunas',
+        metode_bayar_id: penjualanData.metode_bayar_id,
       });
-
-      const result = await exports.getById(penjualan.id);
-      result.warnings = warnings;
-      return result;
-    } catch (err) {
-      lastError = err;
-      if (!isTransientDbError(err) || attempt === MAX_RETRIES) {
-        throw err;
-      }
-      console.warn(`[PenjualanService] Transient DB error on attempt ${attempt + 1}/${MAX_RETRIES + 1} (${err.message}). Retrying...`);
+      await kasRepo.insert(trx, {
+        tipe: 'masuk', kategori: 'pembayaran_lunas', jumlah: penjualanData.total,
+        tanggal: penjualanData.order_date, referensi_id: pp.id, referensi_tipe: 'pembayaran_penjualan',
+        penjualan_id: createdPenjualan.id, no_referensi: penjualanData.no_nota, keterangan: 'Pembayaran lunas',
+        metode_bayar_id: penjualanData.metode_bayar_id,
+      });
+    } else if (penjualanData.status_bayar === 'dp' && penjualanData.dp > 0) {
+      const pp = await pembayaranPenjualanRepo.insert(trx, {
+        penjualan_id: createdPenjualan.id,
+        tanggal_bayar: penjualanData.order_date,
+        jumlah_bayar: penjualanData.dp,
+        keterangan: 'Down Payment',
+        metode_bayar_id: penjualanData.metode_bayar_id,
+      });
+      await kasRepo.insert(trx, {
+        tipe: 'masuk', kategori: 'down_payment', jumlah: penjualanData.dp,
+        tanggal: penjualanData.order_date, referensi_id: pp.id, referensi_tipe: 'pembayaran_penjualan',
+        penjualan_id: createdPenjualan.id, no_referensi: penjualanData.no_nota, keterangan: 'Down Payment',
+        metode_bayar_id: penjualanData.metode_bayar_id,
+      });
     }
-  }
 
-  throw lastError;
+    // 5. Save komisi sales
+    if (salesRecord) {
+      const komisiRows = buildKomisiRows(createdPenjualan.id, salesRecord, items);
+      await komisiSalesRepo.insertMany(trx, komisiRows);
+    }
+
+    return createdPenjualan;
+  });
+
+  const result = await exports.getById(penjualan.id);
+  result.warnings = warnings;
+  return result;
 };
 
 exports.del = async function (id) {
