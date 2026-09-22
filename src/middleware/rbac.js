@@ -1,10 +1,10 @@
 function requireRole(role) {
   return function (req, res, next) {
-    if (!req.session || !req.session.user) {
+    if (!req.session?.user) {
       return res.redirect('/login');
     }
     const userRole = req.session.user.hak_akses;
-    
+
     // Admin has access to everything
     if (userRole === 'admin') {
       return next();
@@ -15,7 +15,7 @@ function requireRole(role) {
     }
 
     // If request is an API/AJAX call
-    if (req.xhr || req.headers.accept.indexOf('json') > -1) {
+    if (req.xhr || req.headers.accept?.includes('json')) {
       return res.status(403).json({ success: false, message: 'Akses ditolak. Anda tidak memiliki izin.' });
     }
 
@@ -27,7 +27,7 @@ function requireRole(role) {
 
 function requireAnyOf(roles) {
   return function (req, res, next) {
-    if (!req.session || !req.session.user) {
+    if (!req.session?.user) {
       return res.redirect('/login');
     }
     const userRole = req.session.user.hak_akses;
@@ -37,7 +37,7 @@ function requireAnyOf(roles) {
     }
 
     // If request is an API/AJAX call
-    if (req.xhr || req.headers.accept.indexOf('json') > -1) {
+    if (req.xhr || req.headers.accept?.includes('json')) {
       return res.status(403).json({ success: false, message: 'Akses ditolak. Anda tidak memiliki izin.' });
     }
 

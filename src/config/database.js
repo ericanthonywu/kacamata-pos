@@ -10,11 +10,9 @@ if (db.client) {
     if (!connection) return false;
     if (connection.__knex__disposed) return false;
     if (connection._ending || connection._ended) return false;
-    if (connection.connection && connection.connection.stream) {
-      const stream = connection.connection.stream;
-      if (stream.destroyed || !stream.writable || !stream.readable) {
-        return false;
-      }
+    const stream = connection.connection?.stream;
+    if (stream && (stream.destroyed || !stream.writable || !stream.readable)) {
+      return false;
     }
     return originalValidate(connection);
   };

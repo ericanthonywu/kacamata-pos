@@ -1,9 +1,11 @@
 const express = require('express');
 const router = express.Router();
 const path = require('path');
-const fs = require('fs');
+const fs = require('fs/promises');
 const os = require('os');
 const { exec } = require('child_process');
+const { promisify } = require('util');
+const execAsync = promisify(exec);
 
 const auth = require('../middleware/auth');
 const { requireAdmin, requireAdminOrGudang } = require('../middleware/rbac');
@@ -19,14 +21,14 @@ router.use('/', require('./auth.routes'));
 
 // Role 'gudang' hanya diizinkan cek stok (/stock-gudang, /barang/dt, dan /logout)
 router.use((req, res, next) => {
-  if (req.session && req.session.user && req.session.user.hak_akses === 'gudang') {
+  if (req.session?.user?.hak_akses === 'gudang') {
     const p = req.path;
     const isAllowed = p === '/stock-gudang' ||
                       p.startsWith('/stock-gudang/') ||
                       p === '/barang/dt' ||
                       p === '/logout';
     if (!isAllowed) {
-      if (req.xhr || (req.headers.accept && req.headers.accept.includes('application/json'))) {
+      if (req.xhr || req.headers.accept?.includes('application/json')) {
         return res.status(403).json({ success: false, message: 'Akses ditolak untuk role gudang' });
       }
       return res.redirect('/stock-gudang');
@@ -38,10 +40,9 @@ router.use((req, res, next) => {
 // Dashboard
 router.get('/', auth, async (req, res, next) => {
   try {
-
     const today = todayStr();
     const fom = firstDayOfMonth();
-    const isAdmin = req.session.user.hak_akses === 'admin';
+    const isAdmin = req.session?.user?.hak_akses === 'admin';
 
     const promises = [
       laporanService.getDashboardSummary(today, fom),
@@ -54,14 +55,14 @@ router.get('/', auth, async (req, res, next) => {
 
     const [summary, hutangPembelian, hutangPenjualan] = await Promise.all(promises);
 
-    const totalHutangPembelian = hutangPembelian ? hutangPembelian.reduce((s, p) => s + (parseFloat(p.total_harga) - parseFloat(p.total_dibayar)), 0) : 0;
-    const totalHutangPenjualan = hutangPenjualan ? hutangPenjualan.reduce((s, p) => s + (parseFloat(p.total) - parseFloat(p.total_dibayar)), 0) : 0;
+    const totalHutangPembelian = hutangPembelian?.reduce((s, p) => s + (parseFloat(p.total_harga) - parseFloat(p.total_dibayar)), 0) ?? 0;
+    const totalHutangPenjualan = hutangPenjualan?.reduce((s, p) => s + (parseFloat(p.total) - parseFloat(p.total_dibayar)), 0) ?? 0;
 
     res.render('dashboard', {
       title: 'Dashboard', activePage: 'dashboard',
       summary,
-      hutangPembelian: hutangPembelian || [],
-      hutangPenjualan: hutangPenjualan || [],
+      hutangPembelian: hutangPembelian ?? [],
+      hutangPenjualan: hutangPenjualan ?? [],
       totalHutangPembelian, totalHutangPenjualan,
       today, firstOfMonth: fom,
     });
@@ -140,27 +141,28 @@ const penjualanController = require('../controllers/penjualan.controller');
 router.get('/api/penjualan/nota/:no_nota', penjualanController.getByNoNota);
 
 // Print API
-router.post('/api/print/raw', auth, (req, res) => {
+router.post('/api/print/raw', auth, async (req, res) => {
   const { textData, printerName } = req.body;
   if (!textData || !printerName) {
     return res.status(400).json({ success: false, message: 'Data teks dan nama printer harus diisi' });
   }
 
   const tempFile = path.join(os.tmpdir(), 'nota_temp.txt');
-  fs.writeFileSync(tempFile, textData, 'utf8');
+  try {
+    await fs.writeFile(tempFile, textData, 'utf8');
 
-  // Build print command. We use standard Windows UNC path: \\COMPUTERNAME\SharedPrinterName
-  const host = os.hostname();
-  const printCommand = `copy /b "${tempFile}" "\\\\${host}\\${printerName}"`;
+    // Build print command. We use standard Windows UNC path: \\COMPUTERNAME\SharedPrinterName
+    const host = os.hostname();
+    const printCommand = `copy /b "${tempFile}" "\\\\${host}\\${printerName}"`;
 
-  exec(printCommand, (error, stdout, stderr) => {
-    fs.unlink(tempFile, () => { });
-    if (error) {
-      console.error('Print Error:', error);
-      return res.status(500).json({ success: false, message: 'Gagal nge-print. Pastikan printer sudah di-share dengan nama: ' + printerName });
-    }
+    await execAsync(printCommand);
     res.json({ success: true, message: 'Berhasil dikirim ke printer' });
-  });
+  } catch (error) {
+    console.error('Print Error:', error);
+    res.status(500).json({ success: false, message: 'Gagal nge-print. Pastikan printer sudah di-share dengan nama: ' + printerName });
+  } finally {
+    fs.unlink(tempFile).catch(() => {}); // cleanup, ignore error jika file tidak ada
+  }
 });
 
 module.exports = router;

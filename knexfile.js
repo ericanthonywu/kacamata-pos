@@ -1,13 +1,12 @@
 require('dotenv').config();
-const { pickReachableAddress } = require('./src/config/resolve-host');
 
 const HOST = process.env.DB_HOST || 'localhost';
-const PORT = parseInt(process.env.DB_PORT || '5432');
+const PORT = parseInt(process.env.DB_PORT || '5432', 10);
 
 module.exports = {
   client: 'pg',
-  connection: async () => ({
-    host: await pickReachableAddress(HOST, PORT),
+  connection: {
+    host: HOST,
     port: PORT,
     database: process.env.DB_NAME || 'kacamata_pos',
     user: process.env.DB_USER || 'postgres',
@@ -17,7 +16,7 @@ module.exports = {
     connectionTimeoutMillis: parseInt(process.env.DB_CONNECTION_TIMEOUT || '30000', 10),
     query_timeout: parseInt(process.env.DB_QUERY_TIMEOUT || '45000', 10),
     statement_timeout: parseInt(process.env.DB_STATEMENT_TIMEOUT || '45000', 10),
-  }),
+  },
   pool: {
     min: 2,
     max: 10,

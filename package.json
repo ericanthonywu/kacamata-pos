@@ -5,7 +5,7 @@
   "main": "src/app.js",
   "scripts": {
     "start": "node src/app.js",
-    "dev": "nodemon src/app.js",
+    "dev": "node --watch src/app.js",
     "migrate": "knex migrate:latest",
     "migrate:rollback": "knex migrate:rollback",
     "seed": "knex seed:run",
@@ -13,7 +13,7 @@
     "prepare": "node scripts/setup-hooks.js"
   },
   "engines": {
-    "node": ">=13 <14"
+    "node": ">=24"
   },
   "dependencies": {
     "@fontsource/inter": "5.2.8",

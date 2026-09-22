@@ -70,9 +70,9 @@ app.use((req, res, next) => {
     return origRedirect(status, url);
   };
 
-  res.locals.currentUser = req.session.user || null;
-  res.locals.success = req.flash('success')[0] || null;
-  res.locals.error = req.flash('error')[0] || null;
+  res.locals.currentUser = req.session?.user ?? null;
+  res.locals.success = req.flash('success')?.[0] ?? null;
+  res.locals.error = req.flash('error')?.[0] ?? null;
   res.locals.todayStr = todayStr;
   next();
 });
@@ -96,26 +96,29 @@ const server = app.listen(PORT, () => {
 // Graceful Shutdown
 function gracefulShutdown(signal) {
   console.log(`\n${signal} signal received: closing HTTP server`);
-  server.close(() => {
+  server.close(async () => {
     console.log('HTTP server closed');
-    db.destroy().then(() => {
+    try {
+      await db.destroy();
       console.log('Database connections closed');
       process.exit(0);
-    }).catch((err) => {
+    } catch (err) {
       console.error('Error closing database connections:', err);
       process.exit(1);
-    });
+    }
   });
 }
 
 process.on('SIGTERM', () => gracefulShutdown('SIGTERM'));
 process.on('SIGINT', () => gracefulShutdown('SIGINT'));
 
-// For nodemon restarts
+// For process restarts
 process.once('SIGUSR2', () => {
-  server.close(() => {
-    db.destroy().then(() => {
+  server.close(async () => {
+    try {
+      await db.destroy();
+    } finally {
       process.kill(process.pid, 'SIGUSR2');
-    });
+    }
   });
 });
