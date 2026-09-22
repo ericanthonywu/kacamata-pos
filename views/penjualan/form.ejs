@@ -421,7 +421,7 @@
           };
         }
 
-        function savePenjualan(withPrint, btn) {
+        async function savePenjualan(withPrint, btn) {
           var items = [buildItem('frame'), buildItem('lensa_l'), buildItem('lensa_r'), buildItem('aksesoris')].filter(Boolean);
 
           if ($('#lain_keterangan').val().trim()) {
@@ -461,21 +461,27 @@
             pd: $('#pd').val(),
             items: items,
           };
-          $.ajax({
-            url: '/penjualan', method: 'POST', contentType: 'application/json', data: JSON.stringify(payload),
-            success: function (res) {
-              if (res.data && res.data.warnings && res.data.warnings.length > 0) {
-                sessionStorage.setItem('penjualan_warnings', JSON.stringify(res.data.warnings));
-              }
-              if (res.success && withPrint) printNotaData(res.data);
-              window.appRedirect('/penjualan');
-            },
-            error: function (xhr) {
-              $('.btn-action-save').prop('disabled', false);
-              showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal menyimpan', 'danger');
-              resetBtn(btn);
+
+          try {
+            const res = await $.ajax({
+              url: '/penjualan',
+              method: 'POST',
+              contentType: 'application/json',
+              data: JSON.stringify(payload)
+            });
+
+            if (res.data && res.data.warnings && res.data.warnings.length > 0) {
+              sessionStorage.setItem('penjualan_warnings', JSON.stringify(res.data.warnings));
             }
-          });
+            if (res.success && withPrint) {
+              await printNotaData(res.data);
+            }
+            window.appRedirect('/penjualan');
+          } catch (xhr) {
+            $('.btn-action-save').prop('disabled', false);
+            showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal menyimpan', 'danger');
+            resetBtn(btn);
+          }
         }
       </script>
 

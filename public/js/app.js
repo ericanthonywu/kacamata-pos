@@ -103,7 +103,7 @@ function showToast(message, type) {
   toast.show();
 }
 
-function printNotaData(d) {
+async function printNotaData(d) {
   try {
     var dFormatDate = function (dStr) {
       if (!dStr) return '';
@@ -271,60 +271,57 @@ function printNotaData(d) {
 
     // Default: gunakan local print service (kacamata-pos-print) dengan buka tab baru
     // Dapat dinonaktifkan jika localStorage 'LOCAL_PRINT_SERVICE' === '0'
-    var disableLocalPrint = localStorage.getItem('LOCAL_PRINT_SERVICE') === '0';
+    const disableLocalPrint = localStorage.getItem('LOCAL_PRINT_SERVICE') === '0';
 
     if (!disableLocalPrint && d && d.no_nota) {
       // Health-check: ping print service sebelum buka tab baru
       // Jika service tidak aktif, langsung fallback ke browser print
-      var printHost = localStorage.getItem('print_service_host') || 'http://localhost:3000';
-      var printUrl = printHost + '/print/' + encodeURIComponent(d.no_nota);
+      const printHost = localStorage.getItem('print_service_host') || 'http://localhost:3000';
+      const printUrl = printHost + '/print/' + encodeURIComponent(d.no_nota);
 
-      var controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
-      var timeoutId = controller ? setTimeout(function () { controller.abort(); }, 1500) : null;
+      const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
+      const timeoutId = controller ? setTimeout(() => controller.abort(), 1500) : null;
 
-      fetch(printHost + '/api/config', {
-        method: 'GET',
-        signal: controller ? controller.signal : undefined
-      }).then(function (r) {
+      try {
+        const r = await fetch(printHost + '/api/config', {
+          method: 'GET',
+          signal: controller ? controller.signal : undefined
+        });
         if (timeoutId) clearTimeout(timeoutId);
         if (r.ok) {
-          // Service aktif — buka tab print
           window.open(printUrl, '_blank');
           showToast('Membuka proses cetak nota...', 'info');
         } else {
-          // Service merespons tapi error — fallback ke browser print
           showToast('Print service tidak tersedia, menggunakan browser print...', 'warning');
           printNotaBrowser(lines);
         }
-      }).catch(function () {
+      } catch (err) {
         if (timeoutId) clearTimeout(timeoutId);
-        // Service tidak aktif (connection refused / timeout) — fallback ke browser print
         showToast('Print service (localhost:3000) tidak aktif, menggunakan browser print...', 'warning');
         printNotaBrowser(lines);
-      });
+      }
       return;
     }
 
-    // Default (lama): kirim raw text langsung ke server POS via API
-    var textData = lines.join('\r\n') + '\r\n\r\n';
-    var printerName = localStorage.getItem('raw_printer_name') || 'LX310';
+    // Fallback lama: kirim raw text ke server POS via API
+    const textData = lines.join('\r\n') + '\r\n\r\n';
+    const printerName = localStorage.getItem('raw_printer_name') || 'LX310';
 
-    $.ajax({
-      url: '/api/print/raw',
-      method: 'POST',
-      contentType: 'application/json',
-      data: JSON.stringify({ textData: textData, printerName: printerName }),
-      success: function () {
-        showToast("Sudah berhasil di print", "success");
-      },
-      error: function (xhr) {
-        var msg = (xhr.responseJSON && xhr.responseJSON.message) || 'Gagal nge-print';
-        showToast(msg, "danger");
-        if (confirm("Gagal nge-print otomatis. Mau print manual lewat browser?")) {
-          printNotaBrowser(lines);
-        }
+    try {
+      await $.ajax({
+        url: '/api/print/raw',
+        method: 'POST',
+        contentType: 'application/json',
+        data: JSON.stringify({ textData: textData, printerName: printerName })
+      });
+      showToast("Sudah berhasil di print", "success");
+    } catch (xhr) {
+      const msg = (xhr.responseJSON && xhr.responseJSON.message) || 'Gagal nge-print';
+      showToast(msg, "danger");
+      if (confirm("Gagal nge-print otomatis. Mau print manual lewat browser?")) {
+        printNotaBrowser(lines);
       }
-    });
+    }
   } catch (err) {
     alert("Maaf, terjadi kesalahan saat mau nge-print: " + err.message);
     console.error(err);
@@ -332,10 +329,14 @@ function printNotaData(d) {
 }
 
 function printNotaBrowser(lines) {
-  var w = window.open('', '_blank', 'width=900,height=600');
+  const w = window.open('', '_blank', 'width=900,height=600');
+  if (!w) {
+    alert("Popup diblokir browser. Harap izinkan popup untuk mencetak nota.");
+    return;
+  }
   w.document.write('<html><head><title>Nota Penjualan</title><style>@page { size: portrait; margin: 0; } body { font-family: "Courier New", Courier, monospace; font-size: 12px; font-weight: 1000; white-space: pre; margin: 9mm 5mm 5mm 5mm; line-height: 1.2; }</style></head><body>' + lines.join('\n') + '</body></html>');
   w.document.close();
-  w.onload = function () { setTimeout(function () { w.print(); }, 200); };
+  setTimeout(() => { w.print(); }, 300);
 }
 
 // Print barcode labels — shared by pembelian & barang

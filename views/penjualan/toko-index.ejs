@@ -227,10 +227,13 @@
         $('#tblPenjualan').DataTable().ajax.reload();
       }
 
-      function printNota(id) {
-        $.get('/penjualan/' + id, function (res) {
-          if (res.success) printNotaData(res.data);
-        });
+      async function printNota(id) {
+        try {
+          const res = await $.get('/penjualan/' + id);
+          if (res.success) await printNotaData(res.data);
+        } catch (err) {
+          showToast('Gagal memuat data nota', 'danger');
+        }
       }
 
       function showDetail(id) {
