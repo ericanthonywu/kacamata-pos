@@ -126,7 +126,7 @@ exports.findByIds = function (ids, trx) {
     .whereNull('barang.deleted_at');
 };
 
-exports.search = function (q, kategori_nama, limit = 50) {
+exports.search = function (q, kategori_nama, limit) {
   const searchTerm = (q || '').trim();
   if (!searchTerm) {
     return Promise.resolve([]);
@@ -147,12 +147,17 @@ exports.search = function (q, kategori_nama, limit = 50) {
     });
   }
 
-  return applyOpticalSort(query.andWhere(function() {
+  query = applyOpticalSort(query.andWhere(function() {
       this.where('barang.nama_barang', 'ilike', `%${searchTerm}%`)
           .orWhere('barang.barcode_id', 'ilike', `%${searchTerm}%`);
     })
-    .orderBy('barang.nama_barang', 'asc'))
-    .limit(limit);
+    .orderBy('barang.nama_barang', 'asc'));
+
+  if (limit) {
+    query = query.limit(limit);
+  }
+
+  return query;
 };
 
 exports.create = function (data) {

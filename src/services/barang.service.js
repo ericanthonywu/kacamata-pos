@@ -4,7 +4,7 @@ const bhfRepo = require('../repositories/bukti-hitung-fisik.repository');
 exports.getAll = function (filters) { return repo.findAll(filters); };
 exports.getDatatablesData = function (params) { return repo.getDatatablesData(params); };
 exports.getById = function (id) { return repo.findById(id); };
-exports.search = function (q, kategori_nama) { return repo.search(q, kategori_nama); };
+exports.search = function (q, kategori_nama, limit) { return repo.search(q, kategori_nama, limit); };
 
 exports.create = async function (data) {
   if (!data.nama_barang || !data.nama_barang.trim()) throw Object.assign(new Error('Nama barang harus diisi'), { status: 400 });

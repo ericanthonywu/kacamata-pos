@@ -13,7 +13,8 @@ exports.index = async function (req, res, next) {
 
 exports.search = async function (req, res) {
   try {
-    const data = await service.search(req.query.q || '', req.query.kategori_nama);
+    const limit = req.query.limit ? parseInt(req.query.limit) : undefined;
+    const data = await service.search(req.query.q || '', req.query.kategori_nama, limit);
     ok(res, data);
   } catch (err) { fail(res, err); }
 };
