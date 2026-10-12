@@ -297,7 +297,7 @@ async function printNotaData(d) {
         if (response.ok) {
           const result = await response.json();
           if (result.success) {
-            showToast('Nota berhasil dikirim ke printer (' + printerName + ')!', 'success');
+            showToast('Nota berhasil dicetak!', 'success');
             return;
           }
           throw new Error(result.message || 'Gagal mencetak');

@@ -156,7 +156,7 @@ router.post('/api/print/raw', auth, async (req, res) => {
     const printCommand = `copy /b "${tempFile}" "\\\\${host}\\${printerName}"`;
 
     await execAsync(printCommand);
-    res.json({ success: true, message: 'Berhasil dikirim ke printer' });
+    res.json({ success: true, message: 'Nota berhasil dicetak' });
   } catch (error) {
     console.error('Print Error:', error);
     res.status(500).json({ success: false, message: 'Gagal nge-print. Pastikan printer sudah di-share dengan nama: ' + printerName });
