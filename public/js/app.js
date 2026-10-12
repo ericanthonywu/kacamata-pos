@@ -277,7 +277,7 @@ async function printNotaData(d) {
 
     if (!disableLocalPrint) {
       const controller = typeof AbortController !== 'undefined' ? new AbortController() : null;
-      const timeoutId = controller ? setTimeout(() => controller.abort(), 3000) : null;
+      const timeoutId = controller ? setTimeout(() => controller.abort(), 10000) : null;
 
       try {
         const response = await fetch(printHost + '/api/print', {
