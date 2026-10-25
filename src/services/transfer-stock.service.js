@@ -103,7 +103,7 @@ exports.receiveTransfer = async function (data) {
       id: 'TRF-IN-' + Date.now(),
       tanggal: todayStr(),
       time: new Date().toLocaleTimeString('id-ID', { hour: '2-digit', minute: '2-digit', second: '2-digit' }),
-      source: data.source || 'Optik Sentral Pusat',
+      source: data.source || 'Gudang KL (Pusat)',
       notes: data.notes || '',
       total_items: results.length,
       total_qty: totalQty,
@@ -118,7 +118,7 @@ exports.receiveTransfer = async function (data) {
       total_items: results.length,
       total_qty: totalQty,
       results: results,
-      message: `Berhasil menerima ${results.length} barang (total ${totalQty} pcs) dari Pusat.`
+      message: `Berhasil menerima ${results.length} barang (total ${totalQty} pcs) dari Gudang KL (Pusat).`
     };
   });
 };

@@ -1,43 +1,63 @@
 <%- include('../partials/top', { title, activePage }) %>
 
-<div class="d-flex justify-content-between align-items-center mb-4">
+<div class="d-flex justify-content-between align-items-center mb-4 flex-wrap gap-2">
   <div>
-    <h5 class="mb-1">Transfer Stok (Penerimaan dari Gudang KL)</h5>
-    <small class="text-muted">Riwayat stok barang yang dikirim dan ditransfer langsung dari Gudang KL (Pusat)</small>
+    <h5 class="mb-1">Transfer Stok (Penerimaan dari Pusat)</h5>
+    <small class="text-muted">Riwayat stok barang yang dikirim langsung dari Gudang KL (Pusat) ke Cabang Ketapang</small>
   </div>
   <div class="d-flex align-items-center gap-2">
     <span class="badge bg-success-subtle text-success border border-success-subtle px-3 py-2">
-      <i class="bi bi-broadcast me-1"></i> API Penerimaan Siap
+      <i class="bi bi-check-circle me-1"></i> Terhubung ke Gudang KL
     </span>
-    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="location.reload()" title="Muat ulang">
-      <i class="bi bi-arrow-clockwise me-1"></i> Refresh
+    <button type="button" class="btn btn-outline-secondary btn-sm" onclick="location.reload()" title="Muat ulang halaman">
+      <i class="bi bi-arrow-clockwise me-1"></i> Muat Ulang
     </button>
+  </div>
+</div>
+
+<!-- Info Banner -->
+<div class="alert alert-info border-info-subtle bg-info-subtle text-body d-flex align-items-center mb-4 py-2 px-3 small">
+  <i class="bi bi-info-circle-fill text-info me-2 fs-5"></i>
+  <div>
+    <strong>Informasi Alur Stok:</strong> Pengiriman stok diproses langsung oleh admin Gudang KL (Pusat). Setiap barang yang dikirim akan otomatis tercatat di halaman ini dan stok toko bertambah langsung tanpa perlu input manual.
   </div>
 </div>
 
 <!-- Stats Row -->
 <div class="row g-3 mb-4">
   <div class="col-sm-6 col-md-4">
-    <div class="card p-3 border shadow-sm">
+    <div class="card p-3 border shadow-sm h-100">
       <div class="text-muted small">Total Penerimaan</div>
-      <div class="fw-bold fs-4 text-primary"><%= incomingList.length %> Transaksi</div>
-      <div class="small text-muted mt-1">Batch pengiriman dari Gudang KL</div>
+      <div class="fw-bold fs-4 text-primary"><%= incomingList.length %> Pengiriman</div>
+      <div class="small text-muted mt-1">Riwayat kiriman dari Gudang KL</div>
     </div>
   </div>
   <div class="col-sm-6 col-md-4">
-    <div class="card p-3 border shadow-sm">
-      <div class="text-muted small">Total Unit Diterima</div>
+    <div class="card p-3 border shadow-sm h-100">
+      <div class="text-muted small">Total Barang Diterima</div>
       <div class="fw-bold fs-4 text-success">
         <%= incomingList.reduce(function(acc, t) { return acc + (t.total_qty || 0); }, 0) %> Pcs
       </div>
-      <div class="small text-muted mt-1">Total stok masuk ke Cabang Ketapang</div>
+      <div class="small text-muted mt-1">Total fisik stok masuk ke cabang ini</div>
     </div>
   </div>
   <div class="col-sm-12 col-md-4">
-    <div class="card p-3 border shadow-sm">
-      <div class="text-muted small">Arah & Host Gudang KL</div>
-      <div class="fw-bold fs-5 text-body">Gudang KL &rarr; Cabang Ketapang</div>
-      <div class="small text-muted mt-1">Host: <code><%= (pusatConfig && pusatConfig.host) || 'http://localhost:9090' %></code></div>
+    <div class="card p-3 border shadow-sm h-100">
+      <div class="text-muted small">Pengiriman Terakhir</div>
+      <div class="fw-bold fs-4 text-body">
+        <% if (incomingList && incomingList.length > 0) { %>
+          <%= incomingList[0].total_qty %> Pcs
+        <% } else { %>
+          <span class="text-muted fs-5">Belum Ada</span>
+        <% } %>
+      </div>
+      <div class="small text-muted mt-1">
+        <% if (incomingList && incomingList.length > 0) { %>
+          Diterima tgl <%= incomingList[0].tanggal %> (<%= incomingList[0].time %>)
+        <% } else { %>
+          Menunggu kiriman baru dari Gudang KL
+        <% } %>
+      </div>
     </div>
   </div>
 </div>
@@ -46,7 +66,7 @@
 <div class="card shadow-sm border">
   <div class="card-header bg-transparent fw-bold py-3 d-flex justify-content-between align-items-center">
     <span><i class="bi bi-inbox me-2 text-primary"></i>Riwayat Penerimaan Stok dari Gudang KL</span>
-    <span class="badge bg-primary"><%= incomingList.length %> Data</span>
+    <span class="badge bg-primary"><%= incomingList.length %> Kiriman</span>
   </div>
   <div class="card-body p-0">
     <div class="table-responsive">
@@ -54,20 +74,20 @@
         <thead class="table-light small text-uppercase">
           <tr>
             <th style="width: 5%;">#</th>
-            <th style="width: 18%;">Waktu & Tanggal</th>
-            <th style="width: 15%;">Pengirim</th>
-            <th style="width: 35%;">Rincian Barang</th>
-            <th style="width: 12%; text-align: center;">Total Qty</th>
-            <th style="width: 15%;">Status</th>
+            <th style="width: 18%;">Tanggal & Waktu</th>
+            <th style="width: 18%;">Asal Kiriman</th>
+            <th style="width: 32%;">Daftar Barang Diterima</th>
+            <th style="width: 12%; text-align: center;">Total Jumlah</th>
+            <th style="width: 15%;">Status Stok</th>
           </tr>
         </thead>
         <tbody class="small">
           <% if (!incomingList || incomingList.length === 0) { %>
             <tr>
               <td colspan="6" class="text-center py-5 text-muted">
-                <i class="bi bi-box-arrow-in-down d-block mb-2 text-secondary opacity-50" style="font-size: 2.5rem;"></i>
-                <div class="fw-semibold">Belum ada riwayat transfer stok masuk dari Pusat</div>
-                <div class="small text-muted mt-1">Ketika admin Pusat melakukan transfer stok ke cabang ini, rincian barang otomatis tercatat dan stok bertambah.</div>
+                <i class="bi bi-box-seam d-block mb-2 text-secondary opacity-50" style="font-size: 2.5rem;"></i>
+                <div class="fw-semibold">Belum ada riwayat penerimaan stok dari Pusat</div>
+                <div class="small text-muted mt-1">Saat admin Gudang KL mengirimkan stok ke cabang ini, rincian barang otomatis tercatat dan stok bertambah.</div>
               </td>
             </tr>
           <% } else { %>
@@ -80,16 +100,16 @@
                 </td>
                 <td>
                   <span class="badge bg-secondary-subtle text-secondary border">
-                    <i class="bi bi-building me-1"></i><%= item.source || 'Pusat' %>
+                    <i class="bi bi-building me-1"></i><%= item.source || 'Gudang KL' %>
                   </span>
                   <% if (item.notes) { %>
-                    <div class="small text-muted fst-italic mt-1">"<%= item.notes %>"</div>
+                    <div class="small text-muted fst-italic mt-1"><i class="bi bi-chat-left-text me-1"></i>"<%= item.notes %>"</div>
                   <% } %>
                 </td>
                 <td>
                   <ul class="list-unstyled mb-0 ps-1">
                     <% (item.items || []).forEach(function(sub) { %>
-                      <li class="py-1 border-bottom border-light-subtle d-flex justify-content-between">
+                      <li class="py-1 border-bottom border-light-subtle d-flex justify-content-between align-items-center">
                         <span><strong><%= sub.nama_barang %></strong></span>
                         <span class="badge bg-light text-dark border ms-2">+<%= sub.qty %> Pcs</span>
                       </li>
@@ -101,7 +121,7 @@
                 </td>
                 <td>
                   <span class="badge bg-success-subtle text-success border border-success-subtle">
-                    <i class="bi bi-check-circle me-1"></i>Diterima & Ditambahkan
+                    <i class="bi bi-check-circle me-1"></i>Stok Bertambah
                   </span>
                 </td>
               </tr>
