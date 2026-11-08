@@ -27,22 +27,57 @@
 </div>
 
 <div class="row g-3">
-  <!-- LEFT: Info Pembelian & Summary -->
-  <div class="col-md-4">
+  <!-- LEFT: Info Pembelian, Item Pembelian & Summary -->
+  <div class="col-lg-7 col-md-12">
+    <!-- Info Pembelian -->
     <div class="card p-3 mb-3">
       <h6 class="mb-3">Info Pembelian</h6>
-      <div class="mb-3">
-        <label class="form-label small">Supplier <span class="text-danger">*</span></label>
-        <select class="form-select" id="supplier_id">
-          <option value="">-- Pilih Supplier --</option>
-          <% supplierList.forEach(function(s) { %>
-            <option value="<%= s.id %>"><%= s.nama %></option>
-          <% }); %>
-        </select>
+      <div class="row g-2">
+        <div class="col-sm-7 mb-2 mb-sm-0">
+          <label class="form-label small">Supplier <span class="text-danger">*</span></label>
+          <select class="form-select" id="supplier_id">
+            <option value="">-- Pilih Supplier --</option>
+            <% supplierList.forEach(function(s) { %>
+              <option value="<%= s.id %>"><%= s.nama %></option>
+            <% }); %>
+          </select>
+        </div>
+        <div class="col-sm-5">
+          <label class="form-label small">Tanggal Pembelian</label>
+          <input type="date" class="form-control" id="tanggal_pembelian" value="<%= todayStr() %>">
+        </div>
       </div>
-      <div class="mb-3">
-        <label class="form-label small">Tanggal Pembelian</label>
-        <input type="date" class="form-control" id="tanggal_pembelian" value="<%= todayStr() %>">
+    </div>
+
+    <!-- Item Pembelian (Pindah ke kiri) -->
+    <div class="card p-3 mb-3">
+      <div class="d-flex justify-content-between align-items-center mb-3">
+        <h6 class="mb-0">Item Pembelian</h6>
+        <button type="button" class="btn btn-sm btn-outline-danger" id="btnClearAll" onclick="clearTemporaryList()" style="display:none;">
+          <i class="bi bi-trash"></i> Kosongkan
+        </button>
+      </div>
+      <div id="tblTemporaryWrapper" style="display:none;">
+        <div class="table-responsive">
+          <table id="tblTemporary" class="table table-sm align-middle mb-0">
+            <thead>
+              <tr>
+                <th>Barang</th>
+                <th style="width:55px" class="text-center">Stok</th>
+                <th style="width:75px">Qty</th>
+                <th style="width:120px">Harga Beli</th>
+                <th style="width:120px">Harga Jual</th>
+                <th style="width:105px" class="text-end">Subtotal</th>
+                <th style="width:36px" class="text-center"></th>
+              </tr>
+            </thead>
+            <tbody></tbody>
+          </table>
+        </div>
+      </div>
+      <div id="emptyMsg" class="text-center text-muted py-3">
+        <i class="bi bi-inbox" style="font-size:1.5rem"></i>
+        <div class="small mt-1">Belum ada item dipilih. Pilih barang pada katalog di sebelah kanan untuk memasukkan ke item pembelian.</div>
       </div>
     </div>
 
@@ -72,13 +107,12 @@
     </div>
   </div>
 
-  <!-- RIGHT: Katalog & Temporary Table -->
-  <div class="col-md-8">
-    <!-- Top: Pilih Barang (Katalog) -->
-    <div class="card p-3 mb-3">
-      <div class="d-flex justify-content-between align-items-center mb-2">
+  <!-- RIGHT: Pilih Barang (Katalog) -->
+  <div class="col-lg-5 col-md-12">
+    <div class="card p-3">
+      <div class="d-flex justify-content-between align-items-center mb-2 flex-wrap gap-2">
         <h6 class="mb-0">Pilih Barang</h6>
-        <div class="d-flex gap-2">
+        <div class="d-flex gap-2 flex-wrap">
           <select class="form-select form-select-sm" id="filterKategori" style="width: auto;">
             <option value="">Semua Kategori</option>
             <% kategoriList.forEach(function(k) { %>
@@ -86,7 +120,7 @@
             <% }); %>
           </select>
           <button class="btn btn-sm btn-outline-secondary" type="button" onclick="showAddBarangModal()">
-            <i class="bi bi-box-seam"></i> Buat Barang Baru
+            <i class="bi bi-box-seam"></i> Barang Baru
           </button>
         </div>
       </div>
@@ -95,45 +129,13 @@
           <tr>
             <th>Nama Barang</th>
             <th>Kategori</th>
-            <th class="text-center" style="width:60px">Stok</th>
-            <th class="text-end" style="width:110px">Harga Jual</th>
-            <th class="text-end" style="width:115px">Aksi</th>
+            <th class="text-center" style="width:50px">Stok</th>
+            <th class="text-end" style="width:95px">Harga Jual</th>
+            <th class="text-end" style="width:110px">Aksi</th>
           </tr>
         </thead>
         <tbody></tbody>
       </table>
-    </div>
-
-    <!-- Bottom: Temporary Table -->
-    <div class="card p-3">
-      <div class="d-flex justify-content-between align-items-center mb-3">
-        <h6 class="mb-0">Item Pembelian</h6>
-        <button type="button" class="btn btn-sm btn-outline-danger" id="btnClearAll" onclick="clearTemporaryList()" style="display:none;">
-          <i class="bi bi-trash"></i> Kosongkan
-        </button>
-      </div>
-      <div id="tblTemporaryWrapper" style="display:none;">
-        <div class="table-responsive">
-          <table id="tblTemporary" class="table table-sm align-middle mb-0">
-            <thead>
-              <tr>
-                <th>Barang</th>
-                <th style="width:60px" class="text-center">Stok</th>
-                <th style="width:80px">Qty</th>
-                <th style="width:125px">Harga Beli</th>
-                <th style="width:125px">Harga Jual</th>
-                <th style="width:110px" class="text-end">Subtotal</th>
-                <th style="width:40px" class="text-center"></th>
-              </tr>
-            </thead>
-            <tbody></tbody>
-          </table>
-        </div>
-      </div>
-      <div id="emptyMsg" class="text-center text-muted py-3">
-        <i class="bi bi-inbox" style="font-size:1.5rem"></i>
-        <div class="small mt-1">Belum ada item dipilih. Klik tombol "+" pada tabel di atas untuk memasukkan barang.</div>
-      </div>
     </div>
   </div>
 </div>
@@ -203,7 +205,8 @@
     $('#supplier_id').select2({
       theme: 'bootstrap-5',
       placeholder: '-- Pilih Supplier --',
-      allowClear: true
+      allowClear: true,
+      width: '100%'
     });
 
     tblKatalog = $('#tblKatalog').DataTable({
