@@ -315,31 +315,23 @@ throw Object.assign(new Error('Human-readable message'), { status: 400 });
 
 ## Git & Deployment Workflow (CRITICAL)
 
-> **STRICT RULE: DILARANG KERAS mengedit/menulis kode langsung di server production!**
-> Mengedit langsung di server menyebabkan working tree dirty dan merge conflict saat `git pull` (`error: Your local changes would be overwritten by merge`).
+> **Alur Kerja di Server Production:**
+> Pengembangan/perbaikan dijalankan langsung di server. Setelah semua perubahan selesai dan diverifikasi, **wajib selalu di-commit dan di-push ke GitHub** agar seluruh perubahan ter-backup dan sinkron di remote repository.
 
 ### Alur Wajib Perubahan Kode:
-1. **Local Development**: Selalu koding dan perbaiki issue di mesin lokal.
-2. **Local Verification**:
+1. **Lakukan Perubahan & Verifikasi Sintaks/Routes**:
    ```bash
    node -e "require('./src/routes/index.routes')" && echo "Routes OK"
    ```
-3. **Commit & Push dari Local**:
+2. **Restart Service (PM2)**:
+   ```bash
+   pm2 restart kacamata-pos
+   ```
+3. **Commit & Push ke GitHub (Wajib Backup)**:
    ```bash
    git add .
    git commit -m "deskripsi perubahan"
    git push origin main
-   ```
-4. **Pull & Restart di Server** (`ssh root@187.77.121.132`):
-   ```bash
-   cd /root/kacamata-pos # atau /root/kacamata-pos-pusat
-   git pull origin main
-   pm2 restart kacamata-pos # atau kacamata-pos-pusat
-   ```
-   *Jika server tidak sengaja dirty/konflik:*
-   ```bash
-   git fetch origin && git reset --hard origin/main
-   pm2 restart <app-name>
    ```
 
 ---
@@ -353,7 +345,7 @@ throw Object.assign(new Error('Human-readable message'), { status: 400 });
 5. ❌ Do NOT use `COUNT` when `EXISTS` is sufficient
 6. ❌ Do NOT duplicate komisi calculation — use `buildKomisiRows()` from `komisi.helper.js`
 7. ❌ Do NOT create a repository that writes to more than one table
-8. ❌ Do NOT code or modify files directly on the production server — always commit & push from local
+8. ❌ Do NOT leave uncommitted or unpushed changes after work is done — always commit & push to GitHub for backup
 9. ❌ Do NOT use `<%-- ... --%>` for comments in EJS (always use `<%# ... %>`)
 
 ---
