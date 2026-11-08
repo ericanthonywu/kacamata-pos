@@ -4,6 +4,21 @@
 
 <style>
   #tblKatalog tbody tr { cursor: pointer; }
+  .catalog-action-group {
+    display: inline-flex;
+    align-items: center;
+    justify-content: flex-end;
+    gap: 4px;
+  }
+  .catalog-action-group .btn {
+    padding: 0.2rem 0.45rem;
+    line-height: 1;
+  }
+  .catalog-action-group .badge-selected-count {
+    min-width: 22px;
+    font-size: 0.75rem;
+    padding: 0.3em 0.5em;
+  }
 </style>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -82,7 +97,7 @@
             <th>Kategori</th>
             <th class="text-center" style="width:60px">Stok</th>
             <th class="text-end" style="width:110px">Harga Jual</th>
-            <th class="text-end" style="width:70px">Aksi</th>
+            <th class="text-end" style="width:115px">Aksi</th>
           </tr>
         </thead>
         <tbody></tbody>
@@ -195,7 +210,7 @@
       processing: true,
       serverSide: true,
       pageLength: 5,
-      lengthMenu: [[5, 10, 25], [5, 10, 25]],
+      lengthMenu: [[5, 10, 25, 50, 100, -1], [5, 10, 25, 50, 100, "All"]],
       ajax: {
         url: '/barang/dt',
         data: function (d) {
@@ -243,9 +258,18 @@
         {
           data: 'id',
           orderable: false,
-          className: 'text-end text-nowrap',
+          className: 'text-end text-nowrap catalog-action-cell',
           render: function (id) {
-            return '<button type="button" class="btn btn-sm btn-outline-primary btn-pilih-barang" data-id="' + id + '" title="Pilih Barang"><i class="bi bi-plus"></i></button>';
+            var existing = selectedItems.find(function (i) { return i.barang_id === id; });
+            var count = existing ? existing.jumlah : 0;
+            var isSelected = count > 0;
+            var minusDisplay = isSelected ? '' : 'style="display:none;"';
+            var badgeDisplay = isSelected ? '' : 'style="display:none;"';
+            return '<div class="catalog-action-group">' +
+              '<button type="button" class="btn btn-sm btn-outline-danger btn-kurang-barang" data-id="' + id + '" title="Kurangi (Shift+klik untuk hapus)" ' + minusDisplay + '><i class="bi bi-dash"></i></button>' +
+              '<span class="badge bg-success badge-selected-count" ' + badgeDisplay + '>' + count + '</span>' +
+              '<button type="button" class="btn btn-sm btn-outline-primary btn-pilih-barang" data-id="' + id + '" title="Tambah Barang"><i class="bi bi-plus"></i></button>' +
+            '</div>';
           }
         }
       ],
@@ -265,8 +289,14 @@
       if (rowData) addItem(rowData);
     });
 
+    $('#tblKatalog tbody').on('click', '.btn-kurang-barang', function (e) {
+      e.stopPropagation();
+      var id = parseInt($(this).data('id'));
+      if (id) subtractItem(id, e.shiftKey);
+    });
+
     $('#tblKatalog tbody').on('click', 'tr', function (e) {
-      if ($(e.target).closest('button, a, input, select').length) return;
+      if ($(e.target).closest('button, a, input, select, .badge').length) return;
       var rowData = tblKatalog.row(this).data();
       if (rowData) addItem(rowData);
     });
@@ -369,6 +399,23 @@
     refreshCatalogBadges();
   }
 
+  function subtractItem(id, removeAll) {
+    var existingIndex = selectedItems.findIndex(function (i) { return i.barang_id === id; });
+    if (existingIndex === -1) return;
+
+    var existing = selectedItems[existingIndex];
+    if (removeAll || existing.jumlah <= 1) {
+      selectedItems.splice(existingIndex, 1);
+      $('#row-item-' + id).remove();
+    } else {
+      existing.jumlah -= 1;
+      var $tr = $('#row-item-' + id);
+      $tr.find('.item-jumlah').val(existing.jumlah);
+    }
+    calcTotal();
+    refreshCatalogBadges();
+  }
+
   function renderItemRow(item) {
     var desc = '<div class="fw-medium">' + escapeHtml(item.nama_barang) + '</div>';
     if (item.barcode_id) {
@@ -446,16 +493,16 @@
       var rowData = tblKatalog.row(this).data();
       if (!rowData) return;
       var existing = selectedItems.find(function (i) { return i.barang_id === rowData.id; });
-      var $cell = $(this).find('td:last-child');
-      var $badge = $cell.find('.badge-selected-count');
-      if (existing) {
-        if ($badge.length) {
-          $badge.text(existing.jumlah);
-        } else {
-          $cell.prepend('<span class="badge bg-success me-1 badge-selected-count">' + existing.jumlah + '</span>');
-        }
+      var $btnKurang = $(this).find('.btn-kurang-barang');
+      var $badge = $(this).find('.badge-selected-count');
+      if (existing && existing.jumlah > 0) {
+        if ($badge.length) $badge.text(existing.jumlah).show();
+        if ($btnKurang.length) $btnKurang.show();
+        $(this).addClass('table-active');
       } else {
-        $badge.remove();
+        if ($badge.length) $badge.hide();
+        if ($btnKurang.length) $btnKurang.hide();
+        $(this).removeClass('table-active');
       }
     });
   }

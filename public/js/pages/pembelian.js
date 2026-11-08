@@ -38,7 +38,7 @@ $(function () {
       }
     },
     order: [[1, 'desc']],
-    lengthMenu: [[10, 50, 100, -1], [10, 50, 100, "All"]],
+    lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, "All"]],
     layout: {
       topStart: {
         pageLength: {},

@@ -83,6 +83,14 @@ var dtLanguageID = {
   }
 };
 
+// DataTables Global Defaults
+if (typeof $ !== 'undefined' && $.fn && $.fn.dataTable) {
+  $.extend(true, $.fn.dataTable.defaults, {
+    language: dtLanguageID,
+    lengthMenu: [[10, 25, 50, 100, -1], [10, 25, 50, 100, 'All']]
+  });
+}
+
 function escapeHtml(unsafe) {
   return (unsafe || '').toString()
     .replace(/&/g, "&amp;")
