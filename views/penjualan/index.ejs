@@ -281,17 +281,18 @@
             contentType: 'application/json',
             data: JSON.stringify({ metode_bayar_id: metodeId }),
             success: function (res) {
+              btn.html(originalText).prop('disabled', false);
               if (res.success) {
                 bootstrap.Modal.getInstance(document.getElementById('ubahMetodeModal')).hide();
+                showToast('Metode pembayaran berhasil diubah');
                 reloadTable();
               } else {
-                alert(res.error || 'Terjadi kesalahan');
-                btn.html(originalText).prop('disabled', false);
+                showToast(res.message || res.error || 'Terjadi kesalahan', 'danger');
               }
             },
             error: function (err) {
-              alert(err.responseJSON ? err.responseJSON.error : 'Terjadi kesalahan');
               btn.html(originalText).prop('disabled', false);
+              showToast((err.responseJSON && (err.responseJSON.message || err.responseJSON.error)) || 'Terjadi kesalahan', 'danger');
             }
           });
         });

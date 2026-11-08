@@ -18,6 +18,9 @@ exports.ok = function (res, data, status = 200) {
 exports.fail = function (res, err, status) {
   const message = typeof err === 'string' ? err : (err?.message ?? 'Terjadi kesalahan');
   const code = status ?? (typeof err === 'object' && err?.status ? err.status : 500);
+  if (code >= 500) {
+    console.error('[API Error]', err);
+  }
   return res.status(code).json({
     success: false,
     message,

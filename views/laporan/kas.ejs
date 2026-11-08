@@ -413,9 +413,10 @@
           if (d.detail && d.detail.length > 0) {
             html += '<hr><h6 class="small fw-bold">Item Retur</h6>';
             html += '<table class="table table-sm table-bordered"><thead><tr><th>Tipe</th><th>Barang</th><th>Qty</th><th>Harga</th></tr></thead><tbody>';
+            var tipeMap = { frame: 'Frame', lensa_r: 'Lensa R', lensa_l: 'Lensa L', lensa: 'Lensa', aksesoris: 'Aksesoris', softlens: 'Softlens', lain_lain: 'Lain-lain' };
             d.detail.forEach(function (item) {
-              var tipe = item.tipe === 'frame' ? 'Frame' : item.tipe === 'lensa_l' ? 'Lensa L' : 'Lensa R';
-              html += '<tr><td>' + tipe + '</td><td>' + (item.nama_barang || '-') + '</td><td>' + item.jumlah + '</td><td>' + fmtRp(item.harga) + '</td></tr>';
+              var tipe = tipeMap[item.tipe] || (item.tipe ? item.tipe.replace(/_/g, ' ').toUpperCase() : '-');
+              html += '<tr><td>' + escapeHtml(tipe) + '</td><td>' + escapeHtml(item.nama_barang || item.keterangan || '-') + '</td><td>' + item.jumlah + '</td><td>' + fmtRp(item.harga) + '</td></tr>';
             });
             html += '</tbody></table>';
           }

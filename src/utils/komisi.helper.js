@@ -20,7 +20,7 @@ function buildKomisiRows(penjualanId, sales, detailItems) {
     const lineTotal = (parseFloat(line.harga || 0) - parseFloat(line.diskon || 0)) * parseInt(line.jumlah || 1);
     if (line.tipe === 'frame') {
       frameTotal += lineTotal;
-    } else if (line.tipe === 'lensa_r' || line.tipe === 'lensa_l') {
+    } else if (line.tipe === 'lensa_r' || line.tipe === 'lensa_l' || line.tipe === 'lensa') {
       lensaTotal += lineTotal;
     }
   }

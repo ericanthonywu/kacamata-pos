@@ -91,15 +91,15 @@ $(function() {
 
   $(document).on('click', '.btn-edit', function() {
     var $b = $(this);
-    $('#editId').val($b.data('id'));
-    $('#nama').val($b.data('nama'));
-    $('#no_telp').val($b.data('telp'));
+    $('#editId').val($b.attr('data-id'));
+    $('#nama').val($b.attr('data-nama'));
+    $('#no_telp').val($b.attr('data-telp'));
     $('.modal-title').text('Edit Pelanggan');
     formModal.show();
   });
 
   $(document).on('click', '.btn-del', function() {
-    confirmDelete($(this).data('id'), $(this).data('url'));
+    confirmDelete($(this).attr('data-id'), $(this).attr('data-url'));
   });
 
   $('#btnSave').on('click', function() {
@@ -108,7 +108,7 @@ $(function() {
     var id = $('#editId').val();
     $.ajax({ url: id ? '/pelanggan/' + id : '/pelanggan', method: id ? 'PUT' : 'POST',
       contentType: 'application/json', data: JSON.stringify({ nama: $('#nama').val(), no_telp: $('#no_telp').val() }),
-      success: function(r) { if (r.success) location.reload(); else resetBtn(btn); },
+      success: function(r) { if (r.success) location.reload(); else { showToast(r.message || 'Gagal menyimpan', 'danger'); resetBtn(btn); } },
       error: function(xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal', 'danger'); resetBtn(btn); }
     });
   });

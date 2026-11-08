@@ -47,9 +47,9 @@
               <td><span class="badge <%= item.status === 'aktif' ? 'bg-success' : 'bg-danger' %>"><%= item.status %></span></td>
               <td>
                 <button class="btn btn-sm btn-outline-secondary me-1 btn-edit" data-id="<%= item.id %>"
-                  data-nama="<%= item.nama %>" data-komisi_frame="<%= item.komisi_frame || 0 %>"
-                  data-komisi_lensa="<%= item.komisi_lensa || 0 %>"
-                  data-tanggal="<%= item.tanggal_kerja || '' %>"
+                  data-nama="<%= item.nama %>" data-komisi_frame="<%= parseFloat(item.komisi_frame) || 0 %>"
+                  data-komisi_lensa="<%= parseFloat(item.komisi_lensa) || 0 %>"
+                  data-tanggal="<%= toDateInput(item.tanggal_kerja) %>"
                   data-status="<%= item.status %>">
                   <i class="bi bi-pencil"></i>
                 </button>
@@ -72,9 +72,9 @@
                 id="nama" placeholder="Nama sales"></div>
             <div class="row">
               <div class="col-6 mb-3"><label class="form-label small">Komisi Frame (%)</label><input type="number"
-                  class="form-control" id="komisi_frame" min="0" max="100" step="0.5" value="0"></div>
+                  class="form-control" id="komisi_frame" min="0" max="100" step="0.01" value="0"></div>
               <div class="col-6 mb-3"><label class="form-label small">Komisi Lensa (%)</label><input type="number"
-                  class="form-control" id="komisi_lensa" min="0" max="100" step="0.5" value="0"></div>
+                  class="form-control" id="komisi_lensa" min="0" max="100" step="0.01" value="0"></div>
             </div>
             <div class="row">
               <div class="col-6 mb-3"><label class="form-label small">Tanggal Kerja</label><input type="date"
@@ -127,29 +127,31 @@ $(function() {
 
   $(document).on('click', '.btn-edit', function() {
     var $b = $(this);
-    $('#editId').val($b.data('id'));
-    $('#nama').val($b.data('nama'));
-    $('#komisi_frame').val($b.data('komisi_frame'));
-    $('#komisi_lensa').val($b.data('komisi_lensa'));
-    $('#tanggal_kerja').val($b.data('tanggal'));
-    $('#status').val($b.data('status'));
+    $('#editId').val($b.attr('data-id'));
+    $('#nama').val($b.attr('data-nama'));
+    $('#komisi_frame').val(parseFloat($b.attr('data-komisi_frame')) || 0);
+    $('#komisi_lensa').val(parseFloat($b.attr('data-komisi_lensa')) || 0);
+    $('#tanggal_kerja').val($b.attr('data-tanggal') || '<%= todayStr() %>');
+    $('#status').val($b.attr('data-status') || 'aktif');
     $('.modal-title').text('Edit Sales');
     formModal.show();
   });
 
   $(document).on('click', '.btn-del', function() {
-    confirmDelete($(this).data('id'), $(this).data('url'));
+    confirmDelete($(this).attr('data-id'), $(this).attr('data-url'));
   });
 
   $('#btnSave').on('click', function() {
     var btn = this;
     if (!setBtnLoading(btn)) return;
     var id = $('#editId').val();
+    var kf = parseFloat(String($('#komisi_frame').val() || '0').replace(',', '.')) || 0;
+    var kl = parseFloat(String($('#komisi_lensa').val() || '0').replace(',', '.')) || 0;
     $.ajax({ url: id ? '/sales/' + id : '/sales', method: id ? 'PUT' : 'POST',
       contentType: 'application/json',
-      data: JSON.stringify({ nama: $('#nama').val(), komisi_frame: parseFloat($('#komisi_frame').val()) || 0, komisi_lensa: parseFloat($('#komisi_lensa').val()) || 0, tanggal_kerja: $('#tanggal_kerja').val(), status: $('#status').val() }),
-      success: function(r) { if (r.success) location.reload(); else resetBtn(btn); },
-      error: function(xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal', 'danger'); resetBtn(btn); }
+      data: JSON.stringify({ nama: $('#nama').val(), komisi_frame: kf, komisi_lensa: kl, tanggal_kerja: $('#tanggal_kerja').val(), status: $('#status').val() }),
+      success: function(r) { if (r.success) location.reload(); else { showToast(r.message || 'Gagal menyimpan sales', 'danger'); resetBtn(btn); } },
+      error: function(xhr) { showToast((xhr.responseJSON && xhr.responseJSON.message) || 'Gagal menyimpan sales', 'danger'); resetBtn(btn); }
     });
   });
 });

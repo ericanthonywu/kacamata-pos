@@ -49,7 +49,7 @@ exports.getKomisiReport = async function ({ from, to, sales_id, tipe } = {}) {
     for (const d of tDetails) {
       const lineTotal = (parseFloat(d.harga || 0) - parseFloat(d.diskon || 0)) * parseInt(d.jumlah || 1);
       if (d.tipe === 'frame') s.total_penjualan_frame += lineTotal;
-      else if (d.tipe === 'lensa_r' || d.tipe === 'lensa_l') s.total_penjualan_lensa += lineTotal;
+      else if (d.tipe === 'lensa_r' || d.tipe === 'lensa_l' || d.tipe === 'lensa') s.total_penjualan_lensa += lineTotal;
     }
 
     // Add actual historical commission from komisi_sales
@@ -80,7 +80,7 @@ exports.getKomisiDetail = async function ({ from, to, sales_id, tipe } = {}) {
         AND (
           (komisi_sales.tipe = 'frame' AND pd.tipe = 'frame')
           OR
-          (komisi_sales.tipe = 'lensa' AND pd.tipe IN ('lensa_r', 'lensa_l'))
+          (komisi_sales.tipe = 'lensa' AND pd.tipe IN ('lensa_r', 'lensa_l', 'lensa'))
         )
       ) as subtotal_kategori`),
       'penjualan.total as total_penjualan',

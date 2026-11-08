@@ -169,7 +169,7 @@ exports.create = async function (data, userId) {
 
     // 5. Save komisi sales
     if (salesRecord) {
-      const komisiRows = buildKomisiRows(createdPenjualan.id, salesRecord, items);
+      const komisiRows = buildKomisiRows(createdPenjualan.id, salesRecord, detailRows);
       await komisiSalesRepo.insertMany(trx, komisiRows);
     }
 

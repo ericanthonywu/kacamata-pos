@@ -60,19 +60,23 @@ exports.getDatatablesData = async function (params) {
     totalPenjualanKhusus = sumRes && sumRes.total_khusus ? parseFloat(sumRes.total_khusus) : 0;
   }
 
-  const columns = ['order_date', 'no_nota', 'pelanggan_nama', 'total', 'bpjs', 'dp', null, 'status_bayar', 'sales_nama'];
+  const dtColumns = params.columns;
+  const columns = (is_toko === 'true' || is_toko === true)
+    ? ['order_date', 'no_nota', 'pelanggan_nama', 'total', 'dp', 'metode_bayar', null, 'status_bayar', 'sales_nama']
+    : ['order_date', 'no_nota', 'pelanggan_nama', 'total', 'bpjs', 'dp', 'metode_bayar', null, 'status_bayar', 'sales_nama'];
   const colToDb = {
     order_date: 'penjualan.order_date', no_nota: 'penjualan.no_nota',
     pelanggan_nama: 'pelanggan.nama', total: 'penjualan.total',
     bpjs: 'penjualan.bpjs',
-    dp: 'penjualan.dp', status_bayar: 'penjualan.status_bayar',
+    dp: 'penjualan.dp', metode_bayar: 'metode_pembayaran.nama',
+    status_bayar: 'penjualan.status_bayar',
     sales_nama: 'sales.nama',
   };
   if (order && order.length > 0) {
     const colIndex = parseInt(order[0].column);
     const dir = order[0].dir === 'desc' ? 'desc' : 'asc';
-    const colName = columns[colIndex];
-    baseQuery = baseQuery.orderBy(colName ? colToDb[colName] : 'penjualan.created_at', dir);
+    const colName = (dtColumns && dtColumns[colIndex] && dtColumns[colIndex].data) || columns[colIndex];
+    baseQuery = baseQuery.orderBy((colName && colToDb[colName]) ? colToDb[colName] : 'penjualan.created_at', dir);
   } else {
     baseQuery = baseQuery.orderBy('penjualan.created_at', 'desc');
   }

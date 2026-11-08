@@ -40,4 +40,26 @@ function todayCompact() {
   return `${year}${month}${day}`;
 }
 
-module.exports = { todayStr, firstDayOfMonth, getMonthRange, todayCompact };
+/** Returns current year and month as 'YYYYMM' in local time. Used for monthly reset invoice generation. */
+function currentYearMonthCompact() {
+  const now = new Date();
+  const year = now.getFullYear();
+  const month = String(now.getMonth() + 1).padStart(2, '0');
+  return `${year}${month}`;
+}
+
+/** Formats a Date object or date string as 'YYYY-MM-DD' in local time (for <input type="date">). */
+function toDateInput(val) {
+  if (!val) return '';
+  if (typeof val === 'string' && /^\d{4}-\d{2}-\d{2}$/.test(val.trim())) {
+    return val.trim();
+  }
+  const d = new Date(val);
+  if (isNaN(d.getTime())) return '';
+  const year = d.getFullYear();
+  const month = String(d.getMonth() + 1).padStart(2, '0');
+  const day = String(d.getDate()).padStart(2, '0');
+  return `${year}-${month}-${day}`;
+}
+
+module.exports = { todayStr, firstDayOfMonth, getMonthRange, todayCompact, currentYearMonthCompact, toDateInput };

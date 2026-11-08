@@ -236,11 +236,14 @@ function showDetailModal(sales_id, pBulan, pTahun, pTipe) {
   const tahun = pTahun;
   const tipe = pTipe;
 
-  fetch('/laporan/komisi/detail/' + sales_id + '?bulan=' + bulan + '&tahun=' + tahun + '&tipe=' + tipe)
+  const url = (window.appUrl ? window.appUrl('/laporan/komisi/detail/' + sales_id) : '/laporan/komisi/detail/' + sales_id)
+    + '?bulan=' + bulan + '&tahun=' + tahun + '&tipe=' + tipe;
+
+  fetch(url)
     .then(res => res.json())
     .then(data => {
-      document.getElementById('mdlSalesName').innerText = data.sales.nama;
-      document.getElementById('printSalesName').innerText = data.sales.nama;
+      document.getElementById('mdlSalesName').innerText = data.sales ? data.sales.nama : '-';
+      document.getElementById('printSalesName').innerText = data.sales ? data.sales.nama : '-';
       
       const bulanStr = months[parseInt(data.filters.bulan) - 1] + ' ' + data.filters.tahun;
       document.getElementById('mdlBulan').innerText = bulanStr;
@@ -254,8 +257,8 @@ function showDetailModal(sales_id, pBulan, pTahun, pTipe) {
       document.getElementById('colSubtotal').innerText = subtotalLabel;
 
       let html = '';
-      if (data.details.length === 0) {
-        html = '<tr><td colspan="7" class="text-center text-muted">Tidak ada data komisi</td></tr>';
+      if (!data.details || data.details.length === 0) {
+        html = '<tr><td colspan="8" class="text-center text-muted">Tidak ada data komisi</td></tr>';
       } else {
         data.details.forEach((d, idx) => {
           html += '<tr>' +
