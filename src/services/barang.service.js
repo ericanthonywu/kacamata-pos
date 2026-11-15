@@ -73,3 +73,11 @@ exports.update = async function (id, data, options = {}) {
 };
 
 exports.del = function (id) { return repo.del(id); };
+
+exports.bulkDel = async function (ids) {
+  const validIds = [...new Set((ids || []).map(id => parseInt(id, 10)).filter(id => Number.isInteger(id) && id > 0))];
+  if (validIds.length === 0) {
+    throw Object.assign(new Error('Pilih minimal satu barang untuk dihapus'), { status: 400 });
+  }
+  return repo.bulkDel(validIds);
+};

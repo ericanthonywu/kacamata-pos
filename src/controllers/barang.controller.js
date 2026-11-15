@@ -59,3 +59,11 @@ exports.destroy = async function (req, res) {
     ok(res);
   } catch (err) { fail(res, err); }
 };
+
+exports.bulkDestroy = async function (req, res) {
+  try {
+    const ids = Array.isArray(req.body.ids) ? req.body.ids : [];
+    const deletedCount = await service.bulkDel(ids);
+    ok(res, { deletedCount });
+  } catch (err) { fail(res, err); }
+};

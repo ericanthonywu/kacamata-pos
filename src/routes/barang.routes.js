@@ -8,6 +8,7 @@ router.get('/', auth, c.index);
 router.get('/dt', auth, c.datatables);
 router.get('/search', auth, c.search);
 router.post('/', auth, requireAdmin, c.store);
+router.post('/bulk-delete', auth, requireAdmin, c.bulkDestroy);
 router.put('/:id', auth, requireAdmin, c.update);
 router.delete('/:id', auth, requireAdmin, c.destroy);
 

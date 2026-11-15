@@ -173,6 +173,11 @@ exports.del = function (id) {
   return db(TABLE).where('id', id).update({ deleted_at: db.fn.now() });
 };
 
+exports.bulkDel = function (ids) {
+  if (!ids || ids.length === 0) return Promise.resolve(0);
+  return db(TABLE).whereIn('id', ids).whereNull('deleted_at').update({ deleted_at: db.fn.now() });
+};
+
 exports.decrementQty = function (id, amount, trx) {
   return (trx || db)(TABLE).where('id', id).decrement('qty', amount);
 };
