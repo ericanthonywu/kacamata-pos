@@ -26,8 +26,10 @@
         <thead>
           <tr>
             <% if (currentUser.hak_akses==='admin' ) { %>
-              <th style="width:36px" class="text-center">
-                <input class="form-check-input" type="checkbox" id="selectAll" title="Pilih semua di halaman ini" style="cursor:pointer;">
+              <th style="width:44px; cursor:pointer;" class="text-center select-all-cell" title="Pilih semua di halaman ini">
+                <div class="d-flex justify-content-center align-items-center">
+                  <input class="form-check-input" type="checkbox" id="selectAll" style="cursor:pointer;">
+                </div>
               </th>
             <% } %>
             <th>Nama Barang</th>
@@ -277,11 +279,14 @@
             data: null,
             orderable: false,
             searchable: false,
-            className: 'text-center',
+            className: 'text-center select-cell',
+            createdCell: function (td) {
+              $(td).css('cursor', 'pointer');
+            },
             render: function (d, type, row) {
               var idStr = String(row.id);
               var checked = selectedItems.has(idStr) ? ' checked' : '';
-              return '<input class="form-check-input row-select" type="checkbox" value="' + idStr + '"' + checked + ' style="cursor:pointer;">';
+              return '<div class="d-flex justify-content-center align-items-center" style="cursor:pointer;"><input class="form-check-input row-select" type="checkbox" value="' + idStr + '"' + checked + ' style="cursor:pointer;"></div>';
             }
           });
         }
@@ -303,6 +308,20 @@
 
         dt.on('draw', function () {
           syncSelectionUI();
+        });
+
+        $(document).on('click', '#tblBarang thead th.select-all-cell', function (e) {
+          if ($(e.target).is('#selectAll')) return;
+          var $cb = $('#selectAll');
+          $cb.prop('checked', !$cb.prop('checked')).trigger('change');
+        });
+
+        $(document).on('click', '#tblBarang tbody td.select-cell', function (e) {
+          if ($(e.target).is('.row-select')) return;
+          var $cb = $(this).find('.row-select');
+          if ($cb.length) {
+            $cb.prop('checked', !$cb.prop('checked')).trigger('change');
+          }
         });
 
         $(document).on('change', '#selectAll', function () {
