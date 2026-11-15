@@ -14,7 +14,8 @@
       </div>
       <% if (currentUser.hak_akses==='admin' ) { %>
         <div class="d-flex gap-2 align-items-center">
-          <button class="btn btn-danger btn-sm d-none" id="btnBulkDelete"><i class="bi bi-trash"></i> Hapus Terpilih (<span id="selectedCount">0</span>)</button>
+          <button class="btn btn-outline-info btn-sm d-none" id="btnViewSelected"><i class="bi bi-list-check"></i> Lihat Terpilih (<span class="selected-count">0</span>)</button>
+          <button class="btn btn-danger btn-sm d-none" id="btnBulkDelete"><i class="bi bi-trash"></i> Hapus Terpilih (<span class="selected-count">0</span>)</button>
           <button class="btn btn-primary btn-sm" id="btnAdd"><i class="bi bi-plus"></i> Tambah Barang</button>
         </div>
         <% } %>
@@ -116,6 +117,41 @@
     </div>
 
     <% if (currentUser.hak_akses==='admin' ) { %>
+      <!-- Selected Items Modal -->
+      <div class="modal fade" id="selectedItemsModal" tabindex="-1">
+        <div class="modal-dialog modal-lg modal-dialog-scrollable">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h5 class="modal-title"><i class="bi bi-list-check me-1"></i> Barang Terpilih (<span class="selected-count">0</span>)</h5>
+              <button type="button" class="btn-close" data-bs-dismiss="modal"></button>
+            </div>
+            <div class="modal-body p-0">
+              <div class="table-responsive">
+                <table class="table table-sm table-hover mb-0">
+                  <thead class="table-light">
+                    <tr>
+                      <th>Nama Barang</th>
+                      <th>Kategori</th>
+                      <th>Qty</th>
+                      <th>Harga</th>
+                      <th style="width:48px" class="text-center">Hapus</th>
+                    </tr>
+                  </thead>
+                  <tbody id="selectedItemsBody"></tbody>
+                </table>
+              </div>
+            </div>
+            <div class="modal-footer justify-content-between">
+              <button class="btn btn-outline-secondary btn-sm" id="btnClearSelection">Kosongkan Pilihan</button>
+              <div class="d-flex gap-2">
+                <button class="btn btn-secondary btn-sm" data-bs-dismiss="modal">Tutup</button>
+                <button class="btn btn-danger btn-sm" id="btnBulkDeleteFromView"><i class="bi bi-trash"></i> Hapus Terpilih</button>
+              </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
       <!-- Bulk Delete Modal -->
       <div class="modal fade" id="bulkDeleteModal" tabindex="-1">
         <div class="modal-dialog modal-dialog-centered modal-sm">
@@ -139,15 +175,26 @@
     <script>
       window.userRole = '<%= currentUser.hak_akses %>';
       $(function () {
-        var selectedIds = new Set();
+        var selectedItems = new Map();
+
+        function formatBarangNama(row) {
+          var t = escapeHtml(row.nama_barang || '');
+          var sph = row.sph_r || row.sph_l || '';
+          var cyl = row.cyl_r || row.cyl_l || '';
+          var add = row.add_r || row.add_l || '';
+          if (sph || cyl || add) {
+            t += ' <span class="text-muted small">(SPH : ' + escapeHtml(sph) + ' CYL : ' + escapeHtml(cyl) + ' ADD : ' + escapeHtml(add) + ')</span>';
+          }
+          return t;
+        }
 
         function syncSelectionUI() {
-          var count = selectedIds.size;
-          $('#selectedCount').text(count);
+          var count = selectedItems.size;
+          $('.selected-count').text(count);
           if (count > 0) {
-            $('#btnBulkDelete').removeClass('d-none');
+            $('#btnViewSelected, #btnBulkDelete').removeClass('d-none');
           } else {
-            $('#btnBulkDelete').addClass('d-none');
+            $('#btnViewSelected, #btnBulkDelete').addClass('d-none');
           }
 
           var $rows = $('#tblBarang tbody .row-select');
@@ -160,17 +207,29 @@
           }
         }
 
+        function renderSelectedItemsModal() {
+          var $tbody = $('#selectedItemsBody');
+          if (selectedItems.size === 0) {
+            $tbody.html('<tr><td colspan="5" class="text-center text-muted py-3">Tidak ada barang yang dipilih</td></tr>');
+            return;
+          }
+          var html = '';
+          selectedItems.forEach(function (row, idStr) {
+            html += '<tr>' +
+              '<td>' + formatBarangNama(row) + '</td>' +
+              '<td><span class="badge bg-info bg-opacity-25 text-info">' + escapeHtml(row.kategori_nama || '-') + '</span></td>' +
+              '<td><span class="' + (row.qty <= 0 ? 'text-danger fw-bold' : '') + '">' + (row.qty ?? 0) + '</span></td>' +
+              '<td>' + fmtRp(row.harga_jual) + '</td>' +
+              '<td class="text-center"><button type="button" class="btn btn-sm btn-outline-secondary btn-unselect-item" data-id="' + idStr + '" title="Batal pilih"><i class="bi bi-x"></i></button></td>' +
+              '</tr>';
+          });
+          $tbody.html(html);
+        }
+
         var dtColumns = [
           {
             data: 'nama_barang', render: function (d, type, row) {
-              var t = d;
-              var sph = row.sph_r || row.sph_l || '';
-              var cyl = row.cyl_r || row.cyl_l || '';
-              var add = row.add_r || row.add_l || '';
-              if (sph || cyl || add) {
-                t += ' <span class="text-muted small">(SPH : ' + sph + ' CYL : ' + cyl + ' ADD : ' + add + ')</span>';
-              }
-              return t;
+              return formatBarangNama(row);
             }
           },
           { data: 'kategori_nama', render: function (d) { return '<span class="badge bg-info bg-opacity-25 text-info">' + (d || '-') + '</span>'; } },
@@ -208,7 +267,7 @@
             className: 'text-center',
             render: function (d, type, row) {
               var idStr = String(row.id);
-              var checked = selectedIds.has(idStr) ? ' checked' : '';
+              var checked = selectedItems.has(idStr) ? ' checked' : '';
               return '<input class="form-check-input row-select" type="checkbox" value="' + idStr + '"' + checked + ' style="cursor:pointer;">';
             }
           });
@@ -238,41 +297,80 @@
           $('#tblBarang tbody .row-select').each(function () {
             $(this).prop('checked', isChecked);
             var idStr = String($(this).val());
-            if (isChecked) selectedIds.add(idStr);
-            else selectedIds.delete(idStr);
+            if (isChecked) {
+              var row = dt.row($(this).closest('tr')).data();
+              if (row) selectedItems.set(idStr, row);
+            } else {
+              selectedItems.delete(idStr);
+            }
           });
           syncSelectionUI();
         });
 
         $(document).on('change', '.row-select', function () {
           var idStr = String($(this).val());
-          if ($(this).is(':checked')) selectedIds.add(idStr);
-          else selectedIds.delete(idStr);
+          if ($(this).is(':checked')) {
+            var row = dt.row($(this).closest('tr')).data();
+            if (row) selectedItems.set(idStr, row);
+          } else {
+            selectedItems.delete(idStr);
+          }
           syncSelectionUI();
         });
 
+        var selectedItemsModalEl = document.getElementById('selectedItemsModal');
+        var selectedItemsModal = selectedItemsModalEl ? new bootstrap.Modal(selectedItemsModalEl) : null;
         var bulkDeleteModalEl = document.getElementById('bulkDeleteModal');
         var bulkDeleteModal = bulkDeleteModalEl ? new bootstrap.Modal(bulkDeleteModalEl) : null;
 
+        $('#btnViewSelected').on('click', function () {
+          if (!selectedItemsModal) return;
+          renderSelectedItemsModal();
+          selectedItemsModal.show();
+        });
+
+        $(document).on('click', '.btn-unselect-item', function () {
+          var idStr = String($(this).data('id'));
+          selectedItems.delete(idStr);
+          $('#tblBarang tbody .row-select[value="' + idStr + '"]').prop('checked', false);
+          syncSelectionUI();
+          renderSelectedItemsModal();
+          if (selectedItems.size === 0 && selectedItemsModal) {
+            selectedItemsModal.hide();
+          }
+        });
+
+        $('#btnClearSelection').on('click', function () {
+          selectedItems.clear();
+          $('#tblBarang tbody .row-select').prop('checked', false);
+          syncSelectionUI();
+          if (selectedItemsModal) selectedItemsModal.hide();
+        });
+
+        $('#btnBulkDeleteFromView').on('click', function () {
+          if (selectedItemsModal) selectedItemsModal.hide();
+          $('#btnBulkDelete').trigger('click');
+        });
+
         $('#btnBulkDelete').on('click', function () {
-          if (selectedIds.size === 0 || !bulkDeleteModal) return;
-          $('#bulkDeleteCount').text(selectedIds.size);
+          if (selectedItems.size === 0 || !bulkDeleteModal) return;
+          $('#bulkDeleteCount').text(selectedItems.size);
           bulkDeleteModal.show();
         });
 
         $('#confirmBulkDeleteBtn').on('click', function () {
           var btn = this;
-          if (selectedIds.size === 0 || !setBtnLoading(btn)) return;
+          if (selectedItems.size === 0 || !setBtnLoading(btn)) return;
           $.ajax({
             url: '/barang/bulk-delete',
             method: 'POST',
             contentType: 'application/json',
-            data: JSON.stringify({ ids: Array.from(selectedIds) }),
+            data: JSON.stringify({ ids: Array.from(selectedItems.keys()) }),
             success: function (res) {
               resetBtn(btn);
               if (res.success) {
                 if (bulkDeleteModal) bulkDeleteModal.hide();
-                selectedIds.clear();
+                selectedItems.clear();
                 syncSelectionUI();
                 showToast((res.data && res.data.deletedCount ? res.data.deletedCount : 'Beberapa') + ' barang berhasil dihapus', 'success');
                 dt.ajax.reload(null, false);
