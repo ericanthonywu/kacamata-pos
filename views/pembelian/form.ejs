@@ -19,6 +19,19 @@
     font-size: 0.75rem;
     padding: 0.3em 0.5em;
   }
+  #tblTemporary th,
+  #tblTemporary td,
+  #tblKatalog th,
+  #tblKatalog td {
+    padding: 0.45rem 0.5rem;
+  }
+  #tblTemporary input.item-jumlah {
+    min-width: 72px;
+  }
+  #tblTemporary input.item-harga,
+  #tblTemporary input.item-harga-jual {
+    min-width: 125px;
+  }
 </style>
 
 <div class="d-flex justify-content-between align-items-center mb-3">
@@ -62,13 +75,13 @@
           <table id="tblTemporary" class="table table-sm align-middle mb-0">
             <thead>
               <tr>
-                <th>Barang</th>
-                <th style="width:55px" class="text-center">Stok</th>
-                <th style="width:75px">Qty</th>
-                <th style="width:120px">Harga Beli</th>
-                <th style="width:120px">Harga Jual</th>
+                <th style="min-width:140px">Barang</th>
+                <th style="width:48px" class="text-center">Stok</th>
+                <th style="width:88px; min-width:88px">Qty</th>
+                <th style="width:145px; min-width:145px">Harga Beli</th>
+                <th style="width:145px; min-width:145px">Harga Jual</th>
                 <th style="width:105px" class="text-end">Subtotal</th>
-                <th style="width:36px" class="text-center"></th>
+                <th style="width:38px" class="text-center"></th>
               </tr>
             </thead>
             <tbody></tbody>
@@ -124,18 +137,20 @@
           </button>
         </div>
       </div>
-      <table id="tblKatalog" class="table table-hover table-sm mb-0" style="width:100%">
-        <thead>
-          <tr>
-            <th>Nama Barang</th>
-            <th>Kategori</th>
-            <th class="text-center" style="width:50px">Stok</th>
-            <th class="text-end" style="width:95px">Harga Jual</th>
-            <th class="text-end" style="width:110px">Aksi</th>
-          </tr>
-        </thead>
-        <tbody></tbody>
-      </table>
+      <div class="table-responsive">
+        <table id="tblKatalog" class="table table-hover table-sm mb-0" style="width:100%">
+          <thead>
+            <tr>
+              <th>Nama Barang</th>
+              <th>Kategori</th>
+              <th class="text-center" style="width:45px">Stok</th>
+              <th class="text-end" style="width:90px">Harga Jual</th>
+              <th class="text-end" style="width:100px">Aksi</th>
+            </tr>
+          </thead>
+          <tbody></tbody>
+        </table>
+      </div>
     </div>
   </div>
 </div>
@@ -212,6 +227,7 @@
     tblKatalog = $('#tblKatalog').DataTable({
       processing: true,
       serverSide: true,
+      autoWidth: false,
       pageLength: 5,
       lengthMenu: [[5, 10, 25, 50, 100, -1], [5, 10, 25, 50, 100, "All"]],
       ajax: {
