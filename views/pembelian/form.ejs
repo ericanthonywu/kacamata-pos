@@ -320,10 +320,27 @@
       if (rowData) addItem(rowData);
     });
 
-    $(document).on('input change', '.item-jumlah', function () {
-      var id = parseInt($(this).data('id'));
-      var val = parseInt($(this).val()) || 1;
+    $(document).on('input', '.item-jumlah', function () {
+      var raw = $(this).val().replace(/[^0-9]/g, '');
+      if ($(this).val() !== raw) $(this).val(raw);
+      if (raw === '') return;
+      var val = parseInt(raw, 10);
       if (val < 1) { val = 1; $(this).val(1); }
+      var id = parseInt($(this).data('id'));
+      var it = selectedItems.find(function (i) { return i.barang_id === id; });
+      if (it) {
+        it.jumlah = val;
+        calcTotal();
+        refreshCatalogBadges();
+      }
+    });
+
+    $(document).on('change blur', '.item-jumlah', function () {
+      var raw = $(this).val().replace(/[^0-9]/g, '');
+      var val = parseInt(raw, 10) || 1;
+      if (val < 1) val = 1;
+      $(this).val(val);
+      var id = parseInt($(this).data('id'));
       var it = selectedItems.find(function (i) { return i.barang_id === id; });
       if (it) {
         it.jumlah = val;
@@ -452,7 +469,7 @@
     var html = '<tr id="row-item-' + item.barang_id + '">' +
       '<td>' + desc + '</td>' +
       '<td class="text-center text-muted small">' + item.stok + '</td>' +
-      '<td><input type="number" class="form-control form-control-sm item-jumlah calc-input" data-id="' + item.barang_id + '" value="' + item.jumlah + '" min="1"></td>' +
+      '<td><input type="text" inputmode="numeric" class="form-control form-control-sm item-jumlah calc-input" data-id="' + item.barang_id + '" value="' + item.jumlah + '"></td>' +
       '<td><input type="text" class="form-control form-control-sm item-harga calc-input input-currency" data-id="' + item.barang_id + '" value="' + Number(item.harga_beli || 0).toLocaleString('id-ID') + '"></td>' +
       '<td><input type="text" class="form-control form-control-sm item-harga-jual input-currency" data-id="' + item.barang_id + '" value="' + Number(item.harga_jual || 0).toLocaleString('id-ID') + '"></td>' +
       '<td class="text-end fw-bold item-subtotal">' + fmtRp(subtotal) + '</td>' +
